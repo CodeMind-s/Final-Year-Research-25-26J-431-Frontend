@@ -7,28 +7,32 @@ const homeCardData = [
         title: "Know the Exact Harvest Day",
         description: "Every saltern owner lies awake wondering “Will it crystallize this week?”. This headline hands them god-like certainty — the single most valuable piece of information in the entire season..",
         image: "/assets/images/crystal-logo.svg",
+        link: "/crystal-app",
     },
     {
         title: "Plan the Perfect Season",
         description: "Gives the feeling of upgrading from a bicycle to an air-conditioned control room. Makes even small saltern owners feel like they run a world-class operation.",
         image: "/assets/images/compass-logo.svg",
+        link: "/compass-app",
     },
     {
         title: "The End of Manual Checking",
         description: "Uses strong, absolute language that buyers and regulators love to hear. Creates emotional certainty in an industry full of human error and rejected shipments.",
         image: "/assets/images/vision-logo.svg",
+        link: "/vision-app",
     },
     {
         title: "From Bittern to Bank",
         description: "Elegant play on circular economy + financial upside. “Close the loop” is instantly understood by sustainability officers and government bodies.",
         image: "/assets/images/valor-logo.svg",
+        link: "/valor-app",
     },
 ];
 
 export default function HomeSection() {
     return (
         <div className="min-h-screen bg-white p-6 flex items-center justify-center">
-            <div className="w-full rounded-2xl p-8 border-1 border-gray-200 bg-gray-50/20">
+            <div className="w-full rounded-2xl p-8 border border-gray-200 bg-gray-50/20">
                 <div className="flex gap-8 h-[85vh]">
                     {/* Left Section - Content Area (40-45%) */}
                     <div className="w-[43%] flex flex-col justify-between gap-6">
@@ -51,9 +55,6 @@ export default function HomeSection() {
                                 AI-powered quality inspection, crystallization forecasting, seasonal planning, and waste valorization — built exclusively for Sri Lanka’s salt producers to increase yield, guarantee export quality, and eliminate waste.ibulum.
                             </p>
                         </div>
-
-                        {/* Bottom Section - Date and Logo */}
-
                     </div>
 
                     {/* Right Section - Green Bar and Grid (55-60%) */}

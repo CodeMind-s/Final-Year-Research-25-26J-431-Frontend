@@ -14,9 +14,10 @@ interface HomeCardProps {
     title: string;
     description: string;
     image: string;
+    link: string;
 }
 
-export default function HomeCard({ title, description, image }: HomeCardProps) {
+export default function HomeCard({ title, description, image, link }: HomeCardProps) {
     return (
         <Card>
             <CardHeader>
@@ -27,7 +28,7 @@ export default function HomeCard({ title, description, image }: HomeCardProps) {
                 <CardDescription>{description}</CardDescription>
             </CardContent>
             <CardFooter className="flex justify-end items-end w-full h-full">
-                <ExpolreButton />
+                <ExpolreButton link={link} />
             </CardFooter>
         </Card>
     );
