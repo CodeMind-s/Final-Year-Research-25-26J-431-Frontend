@@ -28,7 +28,7 @@ const homeCardData = [
 export default function HomeSection() {
     return (
         <div className="min-h-screen bg-white p-6 flex items-center justify-center">
-            <div className="w-full rounded-2xl p-8 border-1 border-gray-200 bg-gradient-to-br from-gray-50 to-white">
+            <div className="w-full rounded-2xl p-8 border-1 border-gray-200 bg-gray-50/20">
                 <div className="flex gap-8 h-[85vh]">
                     {/* Left Section - Content Area (40-45%) */}
                     <div className="w-[43%] flex flex-col justify-between gap-6">
@@ -40,14 +40,14 @@ export default function HomeSection() {
                         {/* Title Section */}
                         <div className="flex flex-col gap-4">
                             <div className="flex flex-col -gap-1.5">
-                                <h1 className="text-7xl font-bold tracking-tighter bg-linear-[90deg,#FFB622_0%,#FF7373_20%,#00D4FF_30%,#01B87A_80%] bg-clip-text text-transparent p-2">
+                                <h1 className="text-7xl font-bold tracking-tighter bg-linear-[90deg,#FFB622_0%,#FF7373_20%,#00D4FF_30%,#01B87A_80%] bg-clip-text text-transparent pb-2">
                                     Intelligent Salt <br />
                                 </h1>
-                                <h1 className="text-6xl font-bold tracking-tighter text-black">
+                                <h1 className="text-5xl font-bold tracking-tighter text-black">
                                     Production for New Era
                                 </h1>
                             </div>
-                            <p className="text-lg font-regular text-gray-500 tracking-tight">
+                            <p className="text-lg font-regular text-gray-500 tracking-tight leading-6">
                                 AI-powered quality inspection, crystallization forecasting, seasonal planning, and waste valorization — built exclusively for Sri Lanka’s salt producers to increase yield, guarantee export quality, and eliminate waste.ibulum.
                             </p>
                         </div>
