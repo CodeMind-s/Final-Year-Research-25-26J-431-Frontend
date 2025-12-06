@@ -7,25 +7,25 @@ const homeCardData = [
         title: "Know the Exact Harvest Day",
         description: "Every saltern owner lies awake wondering “Will it crystallize this week?”. This headline hands them god-like certainty — the single most valuable piece of information in the entire season..",
         image: "/assets/images/crystal-logo.svg",
-        link: "/crystal-app",
+        link: "/crystal",
     },
     {
         title: "Plan the Perfect Season",
         description: "Gives the feeling of upgrading from a bicycle to an air-conditioned control room. Makes even small saltern owners feel like they run a world-class operation.",
         image: "/assets/images/compass-logo.svg",
-        link: "/compass-app",
+        link: "/compass",
     },
     {
         title: "The End of Manual Checking",
         description: "Uses strong, absolute language that buyers and regulators love to hear. Creates emotional certainty in an industry full of human error and rejected shipments.",
         image: "/assets/images/vision-logo.svg",
-        link: "/vision-app",
+        link: "/vision",
     },
     {
         title: "From Bittern to Bank",
         description: "Elegant play on circular economy + financial upside. “Close the loop” is instantly understood by sustainability officers and government bodies.",
         image: "/assets/images/valor-logo.svg",
-        link: "/valor-app",
+        link: "/valor",
     },
 ];
 
