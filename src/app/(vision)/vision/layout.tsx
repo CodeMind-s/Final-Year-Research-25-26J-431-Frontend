@@ -5,7 +5,7 @@ import ErrorReporter from "@/components/vision/ErrorReporter";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "SaltQC AI - Quality Inspection System",
+  title: "BRINEX - Vision",
   description: "AI-powered Salt Quality Inspection System for Industrial Salterns",
 };
 

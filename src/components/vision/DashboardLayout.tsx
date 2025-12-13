@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -54,13 +55,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center gap-3 border-b border-border px-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500">
-              <Activity className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-foreground">SaltQC AI</h1>
-              <p className="text-xs text-muted-foreground">Quality System</p>
-            </div>
+            <Image src={"/assets/images/vision-logo.svg"} alt={"Vision Logo"} width={150} height={100} />
           </div>
 
           {/* Navigation */}
@@ -127,7 +122,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
             <div>
-              <h2 className="text-lg font-semibold text-foreground">
+              <h2 className="text-lg font-semibold text-foreground tracking-tighter">
                 Industrial Saltern Monitoring
               </h2>
               <p className="text-xs text-muted-foreground">
@@ -137,15 +132,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
-            </Button>
+
             <div className="h-6 w-px bg-border"></div>
-            <Button variant="ghost" className="gap-2">
-              <User className="h-5 w-5" />
-              <span className="hidden sm:inline">QC Admin</span>
-            </Button>
             <Button variant="ghost" size="icon">
               <LogOut className="h-5 w-5" />
             </Button>
