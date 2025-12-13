@@ -3,7 +3,7 @@
 import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import RecordsTable from "@/components/records-table"
+import RecordsTable from "@/components/valor/records-table"
 import { Download } from "lucide-react"
 
 interface DashboardProps {
