@@ -19,7 +19,7 @@ interface HomeCardProps {
 
 export default function HomeCard({ title, description, image, link }: HomeCardProps) {
     return (
-        <Card>
+        <Card className="h-full flex flex-col overflow-hidden">
             <CardHeader>
                 <Image src={image} alt="Logo" width={200} height={56} />
             </CardHeader>
