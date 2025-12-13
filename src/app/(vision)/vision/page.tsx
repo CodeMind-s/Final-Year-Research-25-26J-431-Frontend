@@ -16,10 +16,10 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     // Simulate login
     setTimeout(() => {
-      router.push("/dashboard/camera");
+      router.push("/vision/dashboard/camera");
     }, 1000);
   };
 
@@ -27,7 +27,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-      
+
       <div className="relative z-10 w-full max-w-md px-6">
         {/* Logo & Branding */}
         <div className="mb-8 text-center">

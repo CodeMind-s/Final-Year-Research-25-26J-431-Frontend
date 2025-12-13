@@ -29,12 +29,12 @@ interface DashboardLayoutProps {
 }
 
 const navigationItems = [
-  { name: "Camera Monitoring", href: "/dashboard/camera", icon: Video },
-  { name: "Detection & Grading", href: "/dashboard/detection", icon: Target },
-  { name: "Batch Assessment", href: "/dashboard/batch", icon: Layers },
-  { name: "Analytics", href: "/dashboard/analytics", icon: LineChart },
-  { name: "Reports", href: "/dashboard/reports", icon: FileText },
-  { name: "Settings", href: "/dashboard/settings", icon: Settings },
+  { name: "Camera Monitoring", href: "/vision/dashboard/camera", icon: Video },
+  { name: "Detection & Grading", href: "/vision/dashboard/detection", icon: Target },
+  { name: "Batch Assessment", href: "/vision/dashboard/batch", icon: Layers },
+  { name: "Analytics", href: "/vision/dashboard/analytics", icon: LineChart },
+  { name: "Reports", href: "/vision/dashboard/reports", icon: FileText },
+  { name: "Settings", href: "/vision/dashboard/settings", icon: Settings },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
