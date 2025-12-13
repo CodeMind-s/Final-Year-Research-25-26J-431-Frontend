@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CheckCircle, XCircle, RotateCw, Package, TrendingUp } from "lucide-react";
+import PageHeader from "@/components/vision/PageHeader";
 
 export default function BatchAssessmentPage() {
   const [progress, setProgress] = useState(78);
@@ -37,12 +38,7 @@ export default function BatchAssessmentPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Batch Quality Assessment</h1>
-        <p className="text-sm text-muted-foreground">
-          Comprehensive batch evaluation and quality control
-        </p>
-      </div>
+      <PageHeader title="Batch Quality Assessment" description="Comprehensive batch evaluation and quality control" />
 
       {/* Batch Summary */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -56,8 +52,8 @@ export default function BatchAssessmentPage() {
                     <p className="text-sm font-medium text-muted-foreground">{item.label}</p>
                     <p className="mt-2 text-2xl font-bold text-foreground">{item.value}</p>
                   </div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-                    <Icon className="h-6 w-6 text-blue-600" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-vision-100">
+                    <Icon className="h-6 w-6 text-vision-600" />
                   </div>
                 </div>
               </CardContent>
@@ -124,7 +120,7 @@ export default function BatchAssessmentPage() {
                     <TableCell>
                       <Badge
                         variant={frame.grade === "A" ? "default" : "secondary"}
-                        className={frame.grade === "A" ? "bg-green-600" : "bg-blue-600"}
+                        className={frame.grade === "A" ? "bg-green-600" : "bg-vision-600"}
                       >
                         {frame.grade}
                       </Badge>
@@ -143,7 +139,7 @@ export default function BatchAssessmentPage() {
       </Card>
 
       {/* Actuator Control Panel */}
-      <Card className="border-2 border-blue-500/20 bg-gradient-to-br from-blue-50/50 to-cyan-50/50">
+      <Card className="border-2 border-vision-500/20 bg-gradient-to-br from-vision-50/50 to-vision-100/50">
         <CardHeader>
           <CardTitle>Actuator Control Panel</CardTitle>
         </CardHeader>
@@ -176,9 +172,9 @@ export default function BatchAssessmentPage() {
                 <p className="text-sm font-medium text-red-900">Rejected Today</p>
                 <p className="mt-2 text-3xl font-bold text-red-700">3</p>
               </div>
-              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                <p className="text-sm font-medium text-blue-900">Reprocessing</p>
-                <p className="mt-2 text-3xl font-bold text-blue-700">2</p>
+              <div className="rounded-lg border border-vision-200 bg-vision-50 p-4">
+                <p className="text-sm font-medium text-vision-900">Reprocessing</p>
+                <p className="mt-2 text-3xl font-bold text-vision-700">2</p>
               </div>
             </div>
           </div>

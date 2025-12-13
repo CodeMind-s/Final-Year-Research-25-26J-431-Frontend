@@ -17,6 +17,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Calendar, TrendingDown, TrendingUp, Filter } from "lucide-react";
+import PageHeader from "@/components/vision/PageHeader";
 
 export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState("7days");
@@ -52,12 +53,7 @@ export default function AnalyticsPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Historical Analytics</h1>
-          <p className="text-sm text-muted-foreground">
-            Performance trends and quality insights
-          </p>
-        </div>
+        <PageHeader title="Historical Analytics" description="Performance trends and quality insights" />
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2">
             <Filter className="h-4 w-4" />
@@ -123,7 +119,7 @@ export default function AnalyticsPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Batches</p>
                 <p className="mt-2 text-2xl font-bold text-foreground">172</p>
-                <div className="mt-1 flex items-center gap-1 text-xs text-blue-600">
+                <div className="mt-1 flex items-center gap-1 text-xs text-vision-600">
                   <TrendingUp className="h-3 w-3" />
                   <span>Last 7 days</span>
                 </div>
@@ -266,12 +262,12 @@ export default function AnalyticsPage() {
                 value > 0.8
                   ? "bg-green-500"
                   : value > 0.6
-                  ? "bg-green-400"
-                  : value > 0.4
-                  ? "bg-yellow-400"
-                  : value > 0.2
-                  ? "bg-orange-400"
-                  : "bg-red-400";
+                    ? "bg-green-400"
+                    : value > 0.4
+                      ? "bg-yellow-400"
+                      : value > 0.2
+                        ? "bg-orange-400"
+                        : "bg-red-400";
               return <div key={i} className={`aspect-square rounded ${colorClass}`}></div>;
             })}
           </div>

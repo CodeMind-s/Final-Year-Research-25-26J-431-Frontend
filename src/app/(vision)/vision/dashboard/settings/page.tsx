@@ -26,6 +26,7 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
+import PageHeader from "@/components/vision/PageHeader";
 
 export default function SettingsPage() {
   const users = [
@@ -38,19 +39,14 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">System Settings</h1>
-        <p className="text-sm text-muted-foreground">
-          Configure cameras, AI models, and user access
-        </p>
-      </div>
+      <PageHeader title="System Settings" description="Configure cameras, AI models, and user access" />
 
       {/* Camera Calibration */}
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Camera className="h-5 w-5 text-blue-600" />
+              <Camera className="h-5 w-5 text-vision-600" />
               Camera Calibration
             </CardTitle>
           </CardHeader>
@@ -143,13 +139,13 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <div className="rounded-lg border border-vision-200 bg-vision-50 p-4">
               <div className="mb-3 flex items-center justify-between">
                 <div>
                   <p className="font-semibold">Available Update</p>
                   <p className="text-sm text-muted-foreground">New version ready</p>
                 </div>
-                <Badge variant="secondary" className="bg-blue-600 text-white">
+                <Badge variant="secondary" className="bg-vision-600 text-white">
                   v2.5.0
                 </Badge>
               </div>

@@ -4,18 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, FileText, Mail, Printer, CheckCircle, AlertTriangle } from "lucide-react";
+import PageHeader from "@/components/vision/PageHeader";
 
 export default function ReportsPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Report Generation</h1>
-          <p className="text-sm text-muted-foreground">
-            Export quality inspection reports and compliance documents
-          </p>
-        </div>
+        <PageHeader title="Report Generation" description="Export quality inspection reports and compliance documents" />
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2">
             <Printer className="h-4 w-4" />
@@ -30,11 +26,11 @@ export default function ReportsPage() {
 
       {/* Export Options */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
+        <Card className="border-vision-200 bg-gradient-to-br from-vision-50 to-vision-100">
           <CardContent className="pt-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-600 mb-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-vision-600 mb-4">
                   <FileText className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="font-semibold text-foreground">PDF Report</h3>
@@ -43,7 +39,7 @@ export default function ReportsPage() {
                 </p>
               </div>
             </div>
-            <Button className="mt-4 w-full gap-2 bg-blue-600 hover:bg-blue-700">
+            <Button className="mt-4 w-full gap-2 bg-vision-600 hover:bg-vision-700">
               <Download className="h-4 w-4" />
               Export PDF
             </Button>
@@ -145,7 +141,7 @@ export default function ReportsPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between rounded-lg bg-muted/30 p-4">
                   <span className="text-sm font-medium">Whiteness Index</span>
-                  <span className="text-lg font-bold text-blue-600">87.5 / 100</span>
+                  <span className="text-lg font-bold text-vision-600">87.5 / 100</span>
                 </div>
                 <div className="flex items-center justify-between rounded-lg bg-muted/30 p-4">
                   <span className="text-sm font-medium">Average Impurity Level</span>
@@ -157,7 +153,7 @@ export default function ReportsPage() {
                 </div>
                 <div className="flex items-center justify-between rounded-lg bg-muted/30 p-4">
                   <span className="text-sm font-medium">Uniformity Score</span>
-                  <span className="text-lg font-bold text-cyan-600">0.91 / 1.00</span>
+                  <span className="text-lg font-bold text-vision-500">0.91 / 1.00</span>
                 </div>
               </div>
             </div>

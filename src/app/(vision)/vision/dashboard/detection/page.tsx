@@ -4,11 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { AlertTriangle, CheckCircle, TrendingUp, Package } from "lucide-react";
+import PageHeader from "@/components/vision/PageHeader";
 
 export default function DetectionGradingPage() {
   const qualityMetrics = [
-    { label: "Whiteness Index", value: 87.5, color: "text-blue-600" },
-    { label: "Uniformity Score", value: 0.91, color: "text-cyan-600" },
+    { label: "Whiteness Index", value: 87.5, color: "text-vision-600" },
+    { label: "Uniformity Score", value: 0.91, color: "text-vision-500" },
     { label: "Purity Level", value: 94.2, color: "text-green-600" },
   ];
 
@@ -30,12 +31,7 @@ export default function DetectionGradingPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Impurity Detection & Grading</h1>
-        <p className="text-sm text-muted-foreground">
-          AI-powered analysis and quality assessment
-        </p>
-      </div>
+      <PageHeader title="Impurity Detection & Grading" description="AI-powered analysis and quality assessment" />
 
       {/* Grade Summary */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -70,7 +66,7 @@ export default function DetectionGradingPage() {
                 <p className="text-sm font-medium text-muted-foreground">Crystal Size</p>
                 <p className="mt-2 text-2xl font-bold text-foreground">Medium</p>
               </div>
-              <Package className="h-10 w-10 text-blue-600" />
+              <Package className="h-10 w-10 text-vision-600" />
             </div>
           </CardContent>
         </Card>
@@ -82,7 +78,7 @@ export default function DetectionGradingPage() {
                 <p className="text-sm font-medium text-muted-foreground">Confidence</p>
                 <p className="mt-2 text-2xl font-bold text-foreground">92.1%</p>
               </div>
-              <TrendingUp className="h-10 w-10 text-cyan-600" />
+              <TrendingUp className="h-10 w-10 text-vision-500" />
             </div>
           </CardContent>
         </Card>
@@ -103,7 +99,7 @@ export default function DetectionGradingPage() {
                   alt="Processed salt sample"
                   className="h-full w-full object-cover opacity-90"
                 />
-                
+
                 {/* Impurity Highlights */}
                 <div className="absolute left-[15%] top-[20%] h-16 w-16 rounded-full border-4 border-red-500 bg-red-500/20 animate-pulse"></div>
                 <div className="absolute left-[60%] top-[40%] h-12 w-12 rounded-full border-4 border-orange-500 bg-orange-500/20"></div>
@@ -146,13 +142,12 @@ export default function DetectionGradingPage() {
                     key={index}
                     className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3"
                   >
-                    <div className={`h-2 w-2 rounded-full ${
-                      log.status === "success"
-                        ? "bg-green-500"
-                        : log.status === "warning"
+                    <div className={`h-2 w-2 rounded-full ${log.status === "success"
+                      ? "bg-green-500"
+                      : log.status === "warning"
                         ? "bg-orange-500"
-                        : "bg-blue-500"
-                    }`}></div>
+                        : "bg-vision-500"
+                      }`}></div>
                     <span className="text-xs text-muted-foreground">{log.time}</span>
                     <span className="flex-1 text-sm">{log.action}</span>
                   </div>

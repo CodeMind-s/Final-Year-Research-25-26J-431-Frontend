@@ -15,6 +15,7 @@ import {
   CheckCircle,
   TrendingUp,
 } from "lucide-react";
+import PageHeader from "@/components/vision/PageHeader";
 
 export default function CameraMonitoringPage() {
   const [isStreaming, setIsStreaming] = useState(true);
@@ -50,12 +51,7 @@ export default function CameraMonitoringPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Real-Time Camera Monitoring</h1>
-        <p className="text-sm text-muted-foreground">
-          Live 2K camera feed with AI-powered impurity detection
-        </p>
-      </div>
+      <PageHeader title="Real-Time Camera Monitoring" description="Live 2K camera feed with AI-powered impurity detection" />
 
       {/* Stats Row */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -82,8 +78,8 @@ export default function CameraMonitoringPage() {
                 <p className="text-sm font-medium text-muted-foreground">Frame Rate</p>
                 <p className="mt-2 text-2xl font-bold text-foreground">{fps} FPS</p>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-                <TrendingUp className="h-6 w-6 text-blue-600" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-vision-100">
+                <TrendingUp className="h-6 w-6 text-vision-600" />
               </div>
             </div>
           </CardContent>
@@ -139,20 +135,20 @@ export default function CameraMonitoringPage() {
                   alt="Salt sample"
                   className="h-full w-full object-cover opacity-90"
                 />
-                
+
                 {/* AI Detection Overlays */}
                 <div className="absolute left-[15%] top-[20%] h-16 w-16 border-2 border-red-500 animate-pulse">
                   <div className="absolute -top-6 left-0 rounded bg-red-500 px-2 py-1 text-xs font-semibold text-white">
                     Black Speck 94%
                   </div>
                 </div>
-                
+
                 <div className="absolute left-[60%] top-[40%] h-12 w-12 border-2 border-orange-500">
                   <div className="absolute -top-6 left-0 rounded bg-orange-500 px-2 py-1 text-xs font-semibold text-white">
                     Clay 87%
                   </div>
                 </div>
-                
+
                 <div className="absolute left-[40%] top-[65%] h-10 w-10 border-2 border-yellow-500">
                   <div className="absolute -top-6 left-0 rounded bg-yellow-500 px-2 py-1 text-xs font-semibold text-white">
                     Sand 91%
@@ -237,8 +233,8 @@ export default function CameraMonitoringPage() {
                           detection.severity === "High"
                             ? "destructive"
                             : detection.severity === "Medium"
-                            ? "default"
-                            : "secondary"
+                              ? "default"
+                              : "secondary"
                         }
                       >
                         {detection.severity}
@@ -251,7 +247,7 @@ export default function CameraMonitoringPage() {
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-slate-200">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-500"
+                          className="h-full rounded-full bg-gradient-to-r from-vision-500 to-vision-400"
                           style={{ width: `${detection.confidence}%` }}
                         ></div>
                       </div>
