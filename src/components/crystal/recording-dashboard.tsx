@@ -14,34 +14,37 @@ import { RecordConfirmationDialog } from "@/components/crystal/dialogs/record-co
 export function RecordingDashboard() {
   const [formData, setFormData] = useState({
     site: "",
-    salinity: "",
     temperature: "",
-    depth: "",
-    evaporation: "",
-    humidity: "",
+    lagoon: "",
+    orBrineLevel: "",
+    orBundLevel: "",
+    irBrineLevel: "",
+    irBundLevel: "",
+    eastChannel: "",
+    westChannel: "",
     notes: "",
   })
 
   const [recentEntries, setRecentEntries] = useState([
     {
       date: "2025-12-15 14:30",
-      parameter: "Brine Salinity",
-      value: "24.5°Bé",
+      parameter: "Temperature",
+      value: "32°C",
       worker: "Sunil Perera",
       site: "Sector A",
       remarks: "Optimal level",
     },
     {
       date: "2025-12-15 14:15",
-      parameter: "Temperature",
-      value: "32°C",
+      parameter: "OR Brine Level",
+      value: "24.5°Bé",
       worker: "Nimal Silva",
       site: "Sector B",
       remarks: "-",
     },
     {
       date: "2025-12-15 13:45",
-      parameter: "Brine Depth",
+      parameter: "East Channel",
       value: "15cm",
       worker: "Kamal Fernando",
       site: "Sector C",
@@ -49,7 +52,7 @@ export function RecordingDashboard() {
     },
     {
       date: "2025-12-15 13:30",
-      parameter: "Evaporation Rate",
+      parameter: "Lagoon",
       value: "8.5%",
       worker: "Priya Jayawardena",
       site: "Sector A",
@@ -70,28 +73,31 @@ export function RecordingDashboard() {
         hour: "2-digit",
         minute: "2-digit",
       }),
-      parameter: "Brine Salinity",
-      value: `${formData.salinity}°Bé`,
+      parameter: "Temperature",
+      value: `${formData.temperature}°C`,
       worker: "Sunil Perera",
       site: formData.site,
       remarks: formData.notes || "-",
     }
     setRecentEntries([newEntry, ...recentEntries.slice(0, 3)])
-    
+
     setRecordedData({
       site: formData.site,
       worker: "Sunil Perera",
-      parameters: 5
+      parameters: 8
     })
     setShowSuccess(true)
 
     setFormData({
       site: "",
-      salinity: "",
       temperature: "",
-      depth: "",
-      evaporation: "",
-      humidity: "",
+      lagoon: "",
+      orBrineLevel: "",
+      orBundLevel: "",
+      irBrineLevel: "",
+      irBundLevel: "",
+      eastChannel: "",
+      westChannel: "",
       notes: "",
     })
   }
@@ -104,8 +110,8 @@ export function RecordingDashboard() {
           <Sparkles className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h1 className="text-3xl font-semibold text-foreground">Field Data Recording</h1>
-          <p className="text-muted-foreground">PSS Daily Environmental Monitoring</p>
+          <h1 className="text-2xl font-semibold text-foreground">Field Data Recording</h1>
+          <p className="text-sm text-muted-foreground">PSS Daily Environmental Monitoring</p>
         </div>
       </div>
 
@@ -113,14 +119,14 @@ export function RecordingDashboard() {
         {/* Data Entry Form */}
         <div className="lg:col-span-2">
           <Card className="p-6 bg-linear-to-br from-background to-accent/5">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-2">
               <h2 className="text-xl font-semibold text-foreground">Record Parameters</h2>
               <Badge className="bg-primary/10 text-primary border-primary/20">{new Date().toLocaleDateString()}</Badge>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Site Selection */}
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="site" className="text-foreground flex items-center gap-2">
                   <CalendarIcon className="h-4 w-4" />
                   Sector / Location
@@ -136,33 +142,13 @@ export function RecordingDashboard() {
                     <SelectItem value="Sector D">Sector D</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
 
               {/* Parameter Grid */}
               <div className="grid gap-4 md:grid-cols-2">
-                {/* Salinity */}
-                <Card className="p-4 bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
-                  <Label htmlFor="salinity" className="flex items-center gap-2 text-primary font-semibold mb-3">
-                    <Droplets className="h-5 w-5" />
-                    Brine Salinity
-                  </Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="salinity"
-                      type="number"
-                      step="0.1"
-                      placeholder="24.5"
-                      value={formData.salinity}
-                      onChange={(e) => setFormData({ ...formData, salinity: e.target.value })}
-                      className="bg-background border-border text-foreground text-2xl font-bold h-14 text-center"
-                    />
-                    <span className="text-muted-foreground font-medium">°Bé</span>
-                  </div>
-                </Card>
-
                 {/* Temperature */}
                 <Card className="p-4 bg-destructive/5 border-destructive/20 hover:bg-destructive/10 transition-colors">
-                  <Label htmlFor="temperature" className="flex items-center gap-2 text-destructive font-semibold mb-3">
+                  <Label htmlFor="temperature" className="flex items-center gap-2 text-destructive font-semibold">
                     <Thermometer className="h-5 w-5" />
                     Temperature
                   </Label>
@@ -180,49 +166,149 @@ export function RecordingDashboard() {
                   </div>
                 </Card>
 
-                {/* Humidity */}
-                <Card className="p-4 bg-success/5 border-success/20 hover:bg-success/10 transition-colors">
-                  <Label htmlFor="humidity" className="flex items-center gap-2 text-success font-semibold mb-3">
-                    <Wind className="h-5 w-5" />
-                    Humidity
+                {/* Lagoon */}
+                <Card className="p-4 bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
+                  <Label htmlFor="lagoon" className="flex items-center gap-2 text-primary font-semibold">
+                    <Droplets className="h-5 w-5" />
+                    Lagoon
                   </Label>
                   <div className="flex items-center gap-2">
                     <Input
-                      id="humidity"
+                      id="lagoon"
                       type="number"
                       step="0.1"
-                      placeholder="75.0"
-                      value={formData.humidity}
-                      onChange={(e) => setFormData({ ...formData, humidity: e.target.value })}
+                      placeholder="0.0"
+                      value={formData.lagoon}
+                      onChange={(e) => setFormData({ ...formData, lagoon: e.target.value })}
                       className="bg-background border-border text-foreground text-2xl font-bold h-14 text-center"
                     />
                     <span className="text-muted-foreground font-medium">%</span>
                   </div>
                 </Card>
 
-                {/* Evaporation Rate */}
-                <Card className="p-4 bg-warning/5 border-warning/20 hover:bg-warning/10 transition-colors">
-                  <Label htmlFor="evaporation" className="flex items-center gap-2 text-warning font-semibold mb-3">
-                    <Gauge className="h-5 w-5" />
-                    Evaporation Rate
+                {/* OR Brine Level (Salinity) */}
+                <Card className="p-4 bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
+                  <Label htmlFor="orBrineLevel" className="flex items-center gap-2 text-primary font-semibold">
+                    <Droplets className="h-5 w-5" />
+                    OR Brine Level
                   </Label>
                   <div className="flex items-center gap-2">
                     <Input
-                      id="evaporation"
+                      id="orBrineLevel"
                       type="number"
                       step="0.1"
-                      placeholder="8.5"
-                      value={formData.evaporation}
-                      onChange={(e) => setFormData({ ...formData, evaporation: e.target.value })}
+                      placeholder="24.5"
+                      value={formData.orBrineLevel}
+                      onChange={(e) => setFormData({ ...formData, orBrineLevel: e.target.value })}
                       className="bg-background border-border text-foreground text-2xl font-bold h-14 text-center"
                     />
-                    <span className="text-muted-foreground font-medium">%</span>
+                    <span className="text-muted-foreground font-medium">°Bé</span>
+                  </div>
+                </Card>
+
+                {/* OR Bund Level (Water Level) */}
+                <Card className="p-4 bg-chart-2/10 border-chart-2/20 hover:bg-chart-2/20 transition-colors">
+                  <Label htmlFor="orBundLevel" className="flex items-center gap-2 text-chart-2 font-semibold">
+                    <Gauge className="h-5 w-5" />
+                    OR Bund Level
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="orBundLevel"
+                      type="number"
+                      step="0.1"
+                      placeholder="15.0"
+                      value={formData.orBundLevel}
+                      onChange={(e) => setFormData({ ...formData, orBundLevel: e.target.value })}
+                      className="bg-background border-border text-foreground text-2xl font-bold h-14 text-center"
+                    />
+                    <span className="text-muted-foreground font-medium">cm</span>
+                  </div>
+                </Card>
+
+                {/* IR Brine Level (Salinity) */}
+                <Card className="p-4 bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
+                  <Label htmlFor="irBrineLevel" className="flex items-center gap-2 text-primary font-semibold">
+                    <Droplets className="h-5 w-5" />
+                    IR Brine Level
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="irBrineLevel"
+                      type="number"
+                      step="0.1"
+                      placeholder="24.5"
+                      value={formData.irBrineLevel}
+                      onChange={(e) => setFormData({ ...formData, irBrineLevel: e.target.value })}
+                      className="bg-background border-border text-foreground text-2xl font-bold h-14 text-center"
+                    />
+                    <span className="text-muted-foreground font-medium">°Bé</span>
+                  </div>
+                </Card>
+
+                {/* IR Bund Level (Water Level) */}
+                <Card className="p-4 bg-chart-2/10 border-chart-2/20 hover:bg-chart-2/20 transition-colors">
+                  <Label htmlFor="irBundLevel" className="flex items-center gap-2 text-chart-2 font-semibold">
+                    <Gauge className="h-5 w-5" />
+                    IR Bund Level
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="irBundLevel"
+                      type="number"
+                      step="0.1"
+                      placeholder="15.0"
+                      value={formData.irBundLevel}
+                      onChange={(e) => setFormData({ ...formData, irBundLevel: e.target.value })}
+                      className="bg-background border-border text-foreground text-2xl font-bold h-14 text-center"
+                    />
+                    <span className="text-muted-foreground font-medium">cm</span>
+                  </div>
+                </Card>
+
+                {/* East Channel (Water Level) */}
+                <Card className="p-4 bg-chart-3/10 border-chart-3/20 hover:bg-chart-3/20 transition-colors">
+                  <Label htmlFor="eastChannel" className="flex items-center gap-2 text-chart-3 font-semibold">
+                    <Wind className="h-5 w-5" />
+                    East Channel
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="eastChannel"
+                      type="number"
+                      step="0.1"
+                      placeholder="12.0"
+                      value={formData.eastChannel}
+                      onChange={(e) => setFormData({ ...formData, eastChannel: e.target.value })}
+                      className="bg-background border-border text-foreground text-2xl font-bold h-14 text-center"
+                    />
+                    <span className="text-muted-foreground font-medium">cm</span>
+                  </div>
+                </Card>
+
+                {/* West Channel (Water Level) */}
+                <Card className="p-4 bg-chart-3/10 border-chart-3/20 hover:bg-chart-3/20 transition-colors">
+                  <Label htmlFor="westChannel" className="flex items-center gap-2 text-chart-3 font-semibold">
+                    <Wind className="h-5 w-5" />
+                    West Channel
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="westChannel"
+                      type="number"
+                      step="0.1"
+                      placeholder="12.0"
+                      value={formData.westChannel}
+                      onChange={(e) => setFormData({ ...formData, westChannel: e.target.value })}
+                      className="bg-background border-border text-foreground text-2xl font-bold h-14 text-center"
+                    />
+                    <span className="text-muted-foreground font-medium">cm</span>
                   </div>
                 </Card>
               </div>
 
               {/* Notes */}
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="notes" className="text-foreground">
                   Field Observations (Optional)
                 </Label>
@@ -233,12 +319,12 @@ export function RecordingDashboard() {
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   className="bg-background border-border text-foreground min-h-24"
                 />
-              </div>
+              </div> */}
 
               {/* Submit Button */}
-              <Button 
-                type="submit" 
-                size="lg" 
+              <Button
+                type="submit"
+                size="lg"
                 className="w-full h-14 text-lg font-semibold bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
               >
                 <Sparkles className="h-5 w-5 mr-2" />

@@ -67,13 +67,13 @@ const LANDOWNER_ID = 'landowner_001';
 const LANDOWNER_NAME = 'Ravi Kumara';
 
 export const LandownerDashboard: React.FC = () => {
-  const { 
-    sellerOffers, 
-    createDeal, 
-    addNotification, 
+  const {
+    sellerOffers,
+    createDeal,
+    addNotification,
     getUserDeals,
     getUserNotifications,
-    getUnreadCount 
+    getUnreadCount
   } = useApp();
 
   // UI State
@@ -133,13 +133,13 @@ export const LandownerDashboard: React.FC = () => {
 
   // Calculate profit for each offer
   const totalCost = fertCost + laborCost + transportCost;
-  
+
   const offersWithProfit = displayOffers.map(offer => {
     const sellingTons = Math.min(availableTons, offer.demandTons);
     const revenue = sellingTons * offer.pricePerTon;
     const profit = revenue - totalCost;
     const profitPerTon = sellingTons > 0 ? profit / sellingTons : 0;
-    
+
     return {
       ...offer,
       sellingTons,
@@ -150,13 +150,13 @@ export const LandownerDashboard: React.FC = () => {
   });
 
   // Find best profit offer
-  const bestProfitOffer = offersWithProfit.reduce((best, current) => 
+  const bestProfitOffer = offersWithProfit.reduce((best, current) =>
     current.profit > best.profit ? current : best
-  , offersWithProfit[0]);
+    , offersWithProfit[0]);
 
   // Selection state
   const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
-  const selectedOfferData = selectedOfferId 
+  const selectedOfferData = selectedOfferId
     ? offersWithProfit.find(o => o.id === selectedOfferId)
     : bestProfitOffer;
 
@@ -207,7 +207,7 @@ export const LandownerDashboard: React.FC = () => {
 
   return (
     <div className="pb-24 lg:pb-6 bg-slate-50 min-h-screen">
-      
+
       {/* Zone 1: Decision Strip */}
       <div className="sticky top-0 z-20 bg-emerald-600 text-white shadow-lg rounded-b-3xl lg:rounded-none px-6 py-5">
         {/* Landowner Name */}
@@ -238,10 +238,10 @@ export const LandownerDashboard: React.FC = () => {
                 </span>
               )}
             </button>
-            
+
             {/* Notification Bell */}
             <NotificationBell count={unreadCount} onClick={() => setShowNotifications(true)} />
-            
+
             <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
               <Leaf className="w-8 h-8 text-white" />
             </div>
@@ -266,203 +266,202 @@ export const LandownerDashboard: React.FC = () => {
 
       {/* Desktop Grid Layout */}
       <div className="px-4 mt-6 lg:px-6 lg:max-w-[1600px] lg:mx-auto">
-        
+
         {/* Main Grid - 2 columns on desktop */}
         <div className="space-y-6 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
-          
+
           {/* LEFT COLUMN - Analytics */}
           <div className="space-y-6" id="analytics-section">
-        
-        {/* Prediction Analytics Section */}
-        <section>
-          <h2 className="text-xl font-bold text-slate-800 mb-4">AI-Powered Harvest Analytics</h2>
-          
-          {/* Profit Projection Card */}
-          <div className="mb-4">
-            <ProfitProjectionCard projections={mockProfitProjections} />
+
+            {/* Prediction Analytics Section */}
+            <section>
+              <h2 className="text-xl font-bold text-slate-800 mb-4">AI-Powered Harvest Analytics</h2>
+
+              {/* Profit Projection Card */}
+              <div className="mb-4">
+                <ProfitProjectionCard projections={mockProfitProjections} />
+              </div>
+
+              {/* Prediction Charts */}
+              <PredictionCharts
+                harvestData={mockHarvestPredictions}
+                priceData={mockPricePredictions}
+                demandData={mockDemandPredictions}
+              />
+            </section>
+
+            {/* My Deals Section - Now removed, accessible via dialog */}
+            {/* DealsSection removed */}
           </div>
-          
-          {/* Prediction Charts */}
-          <PredictionCharts 
-            harvestData={mockHarvestPredictions}
-            priceData={mockPricePredictions}
-            demandData={mockDemandPredictions}
-          />
-        </section>
-        
-        {/* My Deals Section - Now removed, accessible via dialog */}
-        {/* DealsSection removed */}
-        </div>
 
-        {/* RIGHT COLUMN - Offers */}
-        <div className="space-y-6" id="offers-section">
-        
-        {/* Unified Offer Comparison */}
-        <section>
-          <h2 className="text-xl font-bold text-slate-800 mb-4">Compare Offers & Calculate Profit</h2>
-          
-          {/* Cost Inputs - Compact Grid Layout */}
-          <Card className="mb-4 bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200">
-            <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-              <TrendingUp size={16} className="text-blue-600" />
-              Your Production Costs
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-600">Fertilizer</label>
-                <input
-                  type="number"
-                  value={fertCost}
-                  onChange={(e) => setFertCost(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  min={5000}
-                  max={20000}
-                  step={500}
-                />
-                <p className="text-xs text-slate-500">LKR {fertCost.toLocaleString()}</p>
-              </div>
-              
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-600">Labor</label>
-                <input
-                  type="number"
-                  value={laborCost}
-                  onChange={(e) => setLaborCost(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  min={10000}
-                  max={30000}
-                  step={1000}
-                />
-                <p className="text-xs text-slate-500">LKR {laborCost.toLocaleString()}</p>
-              </div>
-              
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-600">Transport</label>
-                <input
-                  type="number"
-                  value={transportCost}
-                  onChange={(e) => setTransportCost(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  min={2000}
-                  max={10000}
-                  step={500}
-                />
-                <p className="text-xs text-slate-500">LKR {transportCost.toLocaleString()}</p>
-              </div>
-            </div>
-            
-            <div className="mt-3 pt-3 border-t border-slate-200 flex justify-between items-center">
-              <span className="text-sm font-semibold text-slate-600">Total Costs:</span>
-              <span className="text-lg font-bold text-slate-900">LKR {totalCost.toLocaleString()}</span>
-            </div>
-          </Card>
+          {/* RIGHT COLUMN - Offers */}
+          <div className="space-y-6" id="offers-section">
 
-          {/* Offer Cards Grid */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-slate-600">
-                Showing {showAllOffers ? offersWithProfit.length : Math.min(3, offersWithProfit.length)} of {offersWithProfit.length} offers • Available: {availableTons} tons
-              </p>
-              {offersWithProfit.length > 3 && (
-                <button 
-                  onClick={() => setShowAllOffers(!showAllOffers)}
-                  className="text-blue-600 text-sm font-semibold flex items-center hover:underline"
-                >
-                  {showAllOffers ? 'Show Less' : `View All (${offersWithProfit.length})`} 
-                  <ArrowRight size={14} className="ml-1"/>
-                </button>
-              )}
-            </div>
+            {/* Unified Offer Comparison */}
+            <section>
+              <h2 className="text-xl font-bold text-slate-800 mb-4">Compare Offers & Calculate Profit</h2>
 
-            {(showAllOffers ? offersWithProfit : offersWithProfit.slice(0, 3)).map((offer) => {
-              const isBest = offer.id === bestProfitOffer.id;
-              const isSelected = offer.id === selectedOfferId || (!selectedOfferId && isBest);
-              const profitColor = offer.profit > 0 ? 'text-emerald-700' : 'text-red-600';
-              
-              return (
-                <Card 
-                  key={offer.id}
-                  className={`cursor-pointer transition-all ${
-                    isSelected 
-                      ? 'ring-2 ring-blue-500 bg-blue-50/30' 
-                      : isBest
-                      ? 'ring-2 ring-emerald-500 bg-emerald-50/20'
-                      : 'hover:bg-slate-50'
-                  }`}
-                  onClick={() => setSelectedOfferId(offer.id)}
-                >
-                  {/* Header */}
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        checked={isSelected}
-                        onChange={() => setSelectedOfferId(offer.id)}
-                        className="w-4 h-4 text-blue-600"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <div>
-                        <h3 className="font-bold text-base text-slate-900">{offer.name}</h3>
-                        <p className="text-xs text-slate-500">
-                          Wants {offer.demandTons} tons • {offer.reliability} Reliability
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      {isBest && (
-                        <div className="mb-1">
-                        <Badge color="green" size="sm" >
-                          ⭐ Best Profit
-                        </Badge>
+              {/* Cost Inputs - Compact Grid Layout */}
+              <Card className="mb-4 bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200">
+                <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                  <TrendingUp size={16} className="text-blue-600" />
+                  Your Production Costs
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-600">Fertilizer</label>
+                    <input
+                      type="number"
+                      value={fertCost}
+                      onChange={(e) => setFertCost(Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      min={5000}
+                      max={20000}
+                      step={500}
+                    />
+                    <p className="text-xs text-slate-500">LKR {fertCost.toLocaleString()}</p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-600">Labor</label>
+                    <input
+                      type="number"
+                      value={laborCost}
+                      onChange={(e) => setLaborCost(Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      min={10000}
+                      max={30000}
+                      step={1000}
+                    />
+                    <p className="text-xs text-slate-500">LKR {laborCost.toLocaleString()}</p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-600">Transport</label>
+                    <input
+                      type="number"
+                      value={transportCost}
+                      onChange={(e) => setTransportCost(Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      min={2000}
+                      max={10000}
+                      step={500}
+                    />
+                    <p className="text-xs text-slate-500">LKR {transportCost.toLocaleString()}</p>
+                  </div>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-slate-200 flex justify-between items-center">
+                  <span className="text-sm font-semibold text-slate-600">Total Costs:</span>
+                  <span className="text-lg font-bold text-slate-900">LKR {totalCost.toLocaleString()}</span>
+                </div>
+              </Card>
+
+              {/* Offer Cards Grid */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-slate-600">
+                    Showing {showAllOffers ? offersWithProfit.length : Math.min(3, offersWithProfit.length)} of {offersWithProfit.length} offers • Available: {availableTons} tons
+                  </p>
+                  {offersWithProfit.length > 3 && (
+                    <button
+                      onClick={() => setShowAllOffers(!showAllOffers)}
+                      className="text-blue-600 text-sm font-semibold flex items-center hover:underline"
+                    >
+                      {showAllOffers ? 'Show Less' : `View All (${offersWithProfit.length})`}
+                      <ArrowRight size={14} className="ml-1" />
+                    </button>
+                  )}
+                </div>
+
+                {(showAllOffers ? offersWithProfit : offersWithProfit.slice(0, 3)).map((offer) => {
+                  const isBest = offer.id === bestProfitOffer.id;
+                  const isSelected = offer.id === selectedOfferId || (!selectedOfferId && isBest);
+                  const profitColor = offer.profit > 0 ? 'text-emerald-700' : 'text-red-600';
+
+                  return (
+                    <Card
+                      key={offer.id}
+                      className={`cursor-pointer transition-all ${isSelected
+                          ? 'ring-2 ring-blue-500 bg-blue-50/30'
+                          : isBest
+                            ? 'ring-2 ring-emerald-500 bg-emerald-50/20'
+                            : 'hover:bg-slate-50'
+                        }`}
+                      onClick={() => setSelectedOfferId(offer.id)}
+                    >
+                      {/* Header */}
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            checked={isSelected}
+                            onChange={() => setSelectedOfferId(offer.id)}
+                            className="w-4 h-4 text-blue-600"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <div>
+                            <h3 className="font-bold text-base text-slate-900">{offer.name}</h3>
+                            <p className="text-xs text-slate-500">
+                              Wants {offer.demandTons} tons • {offer.reliability} Reliability
+                            </p>
+                          </div>
                         </div>
-                      )}
-                      <p className="text-2xl font-bold text-slate-900">
-                        {offer.pricePerTon}
-                        <span className="text-sm font-normal text-slate-500"> /ton</span>
-                      </p>
-                    </div>
-                  </div>
+                        <div className="text-right">
+                          {isBest && (
+                            <div className="mb-1">
+                              <Badge color="green" size="sm" >
+                                ⭐ Best Profit
+                              </Badge>
+                            </div>
+                          )}
+                          <p className="text-2xl font-bold text-slate-900">
+                            {offer.pricePerTon}
+                            <span className="text-sm font-normal text-slate-500"> /ton</span>
+                          </p>
+                        </div>
+                      </div>
 
-                  {/* Profit Breakdown */}
-                  <div className="bg-slate-50 rounded-lg p-3 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">Selling:</span>
-                      <span className="font-semibold text-slate-900">{offer.sellingTons} tons</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">Revenue:</span>
-                      <span className="font-semibold text-blue-700">
-                        LKR {offer.revenue.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">Costs:</span>
-                      <span className="font-semibold text-slate-600">
-                        - LKR {totalCost.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="pt-2 border-t border-slate-200">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-bold text-slate-700">Net Profit:</span>
-                        <span className={`text-xl font-bold ${profitColor}`}>
-                          LKR {offer.profit.toLocaleString()}
-                        </span>
+                      {/* Profit Breakdown */}
+                      <div className="bg-slate-50 rounded-lg p-3 space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-600">Selling:</span>
+                          <span className="font-semibold text-slate-900">{offer.sellingTons} tons</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-600">Revenue:</span>
+                          <span className="font-semibold text-blue-700">
+                            LKR {offer.revenue.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-600">Costs:</span>
+                          <span className="font-semibold text-slate-600">
+                            - LKR {totalCost.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="pt-2 border-t border-slate-200">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-bold text-slate-700">Net Profit:</span>
+                            <span className={`text-xl font-bold ${profitColor}`}>
+                              LKR {offer.profit.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center mt-1">
+                            <span className="text-xs text-slate-500">Profit per ton:</span>
+                            <span className={`text-sm font-semibold ${profitColor}`}>
+                              LKR {offer.profitPerTon.toFixed(0)}/ton
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center mt-1">
-                        <span className="text-xs text-slate-500">Profit per ton:</span>
-                        <span className={`text-sm font-semibold ${profitColor}`}>
-                          LKR {offer.profitPerTon.toFixed(0)}/ton
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
+                    </Card>
+                  );
+                })}
+              </div>
+            </section>
           </div>
-        </section>
-        </div>
 
         </div>
       </div>
@@ -480,16 +479,16 @@ export const LandownerDashboard: React.FC = () => {
       {showMobileMenu && (
         <div className="fixed inset-0 z-50 lg:hidden">
           {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black/50" 
+          <div
+            className="absolute inset-0 bg-black/50"
             onClick={() => setShowMobileMenu(false)}
           />
-          
+
           {/* Menu Panel */}
           <div className="absolute right-0 top-0 bottom-0 w-64 bg-white shadow-2xl p-6 overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-slate-900">Quick Navigation</h3>
-              <button 
+              <button
                 onClick={() => setShowMobileMenu(false)}
                 className="p-2 hover:bg-slate-100 rounded-full"
               >
@@ -540,9 +539,9 @@ export const LandownerDashboard: React.FC = () => {
       {/* Sticky Bottom Bar - Mobile Only */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 shadow-xl z-50 safe-area-pb lg:hidden">
         <div className="flex gap-3 max-w-md mx-auto">
-          <Button 
-            variant="success" 
-            fullWidth 
+          <Button
+            variant="success"
+            fullWidth
             className="text-lg"
             onClick={handleSellNow}
             disabled={availableTons <= 0}
@@ -554,8 +553,8 @@ export const LandownerDashboard: React.FC = () => {
 
       {/* Desktop Action Button */}
       <div className="hidden lg:block fixed bottom-6 right-6 z-50">
-        <Button 
-          variant="success" 
+        <Button
+          variant="success"
           className="text-lg px-8 h-14 shadow-2xl"
           onClick={handleSellNow}
           disabled={availableTons <= 0}
@@ -611,3 +610,6 @@ export const LandownerDashboard: React.FC = () => {
     </div>
   );
 };
+
+export default LandownerDashboard;
+

@@ -59,7 +59,7 @@ export default function AlertsPage() {
   }
 
   return (
-    <DashboardLayout>
+    // <DashboardLayout>
       <div className="p-6 space-y-6">
         <div>
           <h1 className="text-3xl font-semibold text-foreground">System Alerts</h1>
@@ -139,6 +139,6 @@ export default function AlertsPage() {
           ))}
         </div>
       </div>
-    </DashboardLayout>
+    // </DashboardLayout>
   )
 }

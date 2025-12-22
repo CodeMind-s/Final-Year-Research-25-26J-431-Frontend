@@ -1,3 +1,5 @@
+"use client"
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Deal, Notification, SellerOffer, LandownerSummary, DealStatus, NotificationType } from '@/dtos/compass/types';
 
@@ -90,7 +92,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           acceptedAt: Date.now() - 6 * 24 * 60 * 60 * 1000,
           completedAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
         },
-        
+
         // ACTIVE DEALS (5) - All different sellers (including one for seller_001)
         {
           id: 'deal_003',
@@ -166,11 +168,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
     return stored;
   });
-  
-  const [notifications, setNotifications] = useState<Notification[]>(() => 
+
+  const [notifications, setNotifications] = useState<Notification[]>(() =>
     loadFromStorage(STORAGE_KEYS.NOTIFICATIONS, [])
   );
-  
+
   const [sellerOffers, setSellerOffers] = useState<SellerOffer[]>(() => {
     const stored = loadFromStorage(STORAGE_KEYS.OFFERS, []);
     // Initialize with sample offers if empty
@@ -188,8 +190,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
     return stored;
   });
-  
-  const [landowners, setLandowners] = useState<LandownerSummary[]>(() => 
+
+  const [landowners, setLandowners] = useState<LandownerSummary[]>(() =>
     loadFromStorage(STORAGE_KEYS.LANDOWNERS, [])
   );
   const [currentUserId, setCurrentUserId] = useState<string>('user_001');
@@ -218,17 +220,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       createdAt: Date.now(),
     };
     setDeals(prev => [...prev, newDeal]);
-    
+
     // Update landowner available tons
-    setLandowners(prev => prev.map(lo => 
-      lo.id === dealData.landownerId 
+    setLandowners(prev => prev.map(lo =>
+      lo.id === dealData.landownerId
         ? { ...lo, availableTons: lo.availableTons - dealData.quantity }
         : lo
     ));
   };
 
   const updateDeal = (dealId: string, updates: Partial<Deal>) => {
-    setDeals(prev => prev.map(deal => 
+    setDeals(prev => prev.map(deal =>
       deal.id === dealId ? { ...deal, ...updates } : deal
     ));
   };
@@ -252,7 +254,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const markNotificationAsRead = (notificationId: string) => {
-    setNotifications(prev => prev.map(notif => 
+    setNotifications(prev => prev.map(notif =>
       notif.id === notificationId ? { ...notif, read: true } : notif
     ));
   };
@@ -266,7 +268,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const getUserDeals = (userId: string, role: 'seller' | 'landowner'): Deal[] => {
-    return deals.filter(deal => 
+    return deals.filter(deal =>
       role === 'seller' ? deal.sellerId === userId : deal.landownerId === userId
     );
   };

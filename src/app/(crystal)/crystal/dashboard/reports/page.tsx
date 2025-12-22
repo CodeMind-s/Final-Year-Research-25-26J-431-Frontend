@@ -17,7 +17,8 @@ export default function ReportsPage() {
   }
 
   return (
-    <DashboardLayout>
+    <>
+      {/* <DashboardLayout> */}
       <div className="p-6 space-y-6">
         <div>
           <h1 className="text-3xl font-semibold text-foreground">Reports</h1>
@@ -76,6 +77,7 @@ export default function ReportsPage() {
         onOpenChange={setDownloadDialogOpen}
         reportType={selectedReport}
       />
-    </DashboardLayout>
+      {/* </DashboardLayout> */}
+    </>
   )
 }
