@@ -1,8 +1,10 @@
+import { DashboardLayout } from "@/components/crystal/dashboard-layout";
+import { ProductionDashboard } from "@/components/crystal/production-dashboard";
 
 export default function Page() {
-    return (
-        <div>
-            <h1>Crystal App</h1>
-        </div>
-    );
+  return (
+    <DashboardLayout>
+      <ProductionDashboard />
+    </DashboardLayout>
+  );
 }
