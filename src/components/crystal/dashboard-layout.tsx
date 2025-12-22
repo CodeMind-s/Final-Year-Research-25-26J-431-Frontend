@@ -23,7 +23,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [notificationsPanelOpen, setNotificationsPanelOpen] = useState(false)
 
   const navigation = [
-    { name: "Production Prediction", href: "/crystal/", icon: LayoutDashboard },
+    { name: "Production Prediction", href: "/crystal/dashboard/production", icon: LayoutDashboard },
     { name: "Parameter Recording", href: "/crystal/dashboard/recording", icon: ClipboardList },
     { name: "Reports", href: "/crystal/dashboard/reports", icon: FileText },
     { name: "System Alerts", href: "/crystal/dashboard/alerts", icon: Bell },
