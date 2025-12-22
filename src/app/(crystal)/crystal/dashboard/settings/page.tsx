@@ -15,7 +15,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <DashboardLayout>
+    // <DashboardLayout>
       <div className="p-6 space-y-6">
         <div>
           <h1 className="text-3xl font-semibold text-foreground">Settings</h1>
@@ -105,6 +105,6 @@ export default function SettingsPage() {
           </Card>
         </div>
       </div>
-    </DashboardLayout>
+    // </DashboardLayout>
   )
 }
