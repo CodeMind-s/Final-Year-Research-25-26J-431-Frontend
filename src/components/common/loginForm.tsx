@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Lock, Mail } from "lucide-react";
+import { Lock, Mail, AlertCircle } from "lucide-react";
 import Image from "next/image";
 
 export default function LoginForm({
@@ -15,45 +15,59 @@ export default function LoginForm({
     type: "crystal" | "compass" | "vision" | "valor";
     description: string;
 }) {
-    const router = useRouter();
+    const { login, error: authError, isLoading } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [localError, setLocalError] = useState<string | null>(null);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
+        setLocalError(null);
 
-        // Simulate login
-        setTimeout(() => {
-            if(type == 'crystal'){
-                router.push("/crystal/dashboard/production");
-            }else if(type == 'compass'){
-                if(email == "seller@gmail.com"){
-                    router.push("/compass/seller-dashboard");
-                }else if(email == "landowner@gmail.com"){
-                    router.push("/compass/landowner-dashboard");
-                }
-            }else if(type == 'vision'){
-                router.push("/vision/dashboard/camera");
-            }else{
-                router.push("/valor/dashboard/production");
-            }
-        }, 1000);
+        try {
+            await login({ email, password });
+            // Redirect is handled by auth context based on user role
+        } catch (err) {
+            // Error is already set in auth context
+            console.error("Login failed:", err);
+        }
     };
+
+    const displayError = authError || localError;
 
     return (
         <div className="flex min-h-screen items-center justify-center">
             <div className="relative z-10 w-full max-w-md px-6">
                 <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
                     <div className="mb-6">
-                        <Image src={type == 'vision' ? '/assets/images/vision-logo.svg' : type == 'crystal' ? '/assets/images/crystal-logo.svg' : type == 'compass' ? '/assets/images/compass-logo.svg' : '/assets/images/valor-logo.svg'} alt={"logo"} width={150} height={150}
+                        <Image
+                            src={
+                                type === 'vision'
+                                    ? '/assets/images/vision-logo.svg'
+                                    : type === 'crystal'
+                                        ? '/assets/images/crystal-logo.svg'
+                                        : type === 'compass'
+                                            ? '/assets/images/compass-logo.svg'
+                                            : '/assets/images/valor-logo.svg'
+                            }
+                            alt={"logo"}
+                            width={150}
+                            height={150}
                         />
-                        <h2 className="text-2xl font-semibold text-slate-900 mt-4 tracking-tighter">Sign In</h2>
+                        <h2 className="text-2xl font-semibold text-slate-900 mt-4 tracking-tighter">
+                            Sign In
+                        </h2>
                         <p className="mt-1 text-sm text-slate-600">
                             {description}
                         </p>
                     </div>
+
+                    {displayError && (
+                        <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 flex items-start gap-2">
+                            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                            <p className="text-sm text-red-800">{displayError}</p>
+                        </div>
+                    )}
 
                     <form onSubmit={handleLogin} className="space-y-5">
                         <div className="space-y-2">
@@ -70,6 +84,7 @@ export default function LoginForm({
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="pl-10 h-11 border-slate-300 focus:border-blue-500 focus:ring-blue-500"
                                     required
+                                    disabled={isLoading}
                                 />
                             </div>
                         </div>
@@ -88,15 +103,23 @@ export default function LoginForm({
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="pl-10 h-11 border-slate-300 focus:border-blue-500 focus:ring-blue-500"
                                     required
+                                    disabled={isLoading}
                                 />
                             </div>
                         </div>
                         <Button
                             type="submit"
-                            disabled={loading}
-                            className={`h-12 w-full ${type == 'vision' ? 'bg-vision-500  hover:bg-vision-400' : type == 'crystal' ? 'bg-crystal-500 hover:bg-crystal-400' : type == 'compass' ? 'bg-compass-500 hover:bg-compass-400' : 'bg-valor-500 hover:bg-valor-400'} font-semibold text-white shadow-lg cursor-pointer`}
+                            disabled={isLoading}
+                            className={`h-12 w-full ${type === 'vision'
+                                    ? 'bg-vision-500 hover:bg-vision-400'
+                                    : type === 'crystal'
+                                        ? 'bg-crystal-500 hover:bg-crystal-400'
+                                        : type === 'compass'
+                                            ? 'bg-compass-500 hover:bg-compass-400'
+                                            : 'bg-valor-500 hover:bg-valor-400'
+                                } font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
-                            {loading ? "Signing in..." : "Sign In"}
+                            {isLoading ? "Signing in..." : "Sign In"}
                         </Button>
                     </form>
                 </div>
