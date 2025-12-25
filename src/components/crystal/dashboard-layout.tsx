@@ -10,6 +10,7 @@ import { Badge } from "@/components/crystal/ui/badge"
 import { SyncDataDialog } from "@/components/crystal/dialogs/sync-data-dialog"
 import { NotificationsPanel } from "@/components/crystal/dialogs/notifications-panel"
 import { UserMenu } from "@/components/crystal/dialogs/user-menu"
+import { Toaster } from "@/components/crystal/ui/toaster"
 import Image from "next/image"
 
 interface DashboardLayoutProps {
@@ -138,6 +139,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Dialogs */}
       <SyncDataDialog open={syncDialogOpen} onOpenChange={setSyncDialogOpen} />
       <NotificationsPanel open={notificationsPanelOpen} onOpenChange={setNotificationsPanelOpen} />
+      <Toaster />
     </div>
   )
 }
