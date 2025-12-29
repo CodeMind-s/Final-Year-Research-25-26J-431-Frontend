@@ -10,16 +10,22 @@ import {
 } from "@/components/crystal/ui/dropdown-menu"
 import { Button } from "@/components/crystal/ui/button"
 import { User, Settings, HelpCircle, LogOut, UserCircle } from "lucide-react"
+import { useAuth } from "@/hooks/useAuth"
 
 interface UserMenuProps {
   children: React.ReactNode
 }
 
 export function UserMenu({ children }: UserMenuProps) {
-  const handleLogout = () => {
-    // Simulate logout
-    console.log("Logging out...")
-    // In a real app, this would clear session and redirect to login
+  const { user, logout, isLoading } = useAuth()
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      // Redirect is handled by the auth context
+    } catch (error) {
+      console.error("Logout failed:", error)
+    }
   }
 
   return (
@@ -30,8 +36,8 @@ export function UserMenu({ children }: UserMenuProps) {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium">Sunil Perera</p>
-            <p className="text-xs text-muted-foreground">sunil.perera@puttalam-salt.lk</p>
+            <p className="text-sm font-medium">{user?.name || "User"}</p>
+            <p className="text-xs text-muted-foreground">{user?.email || "user@example.com"}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -48,9 +54,13 @@ export function UserMenu({ children }: UserMenuProps) {
           <span>Help & Support</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+        <DropdownMenuItem
+          onClick={handleLogout}
+          className="text-destructive"
+          disabled={isLoading}
+        >
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Log out</span>
+          <span>{isLoading ? "Logging out..." : "Log out"}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

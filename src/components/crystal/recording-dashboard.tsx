@@ -10,10 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/crystal/ui/badge"
 import { Droplets, Thermometer, Gauge, Wind, Calendar as CalendarIcon, User, Sparkles } from "lucide-react"
 import { RecordConfirmationDialog } from "@/components/crystal/dialogs/record-confirmation-dialog"
+import { crystallizationController } from "@/services/crystallization.controller"
+import { useAuth } from "@/hooks/useAuth"
+import { useToast } from "@/hooks/use-toast"
+
 
 export function RecordingDashboard() {
+  const { user, logout, isLoading } = useAuth()
+  const { toast } = useToast()
   const [formData, setFormData] = useState({
-    site: "",
     temperature: "",
     lagoon: "",
     orBrineLevel: "",
@@ -22,7 +27,6 @@ export function RecordingDashboard() {
     irBundLevel: "",
     eastChannel: "",
     westChannel: "",
-    notes: "",
   })
 
   const [recentEntries, setRecentEntries] = useState([
@@ -62,44 +66,95 @@ export function RecordingDashboard() {
 
   const [showSuccess, setShowSuccess] = useState(false)
   const [recordedData, setRecordedData] = useState<any>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const newEntry = {
-      date: new Date().toLocaleString("en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      parameter: "Temperature",
-      value: `${formData.temperature}°C`,
-      worker: "Sunil Perera",
-      site: formData.site,
-      remarks: formData.notes || "-",
+
+    // Validate all fields are filled
+    const requiredFields = [
+      { name: 'Temperature', value: formData.temperature },
+      { name: 'Lagoon', value: formData.lagoon },
+      { name: 'OR Brine Level', value: formData.orBrineLevel },
+      { name: 'OR Bund Level', value: formData.orBundLevel },
+      { name: 'IR Brine Level', value: formData.irBrineLevel },
+      { name: 'IR Bund Level', value: formData.irBundLevel },
+      { name: 'East Channel', value: formData.eastChannel },
+      { name: 'West Channel', value: formData.westChannel },
+    ]
+
+    const emptyFields = requiredFields.filter(field => !field.value || field.value.trim() === '')
+
+    if (emptyFields.length > 0) {
+      toast({
+        title: "Validation Error",
+        description: `Please fill in all required fields: ${emptyFields.map(f => f.name).join(', ')}`,
+        variant: "destructive",
+      })
+      return
     }
-    setRecentEntries([newEntry, ...recentEntries.slice(0, 3)])
 
-    setRecordedData({
-      site: formData.site,
-      worker: "Sunil Perera",
-      parameters: 8
-    })
-    setShowSuccess(true)
+    try {
+      setIsSubmitting(true)
 
-    setFormData({
-      site: "",
-      temperature: "",
-      lagoon: "",
-      orBrineLevel: "",
-      orBundLevel: "",
-      irBrineLevel: "",
-      irBundLevel: "",
-      eastChannel: "",
-      westChannel: "",
-      notes: "",
-    })
+      // Prepare the payload
+      const payload = {
+        date: new Date().toISOString().split('T')[0], // Format: "YYYY-MM-DD"
+        waterTemperature: parseFloat(formData.temperature) || 0,
+        lagoon: parseFloat(formData.lagoon) || 0,
+        orBrineLevel: parseFloat(formData.orBrineLevel) || 0,
+        orBoundLevel: parseFloat(formData.orBundLevel) || 0,
+        irBrineLevel: parseFloat(formData.irBrineLevel) || 0,
+        irBoundLevel: parseFloat(formData.irBundLevel) || 0,
+        eastChannel: parseFloat(formData.eastChannel) || 0,
+        westChannel: parseFloat(formData.westChannel) || 0,
+      }
+
+      // Call the API
+      const response = await crystallizationController.createDailyMeasurement(payload)
+
+      // Update recent entries for UI
+      const newEntry = {
+        date: new Date().toLocaleString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        parameter: "Temperature",
+        value: `${formData.temperature}°C`,
+        worker: "Sunil Perera",
+        site: "Field Data",
+        remarks: "-",
+      }
+      setRecentEntries([newEntry, ...recentEntries.slice(0, 3)])
+
+      // Show success dialog
+      setRecordedData({
+        site: "Puttalam",
+        worker: user?.name,
+        parameters: Object.values(payload).filter((value) => value !== null && value !== undefined).length,
+      })
+      setShowSuccess(true)
+
+      // Reset form
+      setFormData({
+        temperature: "",
+        lagoon: "",
+        orBrineLevel: "",
+        orBundLevel: "",
+        irBrineLevel: "",
+        irBundLevel: "",
+        eastChannel: "",
+        westChannel: "",
+      })
+    } catch (error) {
+      console.error('Failed to submit daily measurement:', error)
+      alert('Failed to submit measurement. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -325,10 +380,11 @@ export function RecordingDashboard() {
               <Button
                 type="submit"
                 size="lg"
+                disabled={isSubmitting}
                 className="w-full h-14 text-lg font-semibold bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
               >
                 <Sparkles className="h-5 w-5 mr-2" />
-                Record Field Data
+                {isSubmitting ? "Submitting..." : "Record Field Data"}
               </Button>
             </form>
           </Card>

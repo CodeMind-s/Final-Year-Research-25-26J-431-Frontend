@@ -3,16 +3,172 @@
 import { Card } from "@/components/crystal/ui/card"
 import { Badge } from "@/components/crystal/ui/badge"
 import { Button } from "@/components/crystal/ui/button"
-import { TrendingUp, Droplets, Activity, Cloud, AlertCircle } from "lucide-react"
+import { TrendingUp, Droplets, Activity, Cloud, AlertCircle, CloudCog } from "lucide-react"
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine, Label } from "recharts"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ForecastReportDialog } from "@/components/crystal/dialogs/forecast-report-dialog"
 import { NotifySupervisorsDialog } from "@/components/crystal/dialogs/notify-supervisors-dialog"
 import { currentSeason, dailyEnvironmentalData, historicalProduction, monthlyProduction } from "@/sample-data/crystal/pss-mock-data"
+import { crystallizationController } from "@/services/crystallization.controller"
+import { PredictedMonthlyProduction } from "@/types/crystallization.types"
+import { productionController } from "@/services/production.controller"
 
 export function ProductionDashboard() {
   const [forecastDialogOpen, setForecastDialogOpen] = useState(false)
   const [notifyDialogOpen, setNotifyDialogOpen] = useState(false)
+  const [monthlyProductionData, setMonthlyProductionData] = useState<PredictedMonthlyProduction[]>([])
+  const [isLoadingMonthlyData, setIsLoadingMonthlyData] = useState(true)
+
+  // Fetch both actual and predicted monthly production data
+  useEffect(() => {
+    const fetchMonthlyProductions = async () => {
+      const date = new Date();
+      try {
+        setIsLoadingMonthlyData(true)
+
+        const formatDate = (d: Date) => d.toISOString().slice(0, 7)
+        const startActual = formatDate(new Date(date.getFullYear(), date.getMonth() - 6, 15))
+        const currentMonth = formatDate(date)
+        const endPredicted = formatDate(new Date(date.getFullYear(), date.getMonth() + 6, 15))
+
+        const [actualResponse, predictedResponse] = await Promise.all([
+          productionController.getActualMonthlyProductions({
+            startMonth: startActual,
+            endMonth: currentMonth,
+          }),
+          crystallizationController.getPredictedMonthlyProductions({
+            startMonth: currentMonth,
+            endMonth: endPredicted,
+          }),
+        ])
+
+        // The http-client already extracts the data, so responses are arrays directly
+        const actualData = Array.isArray(actualResponse) ? actualResponse : (actualResponse?.data || [])
+        const predictedData = Array.isArray(predictedResponse) ? predictedResponse : (predictedResponse?.data || [])
+
+        // Transform the data
+        const transformedData = transformProductionData(
+          actualData,
+          predictedData
+        )
+
+        // Always set the transformed data (with null check)
+        if (transformedData && Array.isArray(transformedData)) {
+          setMonthlyProductionData(transformedData)
+        } else {
+          console.error('Transform returned invalid data:', transformedData)
+          setMonthlyProductionData(defaultMonthlyProductionData)
+        }
+      } catch (error) {
+        console.error("Failed to fetch monthly productions:", error)
+        // Use fallback data on error
+        setMonthlyProductionData(defaultMonthlyProductionData)
+      } finally {
+        setIsLoadingMonthlyData(false)
+      }
+    }
+
+    fetchMonthlyProductions()
+  }, [])
+
+  // Helper function to format month from "YYYY-MM" to "MMM YY" (e.g., "2023-10" -> "Oct 23")
+  const formatMonth = (monthStr: string): string => {
+    const [year, month] = monthStr.split('-')
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const monthIndex = parseInt(month) - 1
+    const shortYear = year.slice(2)
+    return `${monthNames[monthIndex]} ${shortYear}`
+  }
+
+  // Transform API data to chart format
+  const transformProductionData = (
+    actualData: any[],
+    predictedData: any[]
+  ): PredictedMonthlyProduction[] => {
+    const result: PredictedMonthlyProduction[] = []
+
+    // Validate input data
+    if (!actualData || !Array.isArray(actualData)) {
+      console.warn('Actual data is not an array:', actualData)
+      actualData = []
+    }
+
+    if (!predictedData || !Array.isArray(predictedData)) {
+      console.warn('Predicted data is not an array:', predictedData)
+      predictedData = []
+    }
+
+    // Add actual/historical data
+    actualData.forEach(item => {
+      if (item && item.month && item.production_volume !== undefined) {
+        result.push({
+          month: formatMonth(item.month),
+          production: item.production_volume,
+          predicted: null,
+          type: "historical"
+        })
+      }
+    })
+
+    console.log("actualData", actualData)
+
+    // Add gap if there's a time difference between actual and predicted
+    if (actualData.length > 0 && predictedData.length > 0) {
+      const lastActual = actualData[actualData.length - 1].month
+      const firstPredicted = predictedData[0].month
+
+      if (lastActual && firstPredicted) {
+        // Check if there's a gap (more than 1 month difference)
+        const lastActualDate = new Date(lastActual)
+        const firstPredictedDate = new Date(firstPredicted)
+        const monthsDiff = (firstPredictedDate.getFullYear() - lastActualDate.getFullYear()) * 12 +
+          (firstPredictedDate.getMonth() - lastActualDate.getMonth())
+
+        if (monthsDiff > 1) {
+          result.push({
+            month: "...",
+            production: null,
+            predicted: null,
+            type: "gap"
+          })
+        }
+      }
+    }
+
+    // Add predicted data
+    predictedData.forEach(item => {
+      if (item && item.month && item.productionForecast !== undefined) {
+        result.push({
+          month: formatMonth(item.month),
+          production: null,
+          predicted: Math.round(item.productionForecast),
+          type: "predicted"
+        })
+      }
+    })
+
+    return result
+  }
+
+  // Default/fallback monthly production data
+  const defaultMonthlyProductionData: PredictedMonthlyProduction[] = [
+    // Maha 2024/25 - Historical (Oct 2024 - Mar 2025)
+    { month: "Oct 24", production: 1180, predicted: null, type: "historical" },
+    { month: "Nov 24", production: 1250, predicted: null, type: "historical" },
+    { month: "Dec 24", production: 1420, predicted: null, type: "historical" },
+    { month: "Jan 25", production: 1580, predicted: null, type: "historical" },
+    { month: "Feb 25", production: 1690, predicted: null, type: "historical" },
+    { month: "Mar 25", production: 1520, predicted: null, type: "historical" },
+    // Future months gap
+    { month: "...", production: null, predicted: null, type: "gap" },
+    // Maha 2025/26 - Predicted (Dec 2025 - May 2026)
+    { month: "Dec 25", production: null, predicted: 1200, type: "predicted" },
+    { month: "Jan 26", production: null, predicted: 1450, type: "predicted" },
+    { month: "Feb 26", production: null, predicted: 1650, type: "predicted" },
+    { month: "Mar 26", production: null, predicted: 1580, type: "predicted" },
+    { month: "Apr 26", production: null, predicted: 1380, type: "predicted" },
+    { month: "May 26", production: null, predicted: 1100, type: "predicted" },
+  ]
 
   // Combine historical and future production data
   const combinedProductionData = [
@@ -30,13 +186,13 @@ export function ProductionDashboard() {
 
   const totalPrediction = monthlyProduction.reduce((sum, month) => sum + month.predicted, 0)
   const avgConfidence = Math.round(monthlyProduction.reduce((sum, month) => sum + month.confidence, 0) / monthlyProduction.length)
-  
+
   const mahaSeasons = historicalProduction.filter(s => s.season.includes("Maha") && !s.predicted)
   const avgHistorical = Math.round(mahaSeasons.reduce((sum, s) => sum + s.production, 0) / mahaSeasons.length)
 
   // Get current environmental conditions (latest data point)
   const latestEnv = dailyEnvironmentalData[dailyEnvironmentalData.length - 1]
-  
+
   return (
     <div className="p-6 space-y-4">
       {/* Compact Header with Season */}
@@ -107,37 +263,37 @@ export function ProductionDashboard() {
             <ComposedChart data={dailyEnvironmentalData}>
               <defs>
                 <linearGradient id="colorSalinity" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="rgb(99 102 241)" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="rgb(99 102 241)" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="rgb(99 102 241)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="rgb(99 102 241)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgb(229 229 229)" />
-              <XAxis 
-                dataKey="period" 
+              <XAxis
+                dataKey="period"
                 stroke="rgb(115 115 115)"
                 tick={{ fontSize: 9 }}
                 interval={Math.floor(dailyEnvironmentalData.length / 15)}
               />
               <YAxis yAxisId="left" stroke="rgb(99 102 241)" tick={{ fontSize: 10 }} label={{ value: "Salinity (°Bé) / Temp (°C) / Humidity (%)", angle: -90, position: "insideLeft", style: { fontSize: 10 } }} />
               <YAxis yAxisId="right" orientation="right" stroke="rgb(59 130 246)" tick={{ fontSize: 10 }} label={{ value: "Rainfall (mm)", angle: 90, position: "insideRight", style: { fontSize: 10 } }} />
-              
+
               {/* Vertical line marking the boundary between historical (left) and predicted (right) */}
-              <ReferenceLine 
-                x={dailyEnvironmentalData.find(d => d.type === 'predicted')?.period || "1 Dec"} 
-                stroke="rgb(239 68 68)" 
+              <ReferenceLine
+                x={dailyEnvironmentalData.find(d => d.type === 'predicted')?.period || "1 Dec"}
+                stroke="rgb(239 68 68)"
                 strokeWidth={2}
-                strokeDasharray="5 5" 
+                strokeDasharray="5 5"
                 yAxisId="left"
               >
-                <Label 
-                  value="← HISTORICAL | PREDICTED →" 
-                  position="top" 
-                  fill="rgb(239 68 68)" 
+                <Label
+                  value="← HISTORICAL | PREDICTED →"
+                  position="top"
+                  fill="rgb(239 68 68)"
                   fontSize={12}
                   fontWeight="bold"
                 />
               </ReferenceLine>
-              
+
               <Tooltip
                 contentStyle={{
                   backgroundColor: "white",
@@ -166,49 +322,49 @@ export function ProductionDashboard() {
                 }}
               />
               <Legend wrapperStyle={{ fontSize: "11px" }} />
-              
+
               {/* Salinity - PRIMARY METRIC - Thick blue line */}
-              <Line 
+              <Line
                 yAxisId="left"
-                type="monotone" 
-                dataKey="salinity" 
-                stroke="rgb(99 102 241)" 
-                strokeWidth={4} 
-                name="Salinity (°Bé)" 
+                type="monotone"
+                dataKey="salinity"
+                stroke="rgb(99 102 241)"
+                strokeWidth={4}
+                name="Salinity (°Bé)"
                 dot={false}
                 connectNulls={true}
               />
-              
+
               {/* Rainfall - Blue bars, lighter for predicted */}
-              <Bar 
+              <Bar
                 yAxisId="right"
-                dataKey="rainfall" 
-                fill="rgb(59 130 246)" 
-                name="Rainfall (mm)" 
+                dataKey="rainfall"
+                fill="rgb(59 130 246)"
+                name="Rainfall (mm)"
                 radius={[2, 2, 0, 0]}
                 opacity={0.6}
               />
-              
+
               {/* Temperature - Red line */}
-              <Line 
+              <Line
                 yAxisId="left"
-                type="monotone" 
-                dataKey="temperature" 
-                stroke="rgb(239 68 68)" 
-                strokeWidth={2} 
-                name="Temperature (°C)" 
+                type="monotone"
+                dataKey="temperature"
+                stroke="rgb(239 68 68)"
+                strokeWidth={2}
+                name="Temperature (°C)"
                 dot={false}
                 connectNulls={true}
               />
-              
+
               {/* Humidity - Green line */}
-              <Line 
+              <Line
                 yAxisId="left"
-                type="monotone" 
-                dataKey="humidity" 
-                stroke="rgb(34 197 94)" 
-                strokeWidth={2} 
-                name="Humidity (%)" 
+                type="monotone"
+                dataKey="humidity"
+                stroke="rgb(34 197 94)"
+                strokeWidth={2}
+                name="Humidity (%)"
                 dot={false}
                 connectNulls={true}
               />
@@ -247,8 +403,8 @@ export function ProductionDashboard() {
                 { season: "Maha 2025/26", production: null, predicted: 8360, type: "predicted" },
               ]}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgb(229 229 229)" />
-                <XAxis 
-                  dataKey="season" 
+                <XAxis
+                  dataKey="season"
                   stroke="rgb(115 115 115)"
                   tick={{ fontSize: 10 }}
                   angle={-35}
@@ -280,27 +436,10 @@ export function ProductionDashboard() {
           </div>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={[
-                // Maha 2024/25 - Historical (Oct 2024 - Mar 2025)
-                { month: "Oct 24", production: 1180, type: "historical" },
-                { month: "Nov 24", production: 1250, type: "historical" },
-                { month: "Dec 24", production: 1420, type: "historical" },
-                { month: "Jan 25", production: 1580, type: "historical" },
-                { month: "Feb 25", production: 1690, type: "historical" },
-                { month: "Mar 25", production: 1520, type: "historical" },
-                // Future months gap
-                { month: "...", production: null, predicted: null, type: "gap" },
-                // Maha 2025/26 - Predicted (Dec 2025 - May 2026)
-                { month: "Dec 25", production: null, predicted: 1200, type: "predicted" },
-                { month: "Jan 26", production: null, predicted: 1450, type: "predicted" },
-                { month: "Feb 26", production: null, predicted: 1650, type: "predicted" },
-                { month: "Mar 26", production: null, predicted: 1580, type: "predicted" },
-                { month: "Apr 26", production: null, predicted: 1380, type: "predicted" },
-                { month: "May 26", production: null, predicted: 1100, type: "predicted" },
-              ]}>
+              <ComposedChart data={monthlyProductionData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgb(229 229 229)" />
-                <XAxis 
-                  dataKey="month" 
+                <XAxis
+                  dataKey="month"
                   stroke="rgb(115 115 115)"
                   tick={{ fontSize: 9 }}
                   angle={-45}
@@ -385,7 +524,7 @@ export function ProductionDashboard() {
                 <p className="text-muted-foreground">Maintain current operations</p>
               </div>
             </div>
-            
+
             <div className="flex items-start gap-2 p-2 bg-warning/10 border border-warning/20 rounded text-xs">
               <AlertCircle className="h-4 w-4 text-warning mt-0.5 flex shrink-0" />
               <div>
