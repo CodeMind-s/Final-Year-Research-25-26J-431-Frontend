@@ -8,16 +8,249 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Respons
 import { useState, useEffect } from "react"
 import { ForecastReportDialog } from "@/components/crystal/dialogs/forecast-report-dialog"
 import { NotifySupervisorsDialog } from "@/components/crystal/dialogs/notify-supervisors-dialog"
-import { currentSeason, dailyEnvironmentalData, historicalProduction, monthlyProduction } from "@/sample-data/crystal/pss-mock-data"
+import { currentSeason, historicalProduction, monthlyProduction } from "@/sample-data/crystal/pss-mock-data"
 import { crystallizationController } from "@/services/crystallization.controller"
 import { PredictedMonthlyProduction } from "@/types/crystallization.types"
 import { productionController } from "@/services/production.controller"
+
+// Generate mock historical data (temporary until API is ready)
+const generateMockHistoricalData = (startDate: string, endDate: string): any[] => {
+  const result: any[] = []
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+  const currentDate = new Date(start)
+
+  // Base values for realistic variation
+  const baseValues = {
+    water_temperature: 26,
+    lagoon: 1.5,
+    OR_brine_level: 22,
+    OR_bund_level: 0.8,
+    IR_brine_level: 24,
+    IR_bound_level: 0.7,
+    East_channel: 1.2,
+    West_channel: 1.3,
+    rainfall: 5,
+    temperature: 27,
+    humidity: 75
+  }
+
+  while (currentDate <= end) {
+    const dateStr = currentDate.toISOString().split('T')[0]
+
+    // Add some realistic variation
+    const dayOfYear = Math.floor((currentDate.getTime() - new Date(currentDate.getFullYear(), 0, 0).getTime()) / 86400000)
+    const seasonalFactor = Math.sin((dayOfYear / 365) * Math.PI * 2)
+
+    result.push({
+      date: dateStr,
+      parameters: {
+        water_temperature: parseFloat((baseValues.water_temperature + seasonalFactor * 2 + (Math.random() - 0.5)).toFixed(2)),
+        lagoon: parseFloat((baseValues.lagoon + seasonalFactor * 0.3 + (Math.random() - 0.5) * 0.2).toFixed(2)),
+        OR_brine_level: parseFloat((baseValues.OR_brine_level + seasonalFactor * 2 + (Math.random() - 0.5)).toFixed(2)),
+        OR_bund_level: parseFloat((baseValues.OR_bund_level + seasonalFactor * 0.2 + (Math.random() - 0.5) * 0.1).toFixed(2)),
+        IR_brine_level: parseFloat((baseValues.IR_brine_level + seasonalFactor * 2 + (Math.random() - 0.5)).toFixed(2)),
+        IR_bound_level: parseFloat((baseValues.IR_bound_level + seasonalFactor * 0.2 + (Math.random() - 0.5) * 0.1).toFixed(2)),
+        East_channel: parseFloat((baseValues.East_channel + seasonalFactor * 0.3 + (Math.random() - 0.5) * 0.15).toFixed(2)),
+        West_channel: parseFloat((baseValues.West_channel + seasonalFactor * 0.3 + (Math.random() - 0.5) * 0.15).toFixed(2)),
+      },
+      weather: {
+        rain_sum: parseFloat(Math.max(0, baseValues.rainfall + seasonalFactor * 10 + (Math.random() - 0.5) * 8).toFixed(2)),
+        temperature_mean: parseFloat((baseValues.temperature + seasonalFactor * 2.5 + (Math.random() - 0.5) * 1.5).toFixed(2)),
+        relative_humidity_mean: parseFloat((baseValues.humidity + seasonalFactor * 5 + (Math.random() - 0.5) * 5).toFixed(2)),
+      }
+    })
+
+    currentDate.setDate(currentDate.getDate() + 1)
+  }
+
+  return result
+}
+
+// Transform API data to chart format
+const transformDailyEnvironmentalData = (
+  historicalData: any[],
+  predictedData: any[],
+  startDate: string,
+  endDate: string
+): any[] => {
+  const result: any[] = []
+
+  // Create a map for quick lookup
+  const historicalMap = new Map()
+  const predictedMap = new Map()
+
+  historicalData.forEach(item => {
+    if (item && item.date) {
+      // Normalize date to YYYY-MM-DD format (handle both ISO strings and date-only strings)
+      const dateStr = item.date.split('T')[0]
+      historicalMap.set(dateStr, item)
+    }
+  })
+
+  predictedData.forEach(item => {
+    if (item && item.date) {
+      // Normalize date to YYYY-MM-DD format (handle both ISO strings and date-only strings)
+      const dateStr = item.date.split('T')[0]
+      predictedMap.set(dateStr, item)
+    }
+  })
+
+  // Generate all dates in the range
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+  const currentDate = new Date(start)
+
+  while (currentDate <= end) {
+    const dateStr = currentDate.toISOString().split('T')[0]
+    const isHistorical = currentDate <= new Date()
+
+    const historicalItem = historicalMap.get(dateStr)
+    const predictedItem = predictedMap.get(dateStr)
+    const item = isHistorical ? historicalItem : predictedItem
+
+    // Format period for display
+    const period = currentDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+
+    if (item) {
+      // Data exists for this date
+      result.push({
+        date: dateStr,
+        period,
+        water_temperature: item.parameters?.water_temperature != null ? parseFloat(item.parameters.water_temperature.toFixed(2)) : null,
+        lagoon: item.parameters?.lagoon != null ? parseFloat(item.parameters.lagoon.toFixed(2)) : null,
+        OR_brine_level: item.parameters?.OR_brine_level != null ? parseFloat(item.parameters.OR_brine_level.toFixed(2)) : null,
+        OR_bund_level: item.parameters?.OR_bund_level != null ? parseFloat(item.parameters.OR_bund_level.toFixed(2)) : null,
+        IR_brine_level: item.parameters?.IR_brine_level != null ? parseFloat(item.parameters.IR_brine_level.toFixed(2)) : null,
+        IR_bound_level: item.parameters?.IR_bound_level != null ? parseFloat(item.parameters.IR_bound_level.toFixed(2)) : null,
+        East_channel: item.parameters?.East_channel != null ? parseFloat(item.parameters.East_channel.toFixed(2)) : null,
+        West_channel: item.parameters?.West_channel != null ? parseFloat(item.parameters.West_channel.toFixed(2)) : null,
+        rainfall: item.weather?.rain_sum != null ? parseFloat(item.weather.rain_sum.toFixed(2)) : null,
+        temperature: item.weather?.temperature_mean != null ? parseFloat(item.weather.temperature_mean.toFixed(2)) : null,
+        humidity: item.weather?.relative_humidity_mean != null ? parseFloat(item.weather.relative_humidity_mean.toFixed(2)) : null,
+        type: isHistorical ? 'historical' : 'predicted'
+      })
+    } else {
+      // No data for this date - use null values
+      result.push({
+        date: dateStr,
+        period,
+        water_temperature: null,
+        lagoon: null,
+        OR_brine_level: null,
+        OR_bund_level: null,
+        IR_brine_level: null,
+        IR_bound_level: null,
+        East_channel: null,
+        West_channel: null,
+        rainfall: null,
+        temperature: null,
+        humidity: null,
+        type: isHistorical ? 'historical' : 'predicted'
+      })
+    }
+
+    // Move to next day
+    currentDate.setDate(currentDate.getDate() + 1)
+  }
+
+  return result
+}
 
 export function ProductionDashboard() {
   const [forecastDialogOpen, setForecastDialogOpen] = useState(false)
   const [notifyDialogOpen, setNotifyDialogOpen] = useState(false)
   const [monthlyProductionData, setMonthlyProductionData] = useState<PredictedMonthlyProduction[]>([])
   const [isLoadingMonthlyData, setIsLoadingMonthlyData] = useState(true)
+  const [dailyEnvironmentalData, setDailyEnvironmentalData] = useState<any[]>([])
+  const [isLoadingDailyData, setIsLoadingDailyData] = useState(true)
+  const [hiddenDataKeys, setHiddenDataKeys] = useState<Set<string>>(new Set(['humidity']))
+
+  // Fetch daily environmental data (historical + predicted)
+  useEffect(() => {
+    const fetchDailyEnvironmentalData = async () => {
+      const today = new Date()
+      try {
+        setIsLoadingDailyData(true)
+
+        // Calculate date ranges
+        const formatDate = (d: Date) => d.toISOString().split('T')[0]
+
+        // Historical: 6 months ago to today
+        const historicalStart = new Date(today)
+        historicalStart.setMonth(today.getMonth() - 6)
+        const historicalStartStr = formatDate(historicalStart)
+        const todayStr = formatDate(today)
+
+        // Predicted: today to 2 months from now
+        const predictedEnd = new Date(today)
+        predictedEnd.setMonth(today.getMonth() + 2)
+        const predictedEndStr = formatDate(predictedEnd)
+
+        // For now, use mock data for historical since API doesn't exist yet
+        // Only fetch predicted data from API
+        let historicalData: any[] = []
+        let predictedData: any[] = []
+
+        try {
+          // Fetch historical data from API
+          const historicalResponse = await crystallizationController.getDailyMeasurements({
+            startDate: historicalStartStr,
+            endDate: todayStr,
+          })
+          historicalData = Array.isArray(historicalResponse) ? historicalResponse : (historicalResponse?.data || [])
+          // console.log("Historical data fetched:", historicalData.length, "records")
+        } catch (error) {
+          console.error("Failed to fetch historical data:", error)
+          // Fallback to mock data if API fails
+          historicalData = []
+          // historicalData = generateMockHistoricalData(historicalStartStr, todayStr)
+          // console.log("Using mock historical data as fallback:", historicalData.length, "records")
+        }
+
+        try {
+          // Fetch predicted data from API
+          const predictedResponse = await crystallizationController.getPredictedDailyMeasurements({
+            startDate: todayStr,
+            endDate: predictedEndStr,
+          })
+          predictedData = Array.isArray(predictedResponse) ? predictedResponse : (predictedResponse?.data || [])
+          // console.log("Predicted data fetched:", predictedData.length, "records")
+        } catch (error) {
+          console.error("Failed to fetch predicted data:", error)
+          predictedData = []
+        }
+
+        // Transform the data
+        const transformedData = transformDailyEnvironmentalData(
+          historicalData,
+          predictedData,
+          historicalStartStr,
+          predictedEndStr
+        )
+
+        // console.log("Transformed data:", transformedData.length, "records")
+        setDailyEnvironmentalData(transformedData)
+      } catch (error) {
+        console.error("Failed to fetch daily environmental data:", error)
+        // Use mock data as fallback
+        const historicalStart = new Date(today)
+        historicalStart.setMonth(today.getMonth() - 6)
+        const historicalStartStr = historicalStart.toISOString().split('T')[0]
+        const todayStr = today.toISOString().split('T')[0]
+        const predictedEnd = new Date(today)
+        predictedEnd.setMonth(today.getMonth() + 2)
+        const predictedEndStr = predictedEnd.toISOString().split('T')[0]
+
+        const mockData = generateMockHistoricalData(historicalStartStr, predictedEndStr)
+        setDailyEnvironmentalData(mockData)
+      } finally {
+        setIsLoadingDailyData(false)
+      }
+    }
+
+    fetchDailyEnvironmentalData()
+  }, [])
 
   // Fetch both actual and predicted monthly production data
   useEffect(() => {
@@ -190,8 +423,21 @@ export function ProductionDashboard() {
   const mahaSeasons = historicalProduction.filter(s => s.season.includes("Maha") && !s.predicted)
   const avgHistorical = Math.round(mahaSeasons.reduce((sum, s) => sum + s.production, 0) / mahaSeasons.length)
 
-  // Get current environmental conditions (latest data point)
-  const latestEnv = dailyEnvironmentalData[dailyEnvironmentalData.length - 1]
+  // Handle legend click to toggle line visibility
+  const handleLegendClick = (dataKey: string) => {
+    setHiddenDataKeys(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(dataKey)) {
+        newSet.delete(dataKey)
+      } else {
+        newSet.add(dataKey)
+      }
+      return newSet
+    })
+  }
+
+  // Get current environmental conditions (latest data point from historical data)
+  const latestEnv = dailyEnvironmentalData.filter(d => d.type === 'historical').slice(-1)[0] || dailyEnvironmentalData[0]
 
   return (
     <div className="p-6 space-y-4">
@@ -222,10 +468,10 @@ export function ProductionDashboard() {
 
         <Card className="p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground">Current Salinity</span>
+            <span className="text-xs text-muted-foreground">OR Brine Level</span>
             <Droplets className="h-3 w-3 text-primary" />
           </div>
-          <div className="text-xl font-bold text-foreground">{latestEnv?.salinity || 24.9}</div>
+          <div className="text-xl font-bold text-foreground">{latestEnv?.OR_brine_level?.toFixed(1) || '--'}</div>
           <p className="text-xs text-success">°Bé</p>
         </Card>
 
@@ -234,7 +480,7 @@ export function ProductionDashboard() {
             <span className="text-xs text-muted-foreground">Temperature</span>
             <Activity className="h-3 w-3 text-destructive" />
           </div>
-          <div className="text-xl font-bold text-foreground">{latestEnv?.temperature || 27}</div>
+          <div className="text-xl font-bold text-foreground">{latestEnv?.temperature?.toFixed(1) || '--'}</div>
           <p className="text-xs text-muted-foreground">°C</p>
         </Card>
 
@@ -243,7 +489,7 @@ export function ProductionDashboard() {
             <span className="text-xs text-muted-foreground">Humidity</span>
             <Cloud className="h-3 w-3 text-success" />
           </div>
-          <div className="text-xl font-bold text-foreground">{latestEnv?.humidity || 75}</div>
+          <div className="text-xl font-bold text-foreground">{latestEnv?.humidity?.toFixed(0) || '--'}</div>
           <p className="text-xs text-muted-foreground">%</p>
         </Card>
       </div>
@@ -256,7 +502,7 @@ export function ProductionDashboard() {
             <h2 className="text-lg font-bold text-foreground">Daily Environmental Predictions</h2>
             <Badge className="bg-primary/20 text-primary">Critical for PSS Maintenance</Badge>
           </div>
-          <p className="text-xs text-muted-foreground">Past 6 months (solid) vs Future 6 months (dashed) - Salinity, Rainfall, Temperature, Humidity</p>
+          <p className="text-xs text-muted-foreground">Past 6 months (solid) vs Future 6 months (dashed) - All Environmental Parameters</p>
         </div>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -274,7 +520,7 @@ export function ProductionDashboard() {
                 tick={{ fontSize: 9 }}
                 interval={Math.floor(dailyEnvironmentalData.length / 15)}
               />
-              <YAxis yAxisId="left" stroke="rgb(99 102 241)" tick={{ fontSize: 10 }} label={{ value: "Salinity (°Bé) / Temp (°C) / Humidity (%)", angle: -90, position: "insideLeft", style: { fontSize: 10 } }} />
+              <YAxis yAxisId="left" stroke="rgb(99 102 241)" tick={{ fontSize: 10 }} label={{ value: "Environmental Measurements (various units)", angle: -90, position: "insideLeft", style: { fontSize: 10 } }} />
               <YAxis yAxisId="right" orientation="right" stroke="rgb(59 130 246)" tick={{ fontSize: 10 }} label={{ value: "Rainfall (mm)", angle: 90, position: "insideRight", style: { fontSize: 10 } }} />
 
               {/* Vertical line marking the boundary between historical (left) and predicted (right) */}
@@ -321,7 +567,36 @@ export function ProductionDashboard() {
                   return null;
                 }}
               />
-              <Legend wrapperStyle={{ fontSize: "11px" }} />
+              <Legend
+                wrapperStyle={{
+                  fontSize: "11px",
+                  paddingTop: "10px"
+                }}
+                onClick={(e) => {
+                  if (e.dataKey) {
+                    handleLegendClick(String(e.dataKey))
+                  }
+                }}
+                iconType="line"
+                formatter={(value, entry: any) => {
+                  const dataKey = String(entry.dataKey)
+                  const isHidden = hiddenDataKeys.has(dataKey)
+                  return (
+                    <span style={{
+                      color: isHidden ? '#aaa' : entry.color,
+                      textDecoration: isHidden ? 'line-through' : 'none',
+                      cursor: 'pointer',
+                      opacity: isHidden ? 0.6 : 1,
+                      fontWeight: isHidden ? 'normal' : '500',
+                      display: 'inline-block',
+                      padding: '2px 4px',
+                      transition: 'all 0.2s ease'
+                    }}>
+                      {value}
+                    </span>
+                  )
+                }}
+              />
 
               {/* Salinity - PRIMARY METRIC - Thick blue line */}
               <Line
@@ -333,6 +608,7 @@ export function ProductionDashboard() {
                 name="Salinity (°Bé)"
                 dot={false}
                 connectNulls={true}
+                hide={hiddenDataKeys.has('salinity')}
               />
 
               {/* Rainfall - Blue bars, lighter for predicted */}
@@ -343,6 +619,7 @@ export function ProductionDashboard() {
                 name="Rainfall (mm)"
                 radius={[2, 2, 0, 0]}
                 opacity={0.6}
+                hide={hiddenDataKeys.has('rainfall')}
               />
 
               {/* Temperature - Red line */}
@@ -355,6 +632,7 @@ export function ProductionDashboard() {
                 name="Temperature (°C)"
                 dot={false}
                 connectNulls={true}
+                hide={hiddenDataKeys.has('temperature')}
               />
 
               {/* Humidity - Green line */}
@@ -367,6 +645,111 @@ export function ProductionDashboard() {
                 name="Humidity (%)"
                 dot={false}
                 connectNulls={true}
+                hide={hiddenDataKeys.has('humidity')}
+              />
+
+              {/* Water Temperature - Orange line */}
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="water_temperature"
+                stroke="rgb(249 115 22)"
+                strokeWidth={2}
+                name="Water Temp (°C)"
+                dot={false}
+                connectNulls={true}
+                hide={hiddenDataKeys.has('water_temperature')}
+              />
+
+              {/* Lagoon - Cyan line */}
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="lagoon"
+                stroke="rgb(6 182 212)"
+                strokeWidth={2}
+                name="Lagoon (m)"
+                dot={false}
+                connectNulls={true}
+                hide={hiddenDataKeys.has('lagoon')}
+              />
+
+              {/* OR Brine Level - Purple line */}
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="OR_brine_level"
+                stroke="rgb(168 85 247)"
+                strokeWidth={2}
+                name="OR Brine (°Bé)"
+                dot={false}
+                connectNulls={true}
+                hide={hiddenDataKeys.has('OR_brine_level')}
+              />
+
+              {/* OR Bund Level - Pink line */}
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="OR_bund_level"
+                stroke="rgb(236 72 153)"
+                strokeWidth={2}
+                name="OR Bund (m)"
+                dot={false}
+                connectNulls={true}
+                hide={hiddenDataKeys.has('OR_bund_level')}
+              />
+
+              {/* IR Brine Level - Violet line */}
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="IR_brine_level"
+                stroke="rgb(139 92 246)"
+                strokeWidth={2}
+                name="IR Brine (°Bé)"
+                dot={false}
+                connectNulls={true}
+                hide={hiddenDataKeys.has('IR_brine_level')}
+              />
+
+              {/* IR Bund Level - Fuchsia line */}
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="IR_bund_level"
+                stroke="rgb(217 70 239)"
+                strokeWidth={2}
+                name="IR Bund (m)"
+                dot={false}
+                connectNulls={true}
+                hide={hiddenDataKeys.has('IR_bund_level')}
+              />
+
+              {/* East Channel - Teal line */}
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="East_channel"
+                stroke="rgb(20 184 166)"
+                strokeWidth={2}
+                name="East Channel (m)"
+                dot={false}
+                connectNulls={true}
+                hide={hiddenDataKeys.has('East_channel')}
+              />
+
+              {/* West Channel - Emerald line */}
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="West_channel"
+                stroke="rgb(16 185 129)"
+                strokeWidth={2}
+                name="West Channel (m)"
+                dot={false}
+                connectNulls={true}
+                hide={hiddenDataKeys.has('West_channel')}
               />
             </ComposedChart>
           </ResponsiveContainer>

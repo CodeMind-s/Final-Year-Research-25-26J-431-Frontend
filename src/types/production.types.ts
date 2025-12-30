@@ -26,3 +26,37 @@ export interface ActualMonthlyProductionResponse {
   success: boolean;
   message: string;
 }
+
+/**
+ * Create Production Request
+ */
+export interface CreateProductionRequest {
+  month: string; // Format: "YYYY-MM"
+  production_volume: number;
+  season: string; // "Maha" or "Yala"
+}
+
+/**
+ * Update Production Request
+ */
+export interface UpdateProductionRequest {
+  production_volume?: number;
+  season?: string;
+}
+
+/**
+ * Delete Production Response
+ */
+export interface DeleteProductionResponse {
+  success: boolean;
+  message: string;
+}
+
+/**
+ * Create/Update Production Response
+ */
+export interface ProductionMutationResponse {
+  data: ActualMonthlyProductionData;
+  success: boolean;
+  message: string;
+}

@@ -7,6 +7,10 @@ import { BaseController } from './base-controller';
 import {
   DailyMeasurementRequest,
   DailyMeasurementResponse,
+  DailyMeasurementGetRequest,
+  DailyMeasurementGetResponse,
+  PredictedDailyMeasurementGetRequest,
+  PredictedDailyMeasurementGetResponse,
   PredictedMonthlyProductionRequest,
   PredictedMonthlyProductionResponse,
 } from '@/types/crystallization.types';
@@ -43,6 +47,32 @@ class CrystallizationController extends BaseController {
     return this.post<DailyMeasurementResponse, DailyMeasurementRequest>(
       '/daily-measurement',
       request
+    );
+  }
+
+  /**
+   * Get daily measurements (historical data)
+   * @param request - Start and end date for measurements
+   * @returns Daily measurement data
+   */
+  async getDailyMeasurements(
+    request: DailyMeasurementGetRequest
+  ): Promise<DailyMeasurementGetResponse> {
+    return this.get<DailyMeasurementGetResponse>(
+      `/daily-measurement?startDate=${request.startDate}&endDate=${request.endDate}`
+    );
+  }
+
+  /**
+   * Get predicted daily measurements
+   * @param request - Start and end date for predictions
+   * @returns Predicted daily measurement data
+   */
+  async getPredictedDailyMeasurements(
+    request: PredictedDailyMeasurementGetRequest
+  ): Promise<PredictedDailyMeasurementGetResponse> {
+    return this.get<PredictedDailyMeasurementGetResponse>(
+      `/predicted-daily-measurement?startDate=${request.startDate}&endDate=${request.endDate}`
     );
   }
 }

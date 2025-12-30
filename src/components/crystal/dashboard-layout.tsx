@@ -1,7 +1,7 @@
 "use client"
 
 import { type ReactNode, useState } from "react"
-import { LayoutDashboard, ClipboardList, FileText, Bell, Settings, Menu, X, User, Calendar } from "lucide-react"
+import { LayoutDashboard, ClipboardList, FileText, Bell, Settings, Menu, X, User, Calendar, Package } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -26,6 +26,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigation = [
     { name: "Production Prediction", href: "/crystal/dashboard/production", icon: LayoutDashboard },
     { name: "Parameter Recording", href: "/crystal/dashboard/recording", icon: ClipboardList },
+    { name: "Salt Production Recording", href: "/crystal/dashboard/salt-production", icon: Package },
     { name: "Reports", href: "/crystal/dashboard/reports", icon: FileText },
     { name: "System Alerts", href: "/crystal/dashboard/alerts", icon: Bell },
     { name: "Settings", href: "/crystal/dashboard/settings", icon: Settings },
