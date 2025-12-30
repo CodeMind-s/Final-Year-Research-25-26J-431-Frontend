@@ -30,10 +30,15 @@ const generateDailyEnvironmentalData = () => {
   const totalDays = 365 // ~12 months of data
   
   // Base patterns for realistic variation
-  const salinityBase = 24.5
+  // const salinityBase = 24.5
   const rainfallBase = 100
   const temperatureBase = 28
   const humidityBase = 75
+  const waterTempBase = 26
+  const lagoonBase = 1.5
+  const brineBase = 22
+  const bundBase = 0.8
+  const channelBase = 1.2
   
   for (let i = 0; i < totalDays; i++) {
     const currentDate = new Date(startDate)
@@ -56,23 +61,55 @@ const generateDailyEnvironmentalData = () => {
     }
     
     // Salinity inversely related to rainfall
-    const salinity = salinityBase + (rainfallBase - rainfall) / 15 + dailyVariation + Math.random() * 0.5 - 0.25
+    // const salinity = salinityBase + (rainfallBase - rainfall) / 15 + dailyVariation + Math.random() * 0.5 - 0.25
     
-    // Temperature seasonal variation
+    // Temperature seasonal variation (air temperature)
     const temperature = temperatureBase + seasonalFactor * 2.5 + dailyVariation + Math.random() * 1.5 - 0.75
+    
+    // Water temperature (slightly cooler than air, less variation)
+    const waterTemperature = waterTempBase + seasonalFactor * 2 + dailyVariation * 0.5 + Math.random() * 1 - 0.5
     
     // Humidity correlates with rainfall
     const humidity = humidityBase + (rainfall - rainfallBase) / 8 + dailyVariation * 2 + Math.random() * 3 - 1.5
+    
+    // Lagoon level (water level in meters, affected by rainfall)
+    const lagoon = lagoonBase + (rainfall - rainfallBase) / 100 + dailyVariation * 0.2 + Math.random() * 0.1 - 0.05
+    
+    // OR (Outer Reservoir) brine level (salinity in °Bé)
+    const orBrineLevel = brineBase + (rainfallBase - rainfall) / 20 + dailyVariation + Math.random() * 0.5 - 0.25
+    
+    // OR bund level (water level in meters)
+    const orBundLevel = bundBase + (rainfall - rainfallBase) / 150 + dailyVariation * 0.15 + Math.random() * 0.08 - 0.04
+    
+    // IR (Inner Reservoir) brine level (salinity in °Bé, higher than OR)
+    const irBrineLevel = brineBase + 2 + (rainfallBase - rainfall) / 18 + dailyVariation + Math.random() * 0.5 - 0.25
+    
+    // IR bund level (water level in meters)
+    const irBundLevel = bundBase - 0.1 + (rainfall - rainfallBase) / 150 + dailyVariation * 0.15 + Math.random() * 0.08 - 0.04
+    
+    // East channel (water level in meters)
+    const eastChannel = channelBase + (rainfall - rainfallBase) / 120 + dailyVariation * 0.18 + Math.random() * 0.09 - 0.045
+    
+    // West channel (water level in meters)
+    const westChannel = channelBase + 0.1 + (rainfall - rainfallBase) / 120 + dailyVariation * 0.18 + Math.random() * 0.09 - 0.045
     
     // Sample every 3-5 days to keep data manageable for display
     if (i % 4 === 0 || !isHistorical) { // Show all future days, sample historical
       data.push({
         date: currentDate.toISOString().split('T')[0],
         period: currentDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
-        salinity: Math.max(20, Math.min(28, parseFloat(salinity.toFixed(1)))),
+        // salinity: Math.max(20, Math.min(28, parseFloat(salinity.toFixed(1)))),
         rainfall: Math.max(0, parseFloat(rainfall.toFixed(0))),
         temperature: Math.max(25, Math.min(32, parseFloat(temperature.toFixed(1)))),
+        water_temperature: Math.max(23, Math.min(30, parseFloat(waterTemperature.toFixed(1)))),
         humidity: Math.max(60, Math.min(90, parseFloat(humidity.toFixed(0)))),
+        lagoon: Math.max(0.5, Math.min(2.5, parseFloat(lagoon.toFixed(2)))),
+        OR_brine_level: Math.max(18, Math.min(26, parseFloat(orBrineLevel.toFixed(1)))),
+        OR_bund_level: Math.max(0.3, Math.min(1.5, parseFloat(orBundLevel.toFixed(2)))),
+        IR_brine_level: Math.max(20, Math.min(28, parseFloat(irBrineLevel.toFixed(1)))),
+        IR_bund_level: Math.max(0.2, Math.min(1.4, parseFloat(irBundLevel.toFixed(2)))),
+        East_channel: Math.max(0.5, Math.min(2.0, parseFloat(eastChannel.toFixed(2)))),
+        West_channel: Math.max(0.5, Math.min(2.0, parseFloat(westChannel.toFixed(2)))),
         type: isHistorical ? 'historical' : 'predicted'
       })
     }
