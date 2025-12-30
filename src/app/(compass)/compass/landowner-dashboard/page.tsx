@@ -1,38 +1,3 @@
-// import React, { useState, useMemo, useEffect } from 'react';
-// import { 
-//   Leaf, 
-//   TrendingUp, 
-//   AlertTriangle,
-//   CheckCircle2,
-//   Phone,
-//   Users,
-//   ArrowRight,
-//   Menu,
-//   X,
-//   Package
-// } from 'lucide-react';
-// import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-// import { Card } from '../components/Card';
-// import { Button } from '../components/Button';
-// import { Badge } from '../components/Badge';
-// import { Slider } from '../components/Slider';
-// import { SeasonData, SellerOffer, Deal, DealStatus, NotificationType, LandownerSummary } from '../types';
-// import { useApp } from '../context/AppContext';
-// import { NegotiationModal } from '../components/NegotiationModal';
-// import { NotificationPanel } from '../components/NotificationPanel';
-// import { DealsSection } from '../components/DealsSection';
-// import { DealsDialog } from '../components/DealsDialog';
-// import { InvoiceModal } from '../components/InvoiceModal';
-// import { NotificationBell } from '../components/NotificationBell';
-// import { PredictionCharts } from '../components/PredictionCharts';
-// import { ProfitProjectionCard } from '../components/ProfitProjectionCard';
-// import { 
-//   mockHarvestPredictions, 
-//   mockPricePredictions, 
-//   mockDemandPredictions,
-//   mockProfitProjections 
-// } from '../mockPredictionData';
-
 "use client"
 import { DealsDialog } from "@/components/compass/DealsDialog";
 import { InvoiceModal } from "@/components/compass/InvoiceModal";
@@ -40,14 +5,15 @@ import { NegotiationModal } from "@/components/compass/NegotiationModal";
 import { NotificationBell } from "@/components/compass/NotificationBell";
 import { NotificationPanel } from "@/components/compass/NotificationPanel";
 import { PredictionCharts } from "@/components/compass/PredictionCharts";
-import { ProfitProjectionCard } from "@/components/compass/ProfitProjectionCard";
+import { SellerRecommendations } from "@/components/compass/SellerRecommendations";
 import { Button } from "@/components/compass/Button";
 import { Badge } from "@/components/compass/Badge";
 import { Slider } from "@/components/compass/Slider";
 import { Card } from "@/components/compass/Card";
 import { useApp } from "@/context/compass/AppContext";
 import { Deal, DealStatus, NotificationType, SeasonData, SellerOffer } from "@/dtos/compass/types";
-import { mockDemandPredictions, mockHarvestPredictions, mockPricePredictions, mockProfitProjections } from "@/sample-data/compass/mockPredictionData";
+import { mockDemandPredictions, mockHarvestPredictions, mockPricePredictions } from "@/sample-data/compass/mockPredictionData";
+import { mockSellerRecommendations } from "@/sample-data/compass/mockSellerRecommendations";
 import { ArrowRight, Leaf, Menu, Package, Phone, TrendingUp, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -62,7 +28,7 @@ const seasonData: SeasonData[] = [
   { day: 'Sun', production: 6, rainfall: false },
 ];
 
-const PREDICTED_TONS = 50; // Increased to allow more deals
+const PREDICTED_TONS = 70; // Increased to allow more deals
 const LANDOWNER_ID = 'landowner_001';
 const LANDOWNER_NAME = 'Ravi Kumara';
 
@@ -91,6 +57,9 @@ export const LandownerDashboard: React.FC = () => {
   const [laborCost, setLaborCost] = useState(15000);
   const [transportCost, setTransportCost] = useState(5000);
 
+  // Quantity allocation for each seller (offer.id -> tons)
+  const [quantityAllocations, setQuantityAllocations] = useState<Record<string, number>>({});
+
   // Get user-specific data
   const myDeals = getUserDeals(LANDOWNER_ID, 'landowner');
   const myNotifications = getUserNotifications(LANDOWNER_ID);
@@ -100,7 +69,11 @@ export const LandownerDashboard: React.FC = () => {
   const soldTons = myDeals
     .filter(d => d.status === DealStatus.ACCEPTED || d.status === DealStatus.COMPLETED)
     .reduce((sum, d) => sum + d.quantity, 0);
-  const availableTons = PREDICTED_TONS - soldTons;
+  const totalAvailableTons = PREDICTED_TONS - soldTons;
+
+  // Calculate allocated tons from current UI selections
+  const allocatedTons = Object.values(quantityAllocations).reduce((sum, qty) => sum + qty, 0);
+  const remainingTons = totalAvailableTons - allocatedTons;
 
   // Initialize mock offers on first load
   useEffect(() => {
@@ -119,8 +92,8 @@ export const LandownerDashboard: React.FC = () => {
     }
   }, []);
 
-  // Use existing offers or fallback to mock with 8 sellers
-  const displayOffers: SellerOffer[] = sellerOffers.length > 0 ? sellerOffers : [
+  // Always use all 8 sellers for landowner dashboard (not filtered by published offers)
+  const displayOffers: SellerOffer[] = [
     { id: '1', sellerId: 'seller_001', name: 'Lanka Salt Limited', pricePerTon: 1900, demandTons: 25, reliability: 'High', isRecommended: true, timestamp: Date.now() },
     { id: '2', sellerId: 'seller_002', name: 'Puttalam Salt Ltd (Palavi Saltern)', pricePerTon: 1850, demandTons: 30, reliability: 'High', isRecommended: false, timestamp: Date.now() },
     { id: '3', sellerId: 'seller_003', name: 'National Salt Limited', pricePerTon: 1800, demandTons: 20, reliability: 'High', isRecommended: false, timestamp: Date.now() },
@@ -135,7 +108,7 @@ export const LandownerDashboard: React.FC = () => {
   const totalCost = fertCost + laborCost + transportCost;
 
   const offersWithProfit = displayOffers.map(offer => {
-    const sellingTons = Math.min(availableTons, offer.demandTons);
+    const sellingTons = Math.min(totalAvailableTons, offer.demandTons);
     const revenue = sellingTons * offer.pricePerTon;
     const profit = revenue - totalCost;
     const profitPerTon = sellingTons > 0 ? profit / sellingTons : 0;
@@ -147,12 +120,18 @@ export const LandownerDashboard: React.FC = () => {
       profit,
       profitPerTon,
     };
-  });
+  }).sort((a, b) => b.pricePerTon - a.pricePerTon); // Sort by highest price first
 
-  // Find best profit offer
-  const bestProfitOffer = offersWithProfit.reduce((best, current) =>
-    current.profit > best.profit ? current : best
-    , offersWithProfit[0]);
+  // Threshold for "high demand" - sellers wanting more than this won't be highlighted
+  const HIGH_DEMAND_THRESHOLD = 30;
+
+  // Find best profit offer (excluding sellers who need high amounts of tons)
+  const eligibleOffers = offersWithProfit.filter(offer => offer.demandTons <= HIGH_DEMAND_THRESHOLD);
+  const bestProfitOffer = eligibleOffers.length > 0 
+    ? eligibleOffers.reduce((best, current) =>
+        current.profit > best.profit ? current : best
+      , eligibleOffers[0])
+    : offersWithProfit[0]; // Fallback to any offer if all are high-demand
 
   // Selection state
   const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
@@ -161,10 +140,34 @@ export const LandownerDashboard: React.FC = () => {
     : bestProfitOffer;
 
   const handleSellNow = () => {
-    if (selectedOfferData) {
-      setSelectedOffer(selectedOfferData);
-      setShowNegotiationModal(true);
+    // Collect all allocations where quantity > 0
+    const allocatedOffers = displayOffers
+      .filter(offer => (quantityAllocations[offer.id] || 0) > 0)
+      .map(offer => ({
+        ...offer,
+        allocatedQty: quantityAllocations[offer.id] || 0,
+        revenue: (quantityAllocations[offer.id] || 0) * offer.pricePerTon
+      }));
+
+    if (allocatedOffers.length === 0) {
+      alert('Please allocate quantities to at least one seller');
+      return;
     }
+
+    // Calculate totals
+    const totalRevenue = allocatedOffers.reduce((sum, offer) => sum + offer.revenue, 0);
+    const totalProfit = totalRevenue - totalCost; // Costs deducted only once from total
+
+    // Create a combined offer object for the modal
+    const combinedOffer = {
+      ...allocatedOffers[0],
+      allocations: allocatedOffers,
+      totalRevenue,
+      totalProfit
+    };
+    
+    setSelectedOffer(combinedOffer);
+    setShowNegotiationModal(true);
   };
 
   const handleAcceptDeal = (dealData: {
@@ -175,6 +178,8 @@ export const LandownerDashboard: React.FC = () => {
     quantity: number;
     pricePerTon: number;
     totalPrice: number;
+    productionCosts?: number;
+    netProfit?: number;
   }) => {
     createDeal({
       ...dealData,
@@ -196,6 +201,9 @@ export const LandownerDashboard: React.FC = () => {
       read: false,
     });
 
+    // Reset allocations to refresh the page
+    setQuantityAllocations({});
+    
     setShowNegotiationModal(false);
     setSelectedOffer(null);
   };
@@ -219,10 +227,8 @@ export const LandownerDashboard: React.FC = () => {
         <div className="flex justify-between items-start mb-2">
           <div>
             <div className="flex items-center gap-2 mb-1 opacity-90">
-              <span className="text-xs font-semibold uppercase tracking-wider">Recommendation</span>
+              <span className="text-xl font-semibold uppercase tracking-wider">Landowner Dashboard</span>
             </div>
-            <h1 className="text-3xl font-bold leading-tight">HARVEST NOW</h1>
-            <p className="text-emerald-100 text-sm mt-1">Market price peaked. Rain predicted in 2 days.</p>
           </div>
           <div className="flex gap-2">
             {/* Deals Button */}
@@ -242,24 +248,31 @@ export const LandownerDashboard: React.FC = () => {
             {/* Notification Bell */}
             <NotificationBell count={unreadCount} onClick={() => setShowNotifications(true)} />
 
-            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
-              <Leaf className="w-8 h-8 text-white" />
-            </div>
           </div>
         </div>
 
         <div className="flex gap-3 mt-4">
           <div className="bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 flex-1">
-            <p className="text-xs text-emerald-100">Available</p>
-            <p className="font-bold text-lg">{availableTons.toFixed(1)} tons</p>
+            <p className="text-xs text-emerald-100">Total Available</p>
+            <p className="font-bold text-lg">{totalAvailableTons.toFixed(1)} tons</p>
           </div>
+          {allocatedTons > 0 && (
+            <div className="bg-purple-500/20 backdrop-blur-md rounded-lg px-3 py-2 flex-1 border border-purple-300">
+              <p className="text-xs text-purple-100">Allocated</p>
+              <p className="font-bold text-lg text-white">{allocatedTons.toFixed(1)} tons</p>
+            </div>
+          )}
           <div className="bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 flex-1">
+            <p className="text-xs text-emerald-100">Remaining</p>
+            <p className="font-bold text-lg">{remainingTons.toFixed(1)} tons</p>
+          </div>
+          <div   onClick={() => setShowDeals(true)} className="bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 flex-1">
             <p className="text-xs text-emerald-100">My Deals</p>
             <p className="font-bold text-lg">{myDeals.length} active</p>
           </div>
           <div className="bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 flex-1">
             <p className="text-xs text-emerald-100">Best Profit</p>
-            <p className="font-bold text-lg">LKR {(bestProfitOffer.profit / 1000).toFixed(1)}k</p>
+            <p className="font-bold text-lg">LKR {(bestProfitOffer.profit ).toFixed(2)}</p>
           </div>
         </div>
       </div>
@@ -275,11 +288,28 @@ export const LandownerDashboard: React.FC = () => {
 
             {/* Prediction Analytics Section */}
             <section>
-              <h2 className="text-xl font-bold text-slate-800 mb-4">AI-Powered Harvest Analytics</h2>
+              <h2 className="text-xl font-bold text-slate-800 mb-4">AI-Powered Analytics</h2>
 
-              {/* Profit Projection Card */}
+              {/* AI Seller Recommendations */}
               <div className="mb-4">
-                <ProfitProjectionCard projections={mockProfitProjections} />
+                <SellerRecommendations 
+                  recommendations={mockSellerRecommendations} 
+                  onSelectSeller={(sellerId) => {
+                    // Map numeric seller_id back to our seller offer IDs
+                    const sellerIdMap: Record<number, string> = {
+                      1: 'seller_001',
+                      2: 'seller_002',
+                      6: 'seller_006'
+                    };
+                    const sellerStringId = sellerIdMap[sellerId];
+                    const offer = displayOffers.find(o => o.sellerId === sellerStringId);
+                    if (offer) {
+                      setSelectedOfferId(offer.id);
+                      // Scroll to offers section
+                      document.getElementById('offers-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                />
               </div>
 
               {/* Prediction Charts */}
@@ -305,7 +335,7 @@ export const LandownerDashboard: React.FC = () => {
               <Card className="mb-4 bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200">
                 <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
                   <TrendingUp size={16} className="text-blue-600" />
-                  Your Production Costs
+                  Your Production Costs & Net Profit
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -316,7 +346,7 @@ export const LandownerDashboard: React.FC = () => {
                       value={fertCost}
                       onChange={(e) => setFertCost(Number(e.target.value))}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      min={5000}
+                      min={0}
                       max={20000}
                       step={500}
                     />
@@ -330,7 +360,7 @@ export const LandownerDashboard: React.FC = () => {
                       value={laborCost}
                       onChange={(e) => setLaborCost(Number(e.target.value))}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      min={10000}
+                      min={0}
                       max={30000}
                       step={1000}
                     />
@@ -344,7 +374,7 @@ export const LandownerDashboard: React.FC = () => {
                       value={transportCost}
                       onChange={(e) => setTransportCost(Number(e.target.value))}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      min={2000}
+                      min={0}
                       max={10000}
                       step={500}
                     />
@@ -356,13 +386,40 @@ export const LandownerDashboard: React.FC = () => {
                   <span className="text-sm font-semibold text-slate-600">Total Costs:</span>
                   <span className="text-lg font-bold text-slate-900">LKR {totalCost.toLocaleString()}</span>
                 </div>
+
+                {/* Show Revenue and Profit when allocations exist */}
+                {allocatedTons > 0 && (() => {
+                  const totalRevenue = Object.entries(quantityAllocations)
+                    .reduce((sum, [offerId, qty]) => {
+                      const offer = offersWithProfit.find(o => o.id === offerId);
+                      return sum + (offer ? qty * offer.pricePerTon : 0);
+                    }, 0);
+                  const netProfit = totalRevenue - totalCost;
+                  const profitColor = netProfit > 0 ? 'text-emerald-700' : 'text-red-600';
+
+                  return (
+                    <>
+                      <div className="mt-2 pt-2 border-t border-blue-200 flex justify-between items-center bg-blue-50 -mx-4 px-4 py-2">
+                        <span className="text-sm font-semibold text-blue-700">Total Revenue:</span>
+                        <span className="text-lg font-bold text-blue-700">₨{totalRevenue.toLocaleString()}</span>
+                      </div>
+                      <div className="mt-2 pt-2 border-t-2 border-purple-300 flex justify-between items-center bg-gradient-to-r from-purple-50 to-blue-50 -mx-4 px-4 py-2.5">
+                        <span className="text-base font-bold text-slate-800">Net Profit:</span>
+                        <span className={`text-xl font-bold ${profitColor}`}>
+                          ₨{netProfit.toLocaleString()}
+                        </span>
+                      </div>
+                    </>
+                  );
+                })()}
               </Card>
 
               {/* Offer Cards Grid */}
+
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <p className="text-sm text-slate-600">
-                    Showing {showAllOffers ? offersWithProfit.length : Math.min(3, offersWithProfit.length)} of {offersWithProfit.length} offers • Available: {availableTons} tons
+                  <p className="text-sm text-slate-600 pt-3">
+                    Showing {showAllOffers ? offersWithProfit.length : Math.min(3, offersWithProfit.length)} of {offersWithProfit.length} offers • Available: {remainingTons.toFixed(1)} tons
                   </p>
                   {offersWithProfit.length > 3 && (
                     <button
@@ -378,88 +435,122 @@ export const LandownerDashboard: React.FC = () => {
                 {(showAllOffers ? offersWithProfit : offersWithProfit.slice(0, 3)).map((offer) => {
                   const isBest = offer.id === bestProfitOffer.id;
                   const isSelected = offer.id === selectedOfferId || (!selectedOfferId && isBest);
-                  const profitColor = offer.profit > 0 ? 'text-emerald-700' : 'text-red-600';
+                  
+                  // Get allocated quantity for this offer
+                  const allocatedQty = quantityAllocations[offer.id] || 0;
+                  const maxAllowable = Math.min(offer.demandTons, remainingTons + allocatedQty);
+                  
+                  // Calculate profit based on allocated quantity
+                  const actualRevenue = allocatedQty * offer.pricePerTon;
+                  const actualProfit = actualRevenue - totalCost;
+                  const profitColor = actualProfit > 0 ? 'text-emerald-700' : 'text-red-600';
+
+                  const handleQuantityChange = (newQty: number) => {
+                    const validQty = Math.max(0, Math.min(newQty, maxAllowable));
+                    setQuantityAllocations(prev => ({
+                      ...prev,
+                      [offer.id]: validQty
+                    }));
+                  };
 
                   return (
                     <Card
                       key={offer.id}
-                      className={`cursor-pointer transition-all ${isSelected
+                      className={`transition-all py-2 px-3 ${isSelected
                           ? 'ring-2 ring-blue-500 bg-blue-50/30'
                           : isBest
                             ? 'ring-2 ring-emerald-500 bg-emerald-50/20'
                             : 'hover:bg-slate-50'
-                        }`}
-                      onClick={() => setSelectedOfferId(offer.id)}
+                        } ${allocatedQty > 0 ? 'ring-2 ring-purple-400' : ''}`}
                     >
-                      {/* Header */}
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="radio"
-                            checked={isSelected}
-                            onChange={() => setSelectedOfferId(offer.id)}
-                            className="w-4 h-4 text-blue-600"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                          <div>
-                            <h3 className="font-bold text-base text-slate-900">{offer.name}</h3>
-                            <p className="text-xs text-slate-500">
-                              Wants {offer.demandTons} tons • {offer.reliability} Reliability
-                            </p>
+                      {/* Compact Header */}
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-bold text-sm text-slate-900">{offer.name}</h3>
+                            {isBest && (
+                              <Badge color="green" size="sm">
+                                ⭐
+                              </Badge>
+                            )}
                           </div>
+                          <p className="text-[11px] text-slate-500">
+                            Wants {offer.demandTons}t • {offer.reliability}
+                          </p>
                         </div>
                         <div className="text-right">
-                          {isBest && (
-                            <div className="mb-1">
-                              <Badge color="green" size="sm" >
-                                ⭐ Best Profit
-                              </Badge>
-                            </div>
-                          )}
-                          <p className="text-2xl font-bold text-slate-900">
+                          <p className="text-xl font-bold text-slate-900">
                             {offer.pricePerTon}
-                            <span className="text-sm font-normal text-slate-500"> /ton</span>
+                            <span className="text-xs font-normal text-slate-500"> /ton</span>
                           </p>
                         </div>
                       </div>
 
-                      {/* Profit Breakdown */}
-                      <div className="bg-slate-50 rounded-lg p-3 space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">Selling:</span>
-                          <span className="font-semibold text-slate-900">{offer.sellingTons} tons</span>
+                      {/* Quantity Allocation Controls */}
+                      <div className="bg-blue-50 border border-blue-200 rounded-md p-2 mb-2">
+                        <label className="text-[10px] font-semibold text-blue-700 uppercase mb-1 block">
+                          I want to sell
+                        </label>
+                        <div className="flex items-center gap-2">
+                          
+                          <input
+                            type="number"
+                            value={allocatedQty}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleQuantityChange(parseFloat(e.target.value) || 0);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex-1 text-center px-2 py-1 border border-slate-300 rounded text-sm font-bold bg-white"
+                            min={0}
+                            max={maxAllowable}
+                            step={0.5}
+                          />
+                          <span className="text-xs font-semibold text-slate-600">tons</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleQuantityChange(allocatedQty - 1);
+                            }}
+                            className="w-7 h-7 rounded bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold flex items-center justify-center"
+                            disabled={allocatedQty <= 0}
+                          >
+                            -
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleQuantityChange(allocatedQty + 1);
+                            }}
+                            className="w-7 h-7 rounded bg-blue-500 hover:bg-blue-600 text-white font-bold flex items-center justify-center"
+                            disabled={allocatedQty >= maxAllowable}
+                          >
+                            +
+                          </button>
                         </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">Revenue:</span>
-                          <span className="font-semibold text-blue-700">
-                            LKR {offer.revenue.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">Costs:</span>
-                          <span className="font-semibold text-slate-600">
-                            - LKR {totalCost.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="pt-2 border-t border-slate-200">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-bold text-slate-700">Net Profit:</span>
-                            <span className={`text-xl font-bold ${profitColor}`}>
-                              LKR {offer.profit.toLocaleString()}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center mt-1">
-                            <span className="text-xs text-slate-500">Profit per ton:</span>
-                            <span className={`text-sm font-semibold ${profitColor}`}>
-                              LKR {offer.profitPerTon.toFixed(0)}/ton
-                            </span>
-                          </div>
-                        </div>
+                        {allocatedQty > 0 && (
+                          <p className="text-[10px] text-blue-600 mt-1">
+                            ✓ {allocatedQty}t allocated
+                          </p>
+                        )}
                       </div>
+
+                      {/* Revenue Summary - Only show if allocated */}
+                      {allocatedQty > 0 && (
+                        <div className="bg-emerald-50 rounded-md p-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-semibold text-slate-700">Revenue:</span>
+                            <span className="text-lg font-bold text-emerald-700">
+                              ₨{actualRevenue.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </Card>
                   );
                 })}
               </div>
+
             </section>
           </div>
 
@@ -526,7 +617,7 @@ export const LandownerDashboard: React.FC = () => {
                     setShowMobileMenu(false);
                   }}
                   className="w-full bg-emerald-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
-                  disabled={availableTons <= 0}
+                  disabled={remainingTons <= 0}
                 >
                   <Phone size={18} /> Sell Now
                 </button>
@@ -544,7 +635,7 @@ export const LandownerDashboard: React.FC = () => {
             fullWidth
             className="text-lg"
             onClick={handleSellNow}
-            disabled={availableTons <= 0}
+            disabled={remainingTons <= 0}
           >
             <Phone size={20} /> Sell Now
           </Button>
@@ -557,7 +648,7 @@ export const LandownerDashboard: React.FC = () => {
           variant="success"
           className="text-lg px-8 h-14 shadow-2xl"
           onClick={handleSellNow}
-          disabled={availableTons <= 0}
+          disabled={remainingTons <= 0}
         >
           <Phone size={20} /> Sell Now
         </Button>
@@ -569,7 +660,8 @@ export const LandownerDashboard: React.FC = () => {
           offer={selectedOffer}
           landownerName={LANDOWNER_NAME}
           landownerId={LANDOWNER_ID}
-          availableTons={availableTons}
+          availableTons={totalAvailableTons}
+          productionCosts={totalCost}
           onAccept={handleAcceptDeal}
           onReject={() => setShowNegotiationModal(false)}
           onClose={() => setShowNegotiationModal(false)}
