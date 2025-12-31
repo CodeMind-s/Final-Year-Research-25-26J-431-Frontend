@@ -60,14 +60,6 @@ export const PredictionCharts: React.FC<PredictionChartsProps> = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-6">
               <div className="flex items-center gap-2">
-                <Leaf size={14} className="text-emerald-600" />
-                <span className="text-sm text-slate-600">Harvest</span>
-              </div>
-              <span className="font-semibold text-emerald-700">{data.harvestTons} tons</span>
-            </div>
-            
-            <div className="flex items-center justify-between gap-6">
-              <div className="flex items-center gap-2">
                 <DollarSign size={14} className="text-blue-600" />
                 <span className="text-sm text-slate-600">Price</span>
               </div>
@@ -119,18 +111,10 @@ export const PredictionCharts: React.FC<PredictionChartsProps> = ({
         <div className="flex flex-wrap gap-4 mb-4">
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
-              <Leaf size={16} className="text-emerald-600" />
-              <div className="w-8 h-1 bg-emerald-600 rounded" />
-            </div>
-            <span className="text-sm text-slate-700 font-medium">Harvest (tons)</span>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
               <DollarSign size={16} className="text-blue-600" />
               <div className="w-8 h-1 bg-blue-600 rounded" />
             </div>
-            <span className="text-sm text-slate-700 font-medium">Price (LKR/ton ÷ 30)</span>
+            <span className="text-sm text-slate-700 font-medium">Price (LKR/ton)</span>
           </div>
           
           <div className="flex items-center gap-2">
@@ -138,13 +122,13 @@ export const PredictionCharts: React.FC<PredictionChartsProps> = ({
               <Users size={16} className="text-purple-600" />
               <div className="w-8 h-1 bg-purple-600 rounded" />
             </div>
-            <span className="text-sm text-slate-700 font-medium">Demand (tons ÷ 4)</span>
+            <span className="text-sm text-slate-700 font-medium">Demand (tons)</span>
           </div>
         </div>
       </div>
 
       <ResponsiveContainer width="100%" height={400}>
-        <ComposedChart>
+        <ComposedChart data={combinedData}>
           <defs>
             {/* Gradients for areas */}
             <linearGradient id="harvestGradient" x1="0" y1="0" x2="0" y2="1">
@@ -162,95 +146,90 @@ export const PredictionCharts: React.FC<PredictionChartsProps> = ({
             allowDuplicatedCategory={false}
           />
           
+          {/* Left Y-Axis for Price */}
           <YAxis 
-            stroke="#64748b"
+            yAxisId="left"
+            stroke="#2563eb"
             style={{ fontSize: '12px' }}
-            label={{ value: 'Normalized Scale', angle: -90, position: 'insideLeft', style: { fontSize: '12px' } }}
+            label={{ value: 'Price (LKR/ton)', angle: -90, position: 'insideLeft', style: { fontSize: '12px', fill: '#2563eb' } }}
+          />
+          
+          {/* Right Y-Axis for Demand */}
+          <YAxis 
+            yAxisId="right"
+            orientation="right"
+            stroke="#9333ea"
+            style={{ fontSize: '12px' }}
+            label={{ value: 'Demand (tons)', angle: 90, position: 'insideRight', style: { fontSize: '12px', fill: '#9333ea' } }}
           />
           
           <Tooltip content={<CustomTooltip />} />
           
           {splitIndex > 0 && (
             <ReferenceLine 
-              x={combinedData[splitIndex - 1].month} 
-              stroke="#f59e0b" 
-              strokeWidth={2}
-              strokeDasharray="5 5"
+              x={combinedData[splitIndex].month} 
+              stroke="red" 
+              strokeWidth={4}
+              style={{ stroke: 'red' }}
               label={{ 
-                value: 'TODAY', 
+                value: '▼ TODAY', 
                 position: 'top', 
-                fill: '#f59e0b', 
-                fontSize: 12,
-                fontWeight: 'bold'
+                fill: 'red', 
+                fontSize: 13,
+                fontWeight: 'bold',
+                offset: 10
               }}
             />
           )}
 
           {/* Historical Data - Solid Lines */}
-          <Area
-            data={historicalData}
-            type="monotone"
-            dataKey="harvestTons"
-            stroke="#059669"
-            strokeWidth={3}
-            fill="url(#harvestGradient)"
-            name="Harvest (Historical)"
-          />
           <Line
             data={historicalData}
             type="monotone"
-            dataKey={(d) => normalizePrice(d.avgPrice)}
+            dataKey="avgPrice"
             stroke="#2563eb"
             strokeWidth={3}
             dot={{ fill: '#2563eb', r: 4 }}
             name="Price (Historical)"
+            yAxisId="left"
           />
           <Line
             data={historicalData}
             type="monotone"
-            dataKey={(d) => normalizeDemand(d.demandTons)}
+            dataKey="demandTons"
             stroke="#9333ea"
             strokeWidth={3}
             dot={{ fill: '#9333ea', r: 4 }}
             name="Demand (Historical)"
+            yAxisId="right"
           />
 
           {/* Predicted Data - Dashed Lines with Lower Opacity */}
           {predictedData.length > 0 && (
             <>
-              <Area
-                data={predictedData}
-                type="monotone"
-                dataKey="harvestTons"
-                stroke="#059669"
-                strokeWidth={3}
-                strokeDasharray="8 4"
-                fill="url(#harvestGradient)"
-                fillOpacity={0.3}
-                strokeOpacity={0.6}
-                name="Harvest (Predicted)"
-              />
               <Line
                 data={predictedData}
                 type="monotone"
-                dataKey={(d) => normalizePrice(d.avgPrice)}
+                dataKey="avgPrice"
                 stroke="#2563eb"
                 strokeWidth={3}
                 strokeDasharray="8 4"
                 strokeOpacity={0.6}
                 dot={{ fill: '#2563eb', r: 4, opacity: 0.6 }}
                 name="Price (Predicted)"
+                yAxisId="left"
               />
               <Line
                 data={predictedData}
                 type="monotone"
-                dataKey={(d) => normalizeDemand(d.demandTons)}
+                dataKey="demandTons"
                 stroke="#9333ea"
                 strokeWidth={3}
                 strokeDasharray="8 4"
                 strokeOpacity={0.6}
                 dot={{ fill: '#9333ea', r: 4, opacity: 0.6 }}
                 name="Demand (Predicted)"
+                yAxisId="right"
               />
             </>
           )}
@@ -259,8 +238,8 @@ export const PredictionCharts: React.FC<PredictionChartsProps> = ({
 
       <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-xs text-blue-900 leading-relaxed">
-          <span className="font-semibold">💡 How to read this chart:</span> All three metrics are displayed together for easy comparison. 
-          Price and demand values are normalized to fit the scale. Solid lines show historical data, while dashed lines with lower opacity 
+          <span className="font-semibold">💡 How to read this chart:</span> Price (LKR/ton) is shown on the left axis in blue, 
+          while Demand (tons) is shown on the right axis in purple. Solid lines show historical data, while dashed lines with lower opacity 
           represent AI-powered predictions for the next 6 months.
         </p>
       </div>

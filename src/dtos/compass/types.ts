@@ -57,7 +57,9 @@ export interface Deal {
   landownerName: string;
   quantity: number; // in tons
   pricePerTon: number; // in LKR
-  totalPrice: number; // in LKR
+  totalPrice: number; // in LKR (revenue)
+  productionCosts?: number; // in LKR (optional - for landowner deals)
+  netProfit?: number; // in LKR (optional - totalPrice - productionCosts)
   status: DealStatus;
   negotiations: NegotiationMessage[];
   createdAt: number;

@@ -106,22 +106,45 @@ export const DealsSection: React.FC<DealsSectionProps> = ({ deals, userRole, onG
                 </div>
               </div>
 
-              <div className="flex justify-between items-center pt-3 border-t border-slate-100">
-                <div>
-                  <p className="text-xs text-slate-500">Total Amount</p>
-                  <p className="text-lg font-bold text-emerald-600">
-                    LKR {deal.totalPrice.toLocaleString()}
+              <div className="pt-3 border-t border-slate-100 space-y-2">
+                <div className="flex justify-between items-center">
+                  <p className="text-xs text-slate-500">Total Revenue</p>
+                  <p className="text-base font-bold text-blue-700">
+                    ₨{deal.totalPrice.toLocaleString()}
                   </p>
                 </div>
+
+                {/* Show Net Profit if available (landowner deals) */}
+                {deal.netProfit !== undefined && (
+                  <>
+                    {deal.productionCosts !== undefined && (
+                      <div className="flex justify-between items-center">
+                        <p className="text-xs text-slate-500">Production Costs</p>
+                        <p className="text-sm font-semibold text-red-600">
+                          -₨{deal.productionCosts.toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                      <p className="text-sm font-bold text-slate-700">Net Profit</p>
+                      <p className={`text-xl font-bold ${deal.netProfit > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        ₨{deal.netProfit.toLocaleString()}
+                      </p>
+                    </div>
+                  </>
+                )}
+
                 {deal.status === DealStatus.COMPLETED && (
-                  <Button 
-                    variant="outline" 
-                    onClick={() => onGenerateInvoice(deal)}
-                    className="h-9 px-3 text-sm"
-                  >
-                    <FileText size={16} />
-                    Invoice
-                  </Button>
+                  <div className="pt-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => onGenerateInvoice(deal)}
+                      className="h-9 px-3 text-sm w-full"
+                    >
+                      <FileText size={16} />
+                      Generate Invoice
+                    </Button>
+                  </div>
                 )}
               </div>
 
