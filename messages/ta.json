@@ -1,0 +1,202 @@
+{
+    "crystal": {
+        "common": {
+            "loading": "ஏற்றுகிறது...",
+            "error": "பிழை",
+            "success": "வெற்றி",
+            "cancel": "ரத்துசெய்",
+            "save": "சேமி",
+            "delete": "நீக்கு",
+            "edit": "திருத்து",
+            "create": "உருவாக்கு",
+            "update": "புதுப்பி",
+            "actions": "செயல்கள்",
+            "close": "மூடு"
+        },
+        "language": {
+            "english": "English",
+            "sinhala": "සිංහල",
+            "tamil": "தமிழ்",
+            "selectLanguage": "மொழியைத் தேர்ந்தெடு"
+        },
+        "saltProduction": {
+            "title": "உப்பு உற்பத்தி பதிவு",
+            "subtitle": "மாதாந்திர உற்பத்தி பதிவுகளை நிர்வகிக்கவும்",
+            "newRecord": "புதிய பதிவு",
+            "productionOverview": "உற்பத்தி மேலோட்டம்",
+            "productionOverviewSubtitle": "உண்மை மற்றும் கணிக்கப்பட்ட பருவகால உற்பத்தி",
+            "productionRecords": "உற்பத்தி பதிவுகள்",
+            "productionRecordsSubtitle": "அனைத்து உற்பத்தி பதிவுகளையும் பார்க்கவும் மற்றும் நிர்வகிக்கவும்",
+            "noRecordsFound": "உற்பத்தி பதிவுகள் இல்லை",
+            "createFirstRecord": "முதல் பதிவை உருவாக்கவும்",
+            "loadingRecords": "உற்பத்தி பதிவுகள் ஏற்றப்படுகின்றன...",
+            "table": {
+                "month": "மாதம்",
+                "season": "பருவம்",
+                "production": "உற்பத்தி (டன்கள்)",
+                "actions": "செயல்கள்"
+            },
+            "dialog": {
+                "createTitle": "உற்பத்தி பதிவை உருவாக்கவும்",
+                "createDescription": "புதிய மாதாந்திர உற்பத்தி பதிவைச் சேர்க்கவும்",
+                "editTitle": "உற்பத்தி பதிவைத் திருத்தவும்",
+                "editDescription": "{month} க்கான உற்பத்தி பதிவை புதுப்பிக்கவும்",
+                "deleteTitle": "நீங்கள் உறுதியாக இருக்கிறீர்களா?",
+                "deleteDescription": "இது {month} க்கான உற்பத்தி பதிவை நிரந்தரமாக நீக்கும். இந்தச் செயலை மாற்ற முடியாது."
+            },
+            "form": {
+                "month": "மாதம்",
+                "season": "பருவம்",
+                "selectSeason": "பருவத்தைத் தேர்ந்தெடுக்கவும்",
+                "productionVolume": "உற்பத்தி அளவு (டன்கள்)",
+                "volumePlaceholder": "0.0"
+            },
+            "buttons": {
+                "creating": "உருவாக்குகிறது...",
+                "createRecord": "பதிவை உருவாக்கவும்",
+                "updating": "புதுப்பிக்கிறது...",
+                "updateRecord": "பதிவை புதுப்பிக்கவும்",
+                "deleting": "நீக்குகிறது...",
+                "delete": "நீக்கு"
+            },
+            "toast": {
+                "validationError": "சரிபார்ப்பு பிழை",
+                "fillAllFields": "தயவுசெய்து அனைத்து புலங்களையும் நிரப்பவும்",
+                "createSuccess": "உற்பத்தி பதிவு வெற்றிகரமாக உருவாக்கப்பட்டது",
+                "createError": "உற்பத்தி பதிவை உருவாக்குவதில் தோல்வி",
+                "updateSuccess": "உற்பத்தி பதிவு வெற்றிகரமாக புதுப்பிக்கப்பட்டது",
+                "updateError": "உற்பத்தி பதிவை புதுப்பிப்பதில் தோல்வி",
+                "deleteSuccess": "உற்பத்தி பதிவு வெற்றிகரமாக நீக்கப்பட்டது",
+                "deleteError": "உற்பத்தி பதிவை நீக்குவதில் தோல்வி",
+                "fetchError": "உற்பத்தி பதிவுகளைப் பெறுவதில் தோல்வி"
+            },
+            "seasons": {
+                "maha": "மஹா",
+                "yala": "யாலா"
+            },
+            "chart": {
+                "yAxisLabel": "உற்பத்தி (டன்கள்)",
+                "actual": "உண்மை (டன்கள்)",
+                "predicted": "கணிப்பு (டன்கள்)",
+                "tons": "டன்கள்"
+            }
+        },
+        "productionDashboard": {
+            "title": "தினசரி சூழல் கண்காணிப்பு மற்றும் உற்பத்தி முன்னறிவிப்பு",
+            "subtitle": "புத்தளம் உப்பு சங்கம் - முக்கியமான செயல்பாட்டு தரவு",
+            "dailyEnvironmental": "தினசரி சூழல் அளவுருக்கள்",
+            "dailyEnvironmentalSubtitle": "வரலாற்று மற்றும் முன்னறிவிக்கப்பட்ட சூழல் தரவு",
+            "monthlyProduction": "மாதாந்திர உற்பத்தி முன்னறிவிப்பு",
+            "monthlyProductionSubtitle": "உண்மையான மற்றும் முன்னறிவிக்கப்பட்ட உற்பத்தி போக்குகள்",
+            "loadingData": "டாஷ்போர்டு தரவு ஏற்றுகிறது...",
+            "noDataAvailable": "தேர்ந்தெடுக்கப்பட்ட காலத்திற்கு தரவு இல்லை",
+            "historical": "வரலாற்று",
+            "predicted": "முன்னறிவிக்கப்பட்டது",
+            "dateRange": {
+                "last7Days": "கடந்த 7 நாட்கள்",
+                "last30Days": "கடந்த 30 நாட்கள்",
+                "last90Days": "கடந்த 90 நாட்கள்",
+                "custom": "தனிப்பயன் வரம்பு"
+            },
+            "metrics": {
+                "seasonForecast": "பருவ முன்னறிவிப்பு",
+                "tons": "டன்கள்",
+                "orBrineLevel": "OR உப்பு நிலை",
+                "temperature": "வெப்பநிலை",
+                "humidity": "ஈரப்பதம்",
+                "waterTemperature": "நீர் வெப்பநிலை",
+                "lagoon": "குளம்",
+                "orBundLevel": "OR பந்து நிலை",
+                "irBrineLevel": "IR உப்பு நிலை",
+                "irBundLevel": "IR பந்து நிலை",
+                "eastChannel": "கிழக்கு வழி",
+                "westChannel": "மேற்கு வழி",
+                "rainfall": "மழைபொழிவு",
+                "windSpeed": "காற்று வேகம்"
+            },
+            "charts": {
+                "dailyEnvTitle": "தினசரி சூழல் முன்னறிவிப்புகள்",
+                "dailyEnvBadge": "PSS பராமரிப்புக்கு முக்கியம்",
+                "dailyEnvDescription": "கடந்த 6 மாதங்கள் (திட) மற்றும் எதிர்கால 6 மாதங்கள் (கோடிட்ட) - அனைத்து சூழல் அளவுருக்கள்",
+                "past6Months": "கடந்த 6 மாதங்கள் (வரலாற்று)",
+                "future6Months": "எதிர்கால 6 மாதங்கள் (முன்னறிவிப்பு)",
+                "seasonalTitle": "பருவகால உற்பத்தி - யாலா/மஹா",
+                "seasonalDescription": "6 மாத பருவகால மொத்தங்கள் (வரலாற்று மற்றும் முன்னறிவிப்பு)"
+            },
+            "chart": {
+                "date": "தேதி",
+                "month": "மாதம்",
+                "value": "மதிப்பு",
+                "actual": "உண்மையான",
+                "predicted": "முன்னறிவிக்கப்பட்டது",
+                "celsius": "°C",
+                "percentage": "%",
+                "mm": "mm",
+                "kmh": "km/h",
+                "tons": "டன்கள்"
+            }
+        },
+        "recordingDashboard": {
+            "title": "கள தரவு பதிவு",
+            "subtitle": "PSS தினசரி சூழல் கண்காணிப்பு",
+            "form": {
+                "recordParameters": "அளவுருக்களை பதிவு செய்யவும்",
+                "date": "தேதி",
+                "waterTemperature": "நீர் வெப்பநிலை (°C)",
+                "lagoon": "குளம் நிலை",
+                "humidity": "ஈரப்பதம் (%)",
+                "temperature": "வெப்பநிலை (°C)",
+                "rainfall": "மழைபொழிவு (mm)",
+                "windSpeed": "காற்று வேகம் (km/h)",
+                "orBrineLevel": "OR உப்பு நிலை (உப்புத்தன்மை)",
+                "orBundLevel": "OR பந்து நிலை (நீர் நிலை)",
+                "irBrineLevel": "IR உப்பு நிலை (உப்புத்தன்மை)",
+                "irBundLevel": "IR பந்து நிலை (நீர் நிலை)",
+                "eastChannel": "கிழக்கு வழி (நீர் நிலை)",
+                "westChannel": "மேற்கு வழி (நீர் நிலை)",
+                "placeholder": "மதிப்பை உள்ளிடவும்"
+            },
+            "fields": {
+                "temperature": "வெப்பநிலை",
+                "lagoon": "குளம்",
+                "orBrineLevel": "OR உப்பு நிலை",
+                "orBundLevel": "OR பந்து நிலை",
+                "irBrineLevel": "IR உப்பு நிலை",
+                "irBundLevel": "IR பந்து நிலை",
+                "eastChannel": "கிழக்கு வழி",
+                "westChannel": "மேற்கு வழி"
+            },
+            "buttons": {
+                "submitting": "சமர்ப்பிக்கிறது...",
+                "recordFieldData": "கள தரவு பதிவு செய்யவும்"
+            },
+            "activity": {
+                "todayActivity": "இன்றைய செயல்பாடு",
+                "entriesRecorded": "பதிவுகள் எண்ணிக்கை",
+                "sectorsMonitored": "கண்காணிக்கப்பட்ட துறைகள்",
+                "activeWorkers": "செயலில் உள்ள பணியாளர்கள்"
+            },
+            "sync": {
+                "syncStatus": "ஒத்திசைவு நிலை",
+                "syncedToServer": "சேவையகத்துடன் ஒத்திசைக்கப்பட்டது",
+                "pendingUpload": "பதிவேற்றம் நிலுவையில்",
+                "recentEntries": "சமீபத்திய பதிவுகள்"
+            },
+            "toast": {
+                "validationError": "சரிபார்ப்பு பிழை",
+                "fillAllFields": "அனைத்து தேவையான புலங்களையும் நிரப்பவும்",
+                "createSuccess": "சூழல் தரவு வெற்றிகரமாக பதிவு செய்யப்பட்டது",
+                "createError": "சூழல் தரவு பதிவு செய்ய தோல்வி"
+            }
+        },
+        "navigation": {
+            "dashboard": "பலகை",
+            "production": "உற்பத்தி",
+            "recording": "பதிவு",
+            "saltProduction": "உப்பு உற்பத்தி",
+            "reports": "அறிக்கைகள்",
+            "alerts": "எச்சரிக்கைகள்",
+            "settings": "அமைப்புகள்"
+        }
+    }
+}

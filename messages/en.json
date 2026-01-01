@@ -1,0 +1,202 @@
+{
+    "crystal": {
+        "common": {
+            "loading": "Loading...",
+            "error": "Error",
+            "success": "Success",
+            "cancel": "Cancel",
+            "save": "Save",
+            "delete": "Delete",
+            "edit": "Edit",
+            "create": "Create",
+            "update": "Update",
+            "actions": "Actions",
+            "close": "Close"
+        },
+        "language": {
+            "english": "English",
+            "sinhala": "සිංහල",
+            "tamil": "தமிழ்",
+            "selectLanguage": "Select Language"
+        },
+        "saltProduction": {
+            "title": "Salt Production Recording",
+            "subtitle": "Manage monthly production records",
+            "newRecord": "New Record",
+            "productionOverview": "Production Overview",
+            "productionOverviewSubtitle": "Actual vs Predicted Seasonal Production",
+            "productionRecords": "Production Records",
+            "productionRecordsSubtitle": "View and manage all production records",
+            "noRecordsFound": "No production records found",
+            "createFirstRecord": "Create First Record",
+            "loadingRecords": "Loading production records...",
+            "table": {
+                "month": "Month",
+                "season": "Season",
+                "production": "Production (tons)",
+                "actions": "Actions"
+            },
+            "dialog": {
+                "createTitle": "Create Production Record",
+                "createDescription": "Add a new monthly production record",
+                "editTitle": "Edit Production Record",
+                "editDescription": "Update production record for {month}",
+                "deleteTitle": "Are you sure?",
+                "deleteDescription": "This will permanently delete the production record for {month}. This action cannot be undone."
+            },
+            "form": {
+                "month": "Month",
+                "season": "Season",
+                "selectSeason": "Select season",
+                "productionVolume": "Production Volume (tons)",
+                "volumePlaceholder": "0.0"
+            },
+            "buttons": {
+                "creating": "Creating...",
+                "createRecord": "Create Record",
+                "updating": "Updating...",
+                "updateRecord": "Update Record",
+                "deleting": "Deleting...",
+                "delete": "Delete"
+            },
+            "toast": {
+                "validationError": "Validation Error",
+                "fillAllFields": "Please fill in all fields",
+                "createSuccess": "Production record created successfully",
+                "createError": "Failed to create production record",
+                "updateSuccess": "Production record updated successfully",
+                "updateError": "Failed to update production record",
+                "deleteSuccess": "Production record deleted successfully",
+                "deleteError": "Failed to delete production record",
+                "fetchError": "Failed to fetch production records"
+            },
+            "seasons": {
+                "maha": "Maha",
+                "yala": "Yala"
+            },
+            "chart": {
+                "yAxisLabel": "Production (tons)",
+                "actual": "Actual (tons)",
+                "predicted": "Predicted (tons)",
+                "tons": "tons"
+            }
+        },
+        "productionDashboard": {
+            "title": "Daily Environmental Monitoring & Production Forecast",
+            "subtitle": "Puttalam Salt Society - Critical Operational Data",
+            "dailyEnvironmental": "Daily Environmental Parameters",
+            "dailyEnvironmentalSubtitle": "Historical and predicted environmental data",
+            "monthlyProduction": "Monthly Production Forecast",
+            "monthlyProductionSubtitle": "Actual vs predicted production trends",
+            "loadingData": "Loading dashboard data...",
+            "noDataAvailable": "No data available for the selected period",
+            "historical": "Historical",
+            "predicted": "Predicted",
+            "dateRange": {
+                "last7Days": "Last 7 Days",
+                "last30Days": "Last 30 Days",
+                "last90Days": "Last 90 Days",
+                "custom": "Custom Range"
+            },
+            "metrics": {
+                "seasonForecast": "Season Forecast",
+                "tons": "tons",
+                "orBrineLevel": "OR Brine Level",
+                "temperature": "Temperature",
+                "humidity": "Humidity",
+                "waterTemperature": "Water Temperature",
+                "lagoon": "Lagoon",
+                "orBundLevel": "OR Bund Level",
+                "irBrineLevel": "IR Brine Level",
+                "irBundLevel": "IR Bund Level",
+                "eastChannel": "East Channel",
+                "westChannel": "West Channel",
+                "rainfall": "Rainfall",
+                "windSpeed": "Wind Speed"
+            },
+            "charts": {
+                "dailyEnvTitle": "Daily Environmental Predictions",
+                "dailyEnvBadge": "Critical for PSS Maintenance",
+                "dailyEnvDescription": "Past 6 months (solid) vs Future 6 months (dashed) - All Environmental Parameters",
+                "past6Months": "Past 6 months (Historical)",
+                "future6Months": "Future 6 months (Predicted)",
+                "seasonalTitle": "Seasonal Production - Yala/Maha",
+                "seasonalDescription": "6-month seasonal totals (historical & predicted)"
+            },
+            "chart": {
+                "date": "Date",
+                "month": "Month",
+                "value": "Value",
+                "actual": "Actual",
+                "predicted": "Predicted",
+                "celsius": "°C",
+                "percentage": "%",
+                "mm": "mm",
+                "kmh": "km/h",
+                "tons": "tons"
+            }
+        },
+        "recordingDashboard": {
+            "title": "Field Data Recording",
+            "subtitle": "PSS Daily Environmental Monitoring",
+            "form": {
+                "recordParameters": "Record Parameters",
+                "date": "Date",
+                "waterTemperature": "Water Temperature (°C)",
+                "lagoon": "Lagoon Level",
+                "humidity": "Humidity (%)",
+                "temperature": "Temperature (°C)",
+                "rainfall": "Rainfall (mm)",
+                "windSpeed": "Wind Speed (km/h)",
+                "orBrineLevel": "OR Brine Level (salinity)",
+                "orBundLevel": "OR Bund Level (water level)",
+                "irBrineLevel": "IR Brine Level (salinity)",
+                "irBundLevel": "IR Bund Level (water level)",
+                "eastChannel": "East Channel (water level)",
+                "westChannel": "West Channel (water level)",
+                "placeholder": "Enter value"
+            },
+            "fields": {
+                "temperature": "Temperature",
+                "lagoon": "Lagoon",
+                "orBrineLevel": "OR Brine Level",
+                "orBundLevel": "OR Bund Level",
+                "irBrineLevel": "IR Brine Level",
+                "irBundLevel": "IR Bund Level",
+                "eastChannel": "East Channel",
+                "westChannel": "West Channel"
+            },
+            "buttons": {
+                "submitting": "Submitting...",
+                "recordFieldData": "Record Field Data"
+            },
+            "activity": {
+                "todayActivity": "Today's Activity",
+                "entriesRecorded": "Entries Recorded",
+                "sectorsMonitored": "Sectors Monitored",
+                "activeWorkers": "Active Workers"
+            },
+            "sync": {
+                "syncStatus": "Sync Status",
+                "syncedToServer": "Synced to Server",
+                "pendingUpload": "Pending Upload",
+                "recentEntries": "Recent Entries"
+            },
+            "toast": {
+                "validationError": "Validation Error",
+                "fillAllFields": "Please fill in all required fields",
+                "createSuccess": "Environmental data recorded successfully",
+                "createError": "Failed to record environmental data"
+            }
+        },
+        "navigation": {
+            "dashboard": "Dashboard",
+            "production": "Production",
+            "recording": "Recording",
+            "saltProduction": "Salt Production",
+            "reports": "Reports",
+            "alerts": "Alerts",
+            "settings": "Settings"
+        }
+    }
+}

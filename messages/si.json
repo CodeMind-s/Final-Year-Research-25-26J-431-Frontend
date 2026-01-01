@@ -1,0 +1,202 @@
+{
+    "crystal": {
+        "common": {
+            "loading": "පූරණය වෙමින්...",
+            "error": "දෝෂය",
+            "success": "සාර්ථකයි",
+            "cancel": "අවලංගු කරන්න",
+            "save": "සුරකින්න",
+            "delete": "මකන්න",
+            "edit": "සංස්කරණය",
+            "create": "නිර්මාණය",
+            "update": "යාවත්කාලීන",
+            "actions": "ක්‍රියාමාර්ග",
+            "close": "වසන්න"
+        },
+        "language": {
+            "english": "English",
+            "sinhala": "සිංහල",
+            "tamil": "தமிழ்",
+            "selectLanguage": "භාෂාව තෝරන්න"
+        },
+        "saltProduction": {
+            "title": "ලුණු නිෂ්පාදන වාර්තාව",
+            "subtitle": "මාසික නිෂ්පාදන වාර්තා කළමනාකරණය",
+            "newRecord": "නව වාර්තාව",
+            "productionOverview": "නිෂ්පාදන විශ්ලේෂණය",
+            "productionOverviewSubtitle": "සැබෑ හා පුරෝකථන කළ කාලීන නිෂ්පාදනය",
+            "productionRecords": "නිෂ්පාදන වාර්තා",
+            "productionRecordsSubtitle": "සියලුම නිෂ්පාදන වාර්තා බලන්න සහ කළමනාකරණය කරන්න",
+            "noRecordsFound": "නිෂ්පාදන වාර්තා හමු නොවීය",
+            "createFirstRecord": "පළමු වාර්තාව නිර්මාණය කරන්න",
+            "loadingRecords": "නිෂ්පාදන වාර්තා පූරණය වෙමින්...",
+            "table": {
+                "month": "මාසය",
+                "season": "කන්නය",
+                "production": "නිෂ්පාදනය (ටොන්)",
+                "actions": "ක්‍රියාමාර්ග"
+            },
+            "dialog": {
+                "createTitle": "නිෂ්පාදන වාර්තාව නිර්මාණය",
+                "createDescription": "නව මාසික නිෂ්පාදන වාර්තාවක් එක් කරන්න",
+                "editTitle": "නිෂ්පාදන වාර්තාව සංස්කරණය",
+                "editDescription": "{month} සඳහා නිෂ්පාදන වාර්තාව යාවත්කාලීන කරන්න",
+                "deleteTitle": "ඔබට විශ්වාසද?",
+                "deleteDescription": "මෙය {month} සඳහා නිෂ්පාදන වාර්තාව ස්ථිරවම මකා දමනු ඇත. මෙම ක්‍රියාව ආපසු හැරවිය නොහැක."
+            },
+            "form": {
+                "month": "මාසය",
+                "season": "කන්නය",
+                "selectSeason": "කන්නය තෝරන්න",
+                "productionVolume": "නිෂ්පාදන පරිමාව (ටොන්)",
+                "volumePlaceholder": "0.0"
+            },
+            "buttons": {
+                "creating": "නිර්මාණය වෙමින්...",
+                "createRecord": "වාර්තාව නිර්මාණය කරන්න",
+                "updating": "යාවත්කාලීන වෙමින්...",
+                "updateRecord": "වාර්තාව යාවත්කාලීන කරන්න",
+                "deleting": "මකමින්...",
+                "delete": "මකන්න"
+            },
+            "toast": {
+                "validationError": "වලංගු කිරීමේ දෝෂය",
+                "fillAllFields": "කරුණාකර සියලුම ක්ෂේත්‍ර පුරන්න",
+                "createSuccess": "නිෂ්පාදන වාර්තාව සාර්ථකව නිර්මාණය කරන ලදී",
+                "createError": "නිෂ්පාදන වාර්තාව නිර්මාණය කිරීම අසාර්ථක විය",
+                "updateSuccess": "නිෂ්පාදන වාර්තාව සාර්ථකව යාවත්කාලීන කරන ලදී",
+                "updateError": "නිෂ්පාදන වාර්තාව යාවත්කාලීන කිරීම අසාර්ථක විය",
+                "deleteSuccess": "නිෂ්පාදන වාර්තාව සාර්ථකව මකා දමන ලදී",
+                "deleteError": "නිෂ්පාදන වාර්තාව මකා දැමීම අසාර්ථක විය",
+                "fetchError": "නිෂ්පාදන වාර්තා ලබා ගැනීම අසාර්ථක විය"
+            },
+            "seasons": {
+                "maha": "මහ",
+                "yala": "යල"
+            },
+            "chart": {
+                "yAxisLabel": "නිෂ්පාදනය (ටොන්)",
+                "actual": "සැබෑ (ටොන්)",
+                "predicted": "පුරෝකථනය (ටොන්)",
+                "tons": "ටොන්"
+            }
+        },
+        "productionDashboard": {
+            "title": "දෛනික පාරිසරික නිරීක්ෂණය සහ නිෂ්පාදන පුරෝකථනය",
+            "subtitle": "පුත්තලම ලුණු සංගමය - තීරණාත්මක මෙහෙයුම් දත්ත",
+            "dailyEnvironmental": "දෛනික පාරිසරික පරාමිති",
+            "dailyEnvironmentalSubtitle": "ඓතිහාසික සහ පුරෝකථන පාරිසරික දත්ත",
+            "monthlyProduction": "මාසික නිෂ්පාදන පුරෝකථනය",
+            "monthlyProductionSubtitle": "සැබෑ හා පුරෝකථන නිෂ්පාදන ප්‍රවණතා",
+            "loadingData": "උපකරණ පුවරු දත්ත පූරණය වෙමින්...",
+            "noDataAvailable": "තෝරාගත් කාල සීමාව සඳහා දත්ත නොමැත",
+            "historical": "ඓතිහාසික",
+            "predicted": "පුරෝකථනය",
+            "dateRange": {
+                "last7Days": "පසුගිය දින 7",
+                "last30Days": "පසුගිය දින 30",
+                "last90Days": "පසුගිය දින 90",
+                "custom": "අභිරුචි පරාසය"
+            },
+            "metrics": {
+                "seasonForecast": "කන්න පුරෝකථනය",
+                "tons": "ටොන්",
+                "orBrineLevel": "OR අති ලවණ මට්ටම",
+                "temperature": "උෂ්ණත්වය",
+                "humidity": "ආර්ද්‍රතාවය",
+                "waterTemperature": "ජල උෂ්ණත්වය",
+                "lagoon": "කලපුව",
+                "orBundLevel": "OR බන්ද මට්ටම",
+                "irBrineLevel": "IR අති ලවණ මට්ටම",
+                "irBundLevel": "IR බන්ද මට්ටම",
+                "eastChannel": "නැගෙනහිර නාලිකාව",
+                "westChannel": "බටහිර නාලිකාව",
+                "rainfall": "වර්ෂාපතනය",
+                "windSpeed": "සුළං වේගය"
+            },
+            "charts": {
+                "dailyEnvTitle": "දෛනික පාරිසරික පුරෝකථන",
+                "dailyEnvBadge": "PSS නඩත්තුව සඳහා තීරණාත්මක",
+                "dailyEnvDescription": "පසුගිය මාස 6 (ඝණ) හා අනාගත මාස 6 (කඩින්) - සියලුම පාරිසරික පරාමිති",
+                "past6Months": "පසුගිය මාස 6 (ඓතිහාසික)",
+                "future6Months": "අනාගත මාස 6 (පුරෝකථනය)",
+                "seasonalTitle": "කාලීන නිෂ්පාදනය - යල/මහ",
+                "seasonalDescription": "මාස 6 කාලීන එකතුව (ඓතිහාසික සහ පුරෝකථන)"
+            },
+            "chart": {
+                "date": "දිනය",
+                "month": "මාසය",
+                "value": "අගය",
+                "actual": "සැබෑ",
+                "predicted": "පුරෝකථනය",
+                "celsius": "°C",
+                "percentage": "%",
+                "mm": "mm",
+                "kmh": "km/h",
+                "tons": "ටොන්"
+            }
+        },
+        "recordingDashboard": {
+            "title": "වැලි තත්ත්ව වාර්තාව",
+            "subtitle": "PSS දිනුම පරිසර නිරීක්ෂණය",
+            "form": {
+                "recordParameters": "පරිමිති වාර්තා කරන්න",
+                "date": "දිනය",
+                "waterTemperature": "ජල තාපමානය (°C)",
+                "lagoon": "ලගූන් ප්‍රමාණය",
+                "humidity": "ඈර්ද්‍රතාවය (%)",
+                "temperature": "තාපමානය (°C)",
+                "rainfall": "වර්ෂාව (mm)",
+                "windSpeed": "වායු වේගය (km/h)",
+                "orBrineLevel": "OR ලවණ ප්‍රමාණය (ලවණතාවය)",
+                "orBundLevel": "OR බන්ද් ප්‍රමාණය (ජල ප්‍රමාණය)",
+                "irBrineLevel": "IR ලවණ ප්‍රමාණය (ලවණතාවය)",
+                "irBundLevel": "IR බන්ද් ප්‍රමාණය (ජල ප්‍රමාණය)",
+                "eastChannel": "නැගෙනහිර මාර්ගය (ජල ප්‍රමාණය)",
+                "westChannel": "බස්නාහිර මාර්ගය (ජල ප්‍රමාණය)",
+                "placeholder": "මූල්‍ය ඇතුළත් කරන්න"
+            },
+            "fields": {
+                "temperature": "තාපමානය",
+                "lagoon": "ලගූන්",
+                "orBrineLevel": "OR ලවණ ප්‍රමාණය",
+                "orBundLevel": "OR බන්ද් ප්‍රමාණය",
+                "irBrineLevel": "IR ලවණ ප්‍රමාණය",
+                "irBundLevel": "IR බන්ද් ප්‍රමාණය",
+                "eastChannel": "නැගෙනහිර මාර්ගය",
+                "westChannel": "බස්නාහිර මාර්ගය"
+            },
+            "buttons": {
+                "submitting": "සමරපයි...",
+                "recordFieldData": "වැලි තත්ත්ව වාර්තා කරන්න"
+            },
+            "activity": {
+                "todayActivity": "අද ක්‍රියාකාරකම",
+                "entriesRecorded": "වාර්තා සංඛ්‍යාව",
+                "sectorsMonitored": "නිරීක්ෂණය කරන ලද කොට්ඨාස",
+                "activeWorkers": "සක්‍රිය කාර්යකරුවන්"
+            },
+            "sync": {
+                "syncStatus": "සමාකරණ ස්ථිතිය",
+                "syncedToServer": "සේවාදායකයට සමාකරණය",
+                "pendingUpload": "ඉතිරි ඉදීම",
+                "recentEntries": "සාමීප් වාර්තා"
+            },
+            "toast": {
+                "validationError": "විචිමනය වෙලාවක්",
+                "fillAllFields": "කරුණාකර සියලුම කොට්ඨාස පුරවන්න",
+                "createSuccess": "පරිසර තත්ත්ව යාවත්කාලීන වාර්තා කරන ලදී",
+                "createError": "පරිසර තත්ත්ව වාර්තා කිරීමට විශල විය"
+            }
+        },
+        "navigation": {
+            "dashboard": "උපකරණ පුවරුව",
+            "production": "නිෂ්පාදනය",
+            "recording": "වාර්තාකරණය",
+            "saltProduction": "ලුණු නිෂ්පාදනය",
+            "reports": "වාර්තා",
+            "alerts": "ඇඟවීම්",
+            "settings": "සැකසුම්"
+        }
+    }
+}
