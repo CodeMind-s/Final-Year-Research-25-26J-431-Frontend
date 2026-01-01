@@ -12,6 +12,7 @@ import { currentSeason, historicalProduction, monthlyProduction } from "@/sample
 import { crystallizationController } from "@/services/crystallization.controller"
 import { PredictedMonthlyProduction } from "@/types/crystallization.types"
 import { productionController } from "@/services/production.controller"
+import { useTranslations } from 'next-intl'
 
 // Generate mock historical data (temporary until API is ready)
 const generateMockHistoricalData = (startDate: string, endDate: string): any[] => {
@@ -158,6 +159,8 @@ const transformDailyEnvironmentalData = (
 }
 
 export function ProductionDashboard() {
+  const t = useTranslations('crystal.productionDashboard')
+  const tc = useTranslations('crystal.common')
   const [forecastDialogOpen, setForecastDialogOpen] = useState(false)
   const [notifyDialogOpen, setNotifyDialogOpen] = useState(false)
   const [monthlyProductionData, setMonthlyProductionData] = useState<PredictedMonthlyProduction[]>([])
@@ -444,8 +447,8 @@ export function ProductionDashboard() {
       {/* Compact Header with Season */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Daily Environmental Monitoring & Production Forecast</h1>
-          <p className="text-sm text-muted-foreground">Puttalam Salt Society - Critical Operational Data</p>
+          <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
         </div>
         <div className="text-right">
           <Badge className="bg-primary text-primary-foreground text-base px-3 py-1">
@@ -459,16 +462,16 @@ export function ProductionDashboard() {
       <div className="grid gap-3 grid-cols-4">
         <Card className="p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground">Season Forecast</span>
+            <span className="text-xs text-muted-foreground">{t('metrics.seasonForecast')}</span>
             <TrendingUp className="h-3 w-3 text-success" />
           </div>
           <div className="text-xl font-bold text-foreground">{totalPrediction.toLocaleString()}</div>
-          <p className="text-xs text-muted-foreground">tons</p>
+          <p className="text-xs text-muted-foreground">{t('metrics.tons')}</p>
         </Card>
 
         <Card className="p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground">OR Brine Level</span>
+            <span className="text-xs text-muted-foreground">{t('metrics.orBrineLevel')}</span>
             <Droplets className="h-3 w-3 text-primary" />
           </div>
           <div className="text-xl font-bold text-foreground">{latestEnv?.OR_brine_level?.toFixed(1) || '--'}</div>
@@ -477,7 +480,7 @@ export function ProductionDashboard() {
 
         <Card className="p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground">Temperature</span>
+            <span className="text-xs text-muted-foreground">{t('metrics.temperature')}</span>
             <Activity className="h-3 w-3 text-destructive" />
           </div>
           <div className="text-xl font-bold text-foreground">{latestEnv?.temperature?.toFixed(1) || '--'}</div>
@@ -486,7 +489,7 @@ export function ProductionDashboard() {
 
         <Card className="p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground">Humidity</span>
+            <span className="text-xs text-muted-foreground">{t('metrics.humidity')}</span>
             <Cloud className="h-3 w-3 text-success" />
           </div>
           <div className="text-xl font-bold text-foreground">{latestEnv?.humidity?.toFixed(0) || '--'}</div>
@@ -499,10 +502,10 @@ export function ProductionDashboard() {
         <div className="mb-3">
           <div className="flex items-center gap-2 mb-1">
             <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
-            <h2 className="text-lg font-bold text-foreground">Daily Environmental Predictions</h2>
-            <Badge className="bg-primary/20 text-primary">Critical for PSS Maintenance</Badge>
+            <h2 className="text-lg font-bold text-foreground">{t('charts.dailyEnvTitle')}</h2>
+            <Badge className="bg-primary/20 text-primary">{t('charts.dailyEnvBadge')}</Badge>
           </div>
-          <p className="text-xs text-muted-foreground">Past 6 months (solid) vs Future 6 months (dashed) - All Environmental Parameters</p>
+          <p className="text-xs text-muted-foreground">{t('charts.dailyEnvDescription')}</p>
         </div>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -554,7 +557,7 @@ export function ProductionDashboard() {
                       <div className="bg-white p-2 border rounded shadow-sm">
                         <p className="font-semibold text-xs mb-1">{data.period}</p>
                         <p className="text-xs text-muted-foreground mb-1">
-                          {data.type === 'historical' ? '📊 Historical' : '🔮 Predicted'}
+                          {data.type === 'historical' ? `📊 ${t('historical')}` : `🔮 ${t('predicted')}`}
                         </p>
                         {payload.map((entry: any, index: number) => (
                           <p key={index} className="text-xs" style={{ color: entry.color }}>
@@ -757,11 +760,11 @@ export function ProductionDashboard() {
         <div className="flex items-center gap-6 mt-3 text-xs text-muted-foreground justify-center border-t pt-3">
           <div className="flex items-center gap-2 px-3 py-1 bg-muted/30 rounded">
             <div className="h-0.5 w-10 bg-primary"></div>
-            <span className="font-medium">← Past 6 months (Historical)</span>
+            <span className="font-medium">← {t('charts.past6Months')}</span>
           </div>
           <div className="h-6 w-px bg-destructive"></div>
           <div className="flex items-center gap-2 px-3 py-1 bg-primary/5 rounded">
-            <span className="font-medium">Future 6 months (Predicted) →</span>
+            <span className="font-medium">{t('charts.future6Months')} →</span>
             <div className="h-0.5 w-10 bg-primary"></div>
           </div>
         </div>
@@ -772,8 +775,8 @@ export function ProductionDashboard() {
         {/* Seasonal Production (Yala/Maha) */}
         <Card className="p-4">
           <div className="mb-3">
-            <h2 className="text-base font-semibold text-foreground">Seasonal Production - Yala/Maha</h2>
-            <p className="text-xs text-muted-foreground">6-month seasonal totals (historical & predicted)</p>
+            <h2 className="text-base font-semibold text-foreground">{t('charts.seasonalTitle')}</h2>
+            <p className="text-xs text-muted-foreground">{t('charts.seasonalDescription')}</p>
           </div>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">

@@ -61,17 +61,17 @@ export default function AlertsPage() {
   return (
     // <DashboardLayout>
       <div className="p-6 space-y-6">
-        <div>
+      <div>
           <h1 className="text-3xl font-semibold text-foreground">System Alerts</h1>
           <p className="text-muted-foreground mt-1">Monitor critical notifications and system warnings</p>
-        </div>
+      </div>
 
-        <div className="space-y-3">
-          {alerts.map((alert) => (
-            <Card
-              key={alert.id}
+      <div className="space-y-3">
+        {alerts.map((alert) => (
+          <Card
+            key={alert.id}
               className={`p-4 transition-colors ${alert.read ? 'hover:bg-accent/30' : 'hover:bg-accent/50 bg-accent/20'}`}
-            >
+          >
               <div className="flex items-start gap-4">
                 {alert.type === "warning" && <AlertTriangle className="h-5 w-5 text-warning mt-0.5" />}
                 {alert.type === "info" && <Info className="h-5 w-5 text-primary mt-0.5" />}
@@ -80,65 +80,65 @@ export default function AlertsPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-semibold text-foreground">{alert.title}</h3>
-                    <Badge
-                      variant={
-                        alert.type === "warning" ? "destructive" : alert.type === "success" ? "default" : "secondary"
-                      }
-                    >
-                      {alert.type}
-                    </Badge>
-                    {!alert.read && (
+                  <Badge
+                    variant={
+                      alert.type === "warning" ? "destructive" : alert.type === "success" ? "default" : "secondary"
+                    }
+                  >
+                    {alert.type}
+                  </Badge>
+                  {!alert.read && (
                       <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                        New
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">{alert.message}</p>
-                  
-                  {expandedAlert === alert.id && (
-                    <div className="mt-3 p-3 bg-muted/50 rounded-lg text-sm">
-                      <p className="font-medium text-foreground mb-2">Detailed Information:</p>
-                      <p className="text-muted-foreground mb-2">
-                        This alert was generated based on real-time monitoring of field conditions.
-                        Field supervisors have been notified and should take appropriate action.
-                      </p>
-                      <p className="text-xs text-muted-foreground">Alert ID: #{alert.id} • Generated: {alert.time}</p>
-                    </div>
+                      New
+                    </Badge>
                   )}
+                </div>
+                  <p className="text-sm text-muted-foreground mb-2">{alert.message}</p>
+
+                {expandedAlert === alert.id && (
+                    <div className="mt-3 p-3 bg-muted/50 rounded-lg text-sm">
+                    <p className="font-medium text-foreground mb-2">Detailed Information:</p>
+                    <p className="text-muted-foreground mb-2">
+                      This alert was generated based on real-time monitoring of field conditions.
+                      Field supervisors have been notified and should take appropriate action.
+                    </p>
+                    <p className="text-xs text-muted-foreground">Alert ID: #{alert.id} • Generated: {alert.time}</p>
+                  </div>
+                )}
 
                   <div className="flex items-center gap-3 mt-2">
-                    <span className="text-xs text-muted-foreground">{alert.time}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-xs"
-                      onClick={() => setExpandedAlert(expandedAlert === alert.id ? null : alert.id)}
-                    >
+                  <span className="text-xs text-muted-foreground">{alert.time}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => setExpandedAlert(expandedAlert === alert.id ? null : alert.id)}
+                  >
                       {expandedAlert === alert.id ? "Hide details" : "View details"}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-xs"
-                      onClick={() => toggleAlertRead(alert.id)}
-                    >
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => toggleAlertRead(alert.id)}
+                  >
                       {alert.read ? "Mark unread" : "Mark read"}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-xs text-destructive"
-                      onClick={() => dismissAlert(alert.id)}
-                    >
-                      Dismiss
-                    </Button>
-                  </div>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs text-destructive"
+                    onClick={() => dismissAlert(alert.id)}
+                  >
+                    Dismiss
+                  </Button>
                 </div>
               </div>
-            </Card>
-          ))}
-        </div>
+            </div>
+          </Card>
+        ))}
       </div>
+    </div>
     // </DashboardLayout>
   )
 }

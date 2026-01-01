@@ -7,11 +7,12 @@ import { Label } from "@/components/crystal/ui/label"
 import { useState, useEffect } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/crystal/ui/select"
 import { Badge } from "@/components/crystal/ui/badge"
-import { TrendingUp, Edit, Trash2, Plus, Calendar, Package, BarChart3 } from "lucide-react"
+import { TrendingUp, TrendingDown, Edit, Trash2, Plus, Calendar, Package, BarChart3 } from "lucide-react"
 import { productionController } from "@/services/production.controller"
 import { ActualMonthlyProductionData } from "@/types/production.types"
 import { useToast } from "@/hooks/use-toast"
 import { crystallizationController } from "@/services/crystallization.controller"
+import { useTranslations } from 'next-intl'
 import {
     Dialog,
     DialogContent,
@@ -30,9 +31,11 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/crystal/ui/alert-dialog"
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { AreaChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from "recharts"
 
 export function SaltProductionRecording() {
+    const t = useTranslations('crystal.saltProduction')
+    const tc = useTranslations('crystal.common')
     const { toast } = useToast()
     const [productions, setProductions] = useState<ActualMonthlyProductionData[]>([])
     const [predictedProductions, setPredictedProductions] = useState<any[]>([])
@@ -56,12 +59,14 @@ export function SaltProductionRecording() {
         try {
             setIsLoading(true)
             const today = new Date()
-            const startDate = new Date(today.getFullYear() - 2, 0, 1) // 2 years ago
-            const endDate = new Date(today.getFullYear() + 1, 11, 31) // 1 year ahead
+            // 1 year before current month for table records
+            const startDate = new Date(today.getFullYear(), today.getMonth() - 12, 1)
+            // 6 months after current month for chart predictions
+            const endDate = new Date(today.getFullYear(), today.getMonth() + 6, 1)
 
             const formatDate = (d: Date) => d.toISOString().slice(0, 7)
 
-            // Fetch actual productions
+            // Fetch actual productions (past data - 1 year)
             const actualResponse = await productionController.getActualMonthlyProductions({
                 startMonth: formatDate(startDate),
                 endMonth: formatDate(today),
@@ -69,10 +74,10 @@ export function SaltProductionRecording() {
 
             const actualData = Array.isArray(actualResponse) ? actualResponse : (actualResponse?.data || [])
 
-            // Fetch predicted productions
+            // Fetch predicted productions (for entire timeline including past months)
             try {
                 const predictedResponse = await crystallizationController.getPredictedMonthlyProductions({
-                    startMonth: formatDate(today),
+                    startMonth: formatDate(startDate),
                     endMonth: formatDate(endDate),
                 })
                 const predictedData = Array.isArray(predictedResponse) ? predictedResponse : (predictedResponse?.data || [])
@@ -88,8 +93,8 @@ export function SaltProductionRecording() {
         } catch (error) {
             console.error("Failed to fetch productions:", error)
             toast({
-                title: "Error",
-                description: "Failed to fetch production records",
+                title: tc('error'),
+                description: t('toast.fetchError'),
                 variant: "destructive",
             })
         } finally {
@@ -103,70 +108,73 @@ export function SaltProductionRecording() {
 
     // Prepare chart data
     const prepareChartData = () => {
-        // Combine actual and predicted data
-        const combinedData: any[] = []
+        const today = new Date()
+        const currentMonth = today.toISOString().slice(0, 7)
 
-        // Group actual data by season
-        const seasonalData: { [key: string]: { actual: number; season: string; month: string } } = {}
+        // Create 12-month timeline (6 months before + current + 5 months after = 12 total)
+        const months: string[] = []
+        for (let i = -6; i <= 5; i++) {
+            const date = new Date(today.getFullYear(), today.getMonth() + i, 1)
+            months.push(date.toISOString().slice(0, 7))
+        }
 
+        // Create a map of actual production by month (convert bags to tons)
+        const actualMap: { [key: string]: number } = {}
         productions.forEach((prod) => {
-            const seasonKey = `${prod.season} ${prod.month.split('-')[0]}`
-            if (!seasonalData[seasonKey]) {
-                seasonalData[seasonKey] = {
-                    actual: 0,
-                    season: prod.season,
-                    month: prod.month,
-                }
-            }
-            seasonalData[seasonKey].actual += prod.production_volume
+            actualMap[prod.month] = prod.production_volume * 50 // Convert bags to tons
         })
 
-        // Group predicted data by season
-        const predictedSeasonalData: { [key: string]: { predicted: number; season: string } } = {}
-
+        // Create a map of predicted production by month (convert bags to tons)
+        const predictedMap: { [key: string]: number } = {}
         predictedProductions.forEach((pred) => {
-            // Determine season based on month
-            const monthNum = parseInt(pred.month.split('-')[1])
-            const season = (monthNum >= 4 && monthNum <= 9) ? 'Yala' : 'Maha'
-            const year = pred.month.split('-')[0]
-            const seasonKey = `${season} ${year}`
+            predictedMap[pred.month] = (pred.productionForecast || 0) * 50 // Convert bags to tons
+        })
 
-            if (!predictedSeasonalData[seasonKey]) {
-                predictedSeasonalData[seasonKey] = {
-                    predicted: 0,
-                    season: season,
-                }
+        // Build chart data for each month
+        const chartData = months.map((month) => {
+            const [year, monthNum] = month.split('-')
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            const monthIndex = parseInt(monthNum) - 1
+            const label = `${monthNames[monthIndex]} ${year}`
+
+            return {
+                month: month,
+                label: label,
+                actual: actualMap[month] || null,
+                predicted: predictedMap[month] || null,
+                isCurrentMonth: month === currentMonth,
             }
-            predictedSeasonalData[seasonKey].predicted += pred.productionForecast || 0
         })
 
-        // Combine into chart data
-        const allSeasons = new Set([...Object.keys(seasonalData), ...Object.keys(predictedSeasonalData)])
-
-        allSeasons.forEach((seasonKey) => {
-            const actual = seasonalData[seasonKey]
-            const predicted = predictedSeasonalData[seasonKey]
-
-            combinedData.push({
-                season: seasonKey,
-                actual: actual ? Math.round(actual.actual) : null,
-                predicted: predicted ? Math.round(predicted.predicted) : null,
-                seasonType: actual?.season || predicted?.season || 'Maha',
-            })
-        })
-
-        // Sort by season chronologically
-        return combinedData.sort((a, b) => a.season.localeCompare(b.season)).slice(-6)
+        return chartData
     }
 
     const chartData = prepareChartData()
+
+    // Calculate average production in tons
+    const calculateAverageProduction = () => {
+        if (productions.length === 0) return 0
+        const total = productions.reduce((sum, prod) => sum + (prod.production_volume * 50), 0)
+        return total / productions.length
+    }
+
+    const averageProduction = calculateAverageProduction()
+
+    // Determine season based on month (Maha: Oct-Mar, Yala: Apr-Sep)
+    const getSeasonFromMonth = (monthStr: string): string => {
+        if (!monthStr) return ""
+        const month = parseInt(monthStr.split('-')[1])
+        // Yala: April (4) to September (9)
+        // Maha: October (10) to March (3)
+        return (month >= 4 && month <= 9) ? 'Yala' : 'Maha'
+    }
 
     // Handle create
     const handleCreate = async () => {
         if (!formData.month || !formData.production_volume || !formData.season) {
             toast({
-                title: "Validation Error",
-                description: "Please fill in all fields",
+                title: t('toast.validationError'),
+                description: t('toast.fillAllFields'),
                 variant: "destructive",
             })
             return
@@ -181,8 +189,8 @@ export function SaltProductionRecording() {
             })
 
             toast({
-                title: "Success",
-                description: "Production record created successfully",
+                title: tc('success'),
+                description: t('toast.createSuccess'),
             })
 
             setShowCreateDialog(false)
@@ -191,8 +199,8 @@ export function SaltProductionRecording() {
         } catch (error) {
             console.error("Failed to create production:", error)
             toast({
-                title: "Error",
-                description: "Failed to create production record",
+                title: tc('error'),
+                description: t('toast.createError'),
                 variant: "destructive",
             })
         } finally {
@@ -204,8 +212,8 @@ export function SaltProductionRecording() {
     const handleUpdate = async () => {
         if (!selectedProduction || !formData.production_volume || !formData.season) {
             toast({
-                title: "Validation Error",
-                description: "Please fill in all fields",
+                title: t('toast.validationError'),
+                description: t('toast.fillAllFields'),
                 variant: "destructive",
             })
             return
@@ -219,8 +227,8 @@ export function SaltProductionRecording() {
             })
 
             toast({
-                title: "Success",
-                description: "Production record updated successfully",
+                title: tc('success'),
+                description: t('toast.updateSuccess'),
             })
 
             setShowEditDialog(false)
@@ -230,8 +238,8 @@ export function SaltProductionRecording() {
         } catch (error) {
             console.error("Failed to update production:", error)
             toast({
-                title: "Error",
-                description: "Failed to update production record",
+                title: tc('error'),
+                description: t('toast.updateError'),
                 variant: "destructive",
             })
         } finally {
@@ -248,8 +256,8 @@ export function SaltProductionRecording() {
             await productionController.deleteProduction(selectedProduction._id)
 
             toast({
-                title: "Success",
-                description: "Production record deleted successfully",
+                title: tc('success'),
+                description: t('toast.deleteSuccess'),
             })
 
             setShowDeleteDialog(false)
@@ -258,8 +266,8 @@ export function SaltProductionRecording() {
         } catch (error) {
             console.error("Failed to delete production:", error)
             toast({
-                title: "Error",
-                description: "Failed to delete production record",
+                title: tc('error'),
+                description: t('toast.deleteError'),
                 variant: "destructive",
             })
         } finally {
@@ -301,8 +309,8 @@ export function SaltProductionRecording() {
                         <Package className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-semibold text-foreground">Salt Production Recording</h1>
-                        <p className="text-sm text-muted-foreground">Manage monthly production records</p>
+                        <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
+                        <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
                     </div>
                 </div>
                 <Button
@@ -313,18 +321,18 @@ export function SaltProductionRecording() {
                     className="bg-primary hover:bg-primary/90"
                 >
                     <Plus className="h-4 w-4 mr-2" />
-                    New Record
+                    {t('newRecord')}
                 </Button>
             </div>
 
             {/* Production Chart */}
             {chartData.length > 0 && (
-                <Card className="p-6">
+                <Card className="p-5 border-2 border-primary/30 bg-linear-to-br from-primary/5 to-background">
                     <div className="mb-4 flex items-center gap-2">
                         <BarChart3 className="h-5 w-5 text-primary" />
                         <div>
-                            <h2 className="text-lg font-semibold text-foreground">Production Overview</h2>
-                            <p className="text-sm text-muted-foreground">Actual vs Predicted Seasonal Production</p>
+                            <h2 className="text-lg font-semibold text-foreground">{t('productionOverview')}</h2>
+                            <p className="text-sm text-muted-foreground">{t('productionOverviewSubtitle')}</p>
                         </div>
                     </div>
                     <div className="h-80">
@@ -335,14 +343,10 @@ export function SaltProductionRecording() {
                                         <stop offset="5%" stopColor="rgb(99 102 241)" stopOpacity={0.8} />
                                         <stop offset="95%" stopColor="rgb(99 102 241)" stopOpacity={0.1} />
                                     </linearGradient>
-                                    <linearGradient id="colorPredicted" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="rgb(168 85 247)" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="rgb(168 85 247)" stopOpacity={0.1} />
-                                    </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgb(229 229 229)" />
                                 <XAxis
-                                    dataKey="season"
+                                    dataKey="label"
                                     stroke="rgb(115 115 115)"
                                     tick={{ fontSize: 12 }}
                                     angle={-20}
@@ -352,7 +356,7 @@ export function SaltProductionRecording() {
                                 <YAxis
                                     stroke="rgb(115 115 115)"
                                     tick={{ fontSize: 11 }}
-                                    label={{ value: "Production (tons)", angle: -90, position: "insideLeft", style: { fontSize: 11 } }}
+                                    label={{ value: t('chart.yAxisLabel'), angle: -90, position: "insideLeft", style: { fontSize: 11 } }}
                                 />
                                 <Tooltip
                                     contentStyle={{
@@ -361,12 +365,21 @@ export function SaltProductionRecording() {
                                         borderRadius: "8px",
                                         fontSize: "12px"
                                     }}
-                                    formatter={(value: any) => [`${value?.toLocaleString()} tons`, ""]}
+                                    formatter={(value: any) => [`${value?.toLocaleString()} ${t('chart.tons')}`, ""]}
                                 />
                                 <Legend
                                     wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }}
-                                    formatter={(value) => value === "actual" ? "Actual (tons)" : "Predicted (tons)"}
+                                    formatter={(value) => value === "actual" ? t('chart.actual') : t('chart.predicted')}
                                 />
+                                {/* Red vertical dashed line for current month */}
+                                <ReferenceLine
+                                    x={chartData.find(d => d.isCurrentMonth)?.label}
+                                    stroke="rgb(239 68 68)"
+                                    strokeDasharray="5 5"
+                                    strokeWidth={2}
+                                    label={{ value: "Current", position: "top", fill: "rgb(239 68 68)", fontSize: 11 }}
+                                />
+                                {/* Actual production: solid line with colored area */}
                                 <Area
                                     type="monotone"
                                     dataKey="actual"
@@ -375,15 +388,18 @@ export function SaltProductionRecording() {
                                     fillOpacity={1}
                                     fill="url(#colorActual)"
                                     name="actual"
+                                    connectNulls={false}
                                 />
-                                <Area
+                                {/* Predicted production: dashed line with no area */}
+                                <Line
                                     type="monotone"
                                     dataKey="predicted"
                                     stroke="rgb(168 85 247)"
                                     strokeWidth={2}
-                                    fillOpacity={1}
-                                    fill="url(#colorPredicted)"
+                                    strokeDasharray="5 5"
                                     name="predicted"
+                                    dot={{ fill: "rgb(168 85 247)", r: 3 }}
+                                    connectNulls={false}
                                 />
                             </AreaChart>
                         </ResponsiveContainer>
@@ -394,25 +410,25 @@ export function SaltProductionRecording() {
             {/* Production Records Table */}
             <Card className="p-6">
                 <div className="mb-4">
-                    <h2 className="text-lg font-semibold text-foreground">Production Records</h2>
-                    <p className="text-sm text-muted-foreground">View and manage all production records</p>
+                    <h2 className="text-lg font-semibold text-foreground">{t('productionRecords')}</h2>
+                    <p className="text-sm text-muted-foreground">{t('productionRecordsSubtitle')}</p>
                 </div>
 
                 {isLoading ? (
                     <div className="text-center py-12">
-                        <p className="text-muted-foreground">Loading production records...</p>
+                        <p className="text-muted-foreground">{t('loadingRecords')}</p>
                     </div>
                 ) : productions.length === 0 ? (
                     <div className="text-center py-12">
                         <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground">No production records found</p>
+                        <p className="text-muted-foreground">{t('noRecordsFound')}</p>
                         <Button
                             onClick={() => setShowCreateDialog(true)}
                             variant="outline"
                             className="mt-4"
                         >
                             <Plus className="h-4 w-4 mr-2" />
-                            Create First Record
+                            {t('createFirstRecord')}
                         </Button>
                     </div>
                 ) : (
@@ -420,15 +436,21 @@ export function SaltProductionRecording() {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-border">
-                                    <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Month</th>
-                                    <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Season</th>
-                                    <th className="text-right py-3 px-4 text-sm font-semibold text-foreground">Production (tons)</th>
-                                    <th className="text-right py-3 px-4 text-sm font-semibold text-foreground">Actions</th>
+                                    <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">{t('table.month')}</th>
+                                    <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">{t('table.season')}</th>
+                                    <th className="text-right py-3 px-4 text-sm font-semibold text-foreground">{t('table.production')}</th>
+                                    <th className="text-right py-3 px-4 text-sm font-semibold text-foreground">{t('table.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {productions.map((production) => (
-                                    <tr key={production._id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                                    <tr
+                                        key={production._id}
+                                        className={`border-b border-border hover:bg-muted/50 transition-colors ${production.season === "Maha"
+                                            ? "bg-indigo-500/15  border-indigo-500/10"
+                                            : "bg-purple-500/15 border-purple-500/10"
+                                            }`}
+                                    >
                                         <td className="py-3 px-4">
                                             <div className="flex items-center gap-2">
                                                 <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -448,9 +470,18 @@ export function SaltProductionRecording() {
                                         </td>
                                         <td className="py-3 px-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                <TrendingUp className="h-4 w-4 text-success" />
-                                                <span className="font-bold text-foreground">
-                                                    {production.production_volume.toLocaleString()}
+                                                {(production.production_volume * 50) >= averageProduction ? (
+                                                    <TrendingUp className="h-4 w-4 text-green-500" />
+                                                ) : (
+                                                    <TrendingDown className="h-4 w-4 text-red-500" />
+                                                )}
+                                                <span
+                                                    className={`font-bold ${(production.production_volume * 50) >= averageProduction
+                                                        ? 'text-green-600'
+                                                        : 'text-red-600'
+                                                        }`}
+                                                >
+                                                    {(production.production_volume * 50).toLocaleString()}
                                                 </span>
                                             </div>
                                         </td>
@@ -486,36 +517,40 @@ export function SaltProductionRecording() {
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Create Production Record</DialogTitle>
+                        <DialogTitle>{t('dialog.createTitle')}</DialogTitle>
                         <DialogDescription>
-                            Add a new monthly production record
+                            {t('dialog.createDescription')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="create-month">Month</Label>
+                            <Label htmlFor="create-month">{t('form.month')}</Label>
                             <Input
                                 id="create-month"
                                 type="month"
                                 value={formData.month}
-                                onChange={(e) => setFormData({ ...formData, month: e.target.value })}
+                                onChange={(e) => {
+                                    const month = e.target.value
+                                    const season = getSeasonFromMonth(month)
+                                    setFormData({ ...formData, month, season })
+                                }}
                                 className="bg-background border-border text-foreground"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="create-season">Season</Label>
-                            <Select value={formData.season} onValueChange={(value) => setFormData({ ...formData, season: value })}>
-                                <SelectTrigger id="create-season" className="bg-background border-border text-foreground">
-                                    <SelectValue placeholder="Select season" />
+                            <Label htmlFor="create-season">{t('form.season')}</Label>
+                            <Select value={formData.season} onValueChange={(value) => setFormData({ ...formData, season: value })} disabled>
+                                <SelectTrigger id="create-season" className="bg-muted border-border text-foreground">
+                                    <SelectValue placeholder={t('form.selectSeason')} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Maha">Maha</SelectItem>
-                                    <SelectItem value="Yala">Yala</SelectItem>
+                                    <SelectItem value="Maha">{t('seasons.maha')}</SelectItem>
+                                    <SelectItem value="Yala">{t('seasons.yala')}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="create-volume">Production Volume (tons)</Label>
+                            <Label htmlFor="create-volume">{t('form.productionVolume')}</Label>
                             <Input
                                 id="create-volume"
                                 type="number"
@@ -529,10 +564,10 @@ export function SaltProductionRecording() {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-                            Cancel
+                            {tc('cancel')}
                         </Button>
                         <Button onClick={handleCreate} disabled={isSubmitting}>
-                            {isSubmitting ? "Creating..." : "Create Record"}
+                            {isSubmitting ? t('buttons.creating') : t('buttons.createRecord')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -542,14 +577,14 @@ export function SaltProductionRecording() {
             <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Edit Production Record</DialogTitle>
+                        <DialogTitle>{t('dialog.editTitle')}</DialogTitle>
                         <DialogDescription>
-                            Update production record for {selectedProduction && formatMonth(selectedProduction.month)}
+                            {selectedProduction && t('dialog.editDescription', { month: formatMonth(selectedProduction.month) })}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="edit-month">Month</Label>
+                            <Label htmlFor="edit-month">{t('form.month')}</Label>
                             <Input
                                 id="edit-month"
                                 type="month"
@@ -559,19 +594,19 @@ export function SaltProductionRecording() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="edit-season">Season</Label>
-                            <Select value={formData.season} onValueChange={(value) => setFormData({ ...formData, season: value })}>
-                                <SelectTrigger id="edit-season" className="bg-background border-border text-foreground">
-                                    <SelectValue placeholder="Select season" />
+                            <Label htmlFor="edit-season">{t('form.season')}</Label>
+                            <Select value={formData.season} onValueChange={(value) => setFormData({ ...formData, season: value })} disabled>
+                                <SelectTrigger id="edit-season" className="bg-muted border-border text-muted-foreground" >
+                                    <SelectValue placeholder={t('form.selectSeason')} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Maha">Maha</SelectItem>
-                                    <SelectItem value="Yala">Yala</SelectItem>
+                                    <SelectItem value="Maha">{t('seasons.maha')}</SelectItem>
+                                    <SelectItem value="Yala">{t('seasons.yala')}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="edit-volume">Production Volume (tons)</Label>
+                            <Label htmlFor="edit-volume">{t('form.productionVolume')}</Label>
                             <Input
                                 id="edit-volume"
                                 type="number"
@@ -585,10 +620,10 @@ export function SaltProductionRecording() {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setShowEditDialog(false)}>
-                            Cancel
+                            {tc('cancel')}
                         </Button>
                         <Button onClick={handleUpdate} disabled={isSubmitting}>
-                            {isSubmitting ? "Updating..." : "Update Record"}
+                            {isSubmitting ? t('buttons.updating') : t('buttons.updateRecord')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -598,21 +633,19 @@ export function SaltProductionRecording() {
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('dialog.deleteTitle')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently delete the production record for{" "}
-                            <strong>{selectedProduction && formatMonth(selectedProduction.month)}</strong>.
-                            This action cannot be undone.
+                            {selectedProduction && t('dialog.deleteDescription', { month: formatMonth(selectedProduction.month) })}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
                             disabled={isSubmitting}
                             className="bg-destructive hover:bg-destructive/90"
                         >
-                            {isSubmitting ? "Deleting..." : "Delete"}
+                            {isSubmitting ? t('buttons.deleting') : t('buttons.delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

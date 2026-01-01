@@ -1,45 +1,46 @@
-import type { Metadata } from "next";
+"use client"
+
 import type React from "react";
-import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./crystal-globals.css";
-
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "BrineX Crystal - Production Forecasting System",
-  description:
-    "Production forecasting and tank management for Puttalam Salt Society",
-  generator: "v0.app",
-  icons: {
-    icon: [
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
-    ],
-    apple: "/apple-icon.png",
-  },
-};
+import { NextIntlClientProvider } from 'next-intl'
+import { useEffect, useState } from 'react'
 
 export default function CrystalLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [locale, setLocale] = useState('en')
+  const [messages, setMessages] = useState<any>(null)
+
+  useEffect(() => {
+    // Get locale from localStorage or default to 'en'
+    const savedLocale = localStorage.getItem('preferred-locale') || 'en'
+    setLocale(savedLocale)
+
+    // Load messages for the locale
+    import(`../../../../messages/${savedLocale}.json`)
+      .then((msgs) => setMessages(msgs.default))
+      .catch((err) => {
+        console.error('Failed to load messages:', err)
+        // Fallback to English
+        import(`../../../../messages/en.json`)
+          .then((msgs) => setMessages(msgs.default))
+      })
+  }, [])
+
+  // Don't render until messages are loaded
+  if (!messages) {
+    return <div>Loading...</div>
+  }
+
   return (
-    <div>
-      {children}
-      <Analytics />
-    </div>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <div>
+        {children}
+        <Analytics />
+      </div>
+    </NextIntlClientProvider>
   );
 }

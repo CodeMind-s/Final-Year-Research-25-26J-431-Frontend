@@ -12,24 +12,27 @@ import { NotificationsPanel } from "@/components/crystal/dialogs/notifications-p
 import { UserMenu } from "@/components/crystal/dialogs/user-menu"
 import { Toaster } from "@/components/crystal/ui/toaster"
 import Image from "next/image"
+import { useTranslations } from 'next-intl'
+import { LanguageSwitcher } from '@/components/crystal/language-switcher'
 
 interface DashboardLayoutProps {
   children: ReactNode
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const t = useTranslations('crystal.navigation')
   const pathname = usePathname()
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [syncDialogOpen, setSyncDialogOpen] = useState(false)
   const [notificationsPanelOpen, setNotificationsPanelOpen] = useState(false)
 
   const navigation = [
-    { name: "Production Prediction", href: "/crystal/dashboard/production", icon: LayoutDashboard },
-    { name: "Parameter Recording", href: "/crystal/dashboard/recording", icon: ClipboardList },
-    { name: "Salt Production Recording", href: "/crystal/dashboard/salt-production", icon: Package },
-    { name: "Reports", href: "/crystal/dashboard/reports", icon: FileText },
-    { name: "System Alerts", href: "/crystal/dashboard/alerts", icon: Bell },
-    { name: "Settings", href: "/crystal/dashboard/settings", icon: Settings },
+    { name: t('production'), href: "/crystal/dashboard/production", icon: LayoutDashboard },
+    { name: t('recording'), href: "/crystal/dashboard/recording", icon: ClipboardList },
+    { name: t('saltProduction'), href: "/crystal/dashboard/salt-production", icon: Package },
+    { name: t('reports'), href: "/crystal/dashboard/reports", icon: FileText },
+    { name: t('alerts'), href: "/crystal/dashboard/alerts", icon: Bell },
+    { name: t('settings'), href: "/crystal/dashboard/settings", icon: Settings },
   ]
 
   return (
@@ -111,6 +114,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <Button variant="outline" size="sm" onClick={() => setSyncDialogOpen(true)}>
               Sync Data
             </Button>

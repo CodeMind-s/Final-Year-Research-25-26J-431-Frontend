@@ -13,9 +13,12 @@ import { RecordConfirmationDialog } from "@/components/crystal/dialogs/record-co
 import { crystallizationController } from "@/services/crystallization.controller"
 import { useAuth } from "@/hooks/useAuth"
 import { useToast } from "@/hooks/use-toast"
+import { useTranslations } from 'next-intl'
 
 
 export function RecordingDashboard() {
+  const t = useTranslations('crystal.recordingDashboard')
+  const tc = useTranslations('crystal.common')
   const { user, logout, isLoading } = useAuth()
   const { toast } = useToast()
   const [formData, setFormData] = useState({
@@ -87,8 +90,8 @@ export function RecordingDashboard() {
 
     if (emptyFields.length > 0) {
       toast({
-        title: "Validation Error",
-        description: `Please fill in all required fields: ${emptyFields.map(f => f.name).join(', ')}`,
+        title: t('toast.validationError'),
+        description: `${t('toast.fillAllFields')}: ${emptyFields.map(f => f.name).join(', ')}`,
         variant: "destructive",
       })
       return
@@ -165,8 +168,8 @@ export function RecordingDashboard() {
           <Sparkles className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Field Data Recording</h1>
-          <p className="text-sm text-muted-foreground">PSS Daily Environmental Monitoring</p>
+          <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
         </div>
       </div>
 
@@ -175,7 +178,7 @@ export function RecordingDashboard() {
         <div className="lg:col-span-2">
           <Card className="p-6 bg-linear-to-br from-background to-accent/5">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-xl font-semibold text-foreground">Record Parameters</h2>
+              <h2 className="text-xl font-semibold text-foreground">{t('form.recordParameters')}</h2>
               <Badge className="bg-primary/10 text-primary border-primary/20">{new Date().toLocaleDateString()}</Badge>
             </div>
 
@@ -205,7 +208,7 @@ export function RecordingDashboard() {
                 <Card className="p-4 bg-destructive/5 border-destructive/20 hover:bg-destructive/10 transition-colors">
                   <Label htmlFor="temperature" className="flex items-center gap-2 text-destructive font-semibold">
                     <Thermometer className="h-5 w-5" />
-                    Temperature
+                    {t('fields.temperature')}
                   </Label>
                   <div className="flex items-center gap-2">
                     <Input
@@ -225,7 +228,7 @@ export function RecordingDashboard() {
                 <Card className="p-4 bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
                   <Label htmlFor="lagoon" className="flex items-center gap-2 text-primary font-semibold">
                     <Droplets className="h-5 w-5" />
-                    Lagoon
+                    {t('fields.lagoon')}
                   </Label>
                   <div className="flex items-center gap-2">
                     <Input
@@ -245,7 +248,7 @@ export function RecordingDashboard() {
                 <Card className="p-4 bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
                   <Label htmlFor="orBrineLevel" className="flex items-center gap-2 text-primary font-semibold">
                     <Droplets className="h-5 w-5" />
-                    OR Brine Level
+                    {t('fields.orBrineLevel')}
                   </Label>
                   <div className="flex items-center gap-2">
                     <Input
@@ -265,7 +268,7 @@ export function RecordingDashboard() {
                 <Card className="p-4 bg-chart-2/10 border-chart-2/20 hover:bg-chart-2/20 transition-colors">
                   <Label htmlFor="orBundLevel" className="flex items-center gap-2 text-chart-2 font-semibold">
                     <Gauge className="h-5 w-5" />
-                    OR Bund Level
+                    {t('fields.orBundLevel')}
                   </Label>
                   <div className="flex items-center gap-2">
                     <Input
@@ -285,7 +288,7 @@ export function RecordingDashboard() {
                 <Card className="p-4 bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
                   <Label htmlFor="irBrineLevel" className="flex items-center gap-2 text-primary font-semibold">
                     <Droplets className="h-5 w-5" />
-                    IR Brine Level
+                    {t('fields.irBrineLevel')}
                   </Label>
                   <div className="flex items-center gap-2">
                     <Input
@@ -305,7 +308,7 @@ export function RecordingDashboard() {
                 <Card className="p-4 bg-chart-2/10 border-chart-2/20 hover:bg-chart-2/20 transition-colors">
                   <Label htmlFor="irBundLevel" className="flex items-center gap-2 text-chart-2 font-semibold">
                     <Gauge className="h-5 w-5" />
-                    IR Bund Level
+                    {t('fields.irBundLevel')}
                   </Label>
                   <div className="flex items-center gap-2">
                     <Input
@@ -325,7 +328,7 @@ export function RecordingDashboard() {
                 <Card className="p-4 bg-chart-3/10 border-chart-3/20 hover:bg-chart-3/20 transition-colors">
                   <Label htmlFor="eastChannel" className="flex items-center gap-2 text-chart-3 font-semibold">
                     <Wind className="h-5 w-5" />
-                    East Channel
+                    {t('fields.eastChannel')}
                   </Label>
                   <div className="flex items-center gap-2">
                     <Input
@@ -345,7 +348,7 @@ export function RecordingDashboard() {
                 <Card className="p-4 bg-chart-3/10 border-chart-3/20 hover:bg-chart-3/20 transition-colors">
                   <Label htmlFor="westChannel" className="flex items-center gap-2 text-chart-3 font-semibold">
                     <Wind className="h-5 w-5" />
-                    West Channel
+                    {t('fields.westChannel')}
                   </Label>
                   <div className="flex items-center gap-2">
                     <Input
@@ -384,7 +387,7 @@ export function RecordingDashboard() {
                 className="w-full h-14 text-lg font-semibold bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
               >
                 <Sparkles className="h-5 w-5 mr-2" />
-                {isSubmitting ? "Submitting..." : "Record Field Data"}
+                {isSubmitting ? t('buttons.submitting') : t('buttons.recordFieldData')}
               </Button>
             </form>
           </Card>
@@ -396,19 +399,19 @@ export function RecordingDashboard() {
           <Card className="p-5 bg-linear-to-br from-primary/10 to-primary/5">
             <div className="flex items-center gap-2 mb-4">
               <User className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold text-foreground">Today's Activity</h3>
+              <h3 className="font-semibold text-foreground">{t('activity.todayActivity')}</h3>
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                <span className="text-sm text-muted-foreground">Entries Recorded</span>
+                <span className="text-sm text-muted-foreground">{t('activity.entriesRecorded')}</span>
                 <span className="text-2xl font-bold text-foreground">24</span>
               </div>
               <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                <span className="text-sm text-muted-foreground">Sectors Monitored</span>
+                <span className="text-sm text-muted-foreground">{t('activity.sectorsMonitored')}</span>
                 <span className="text-2xl font-bold text-foreground">4</span>
               </div>
               <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                <span className="text-sm text-muted-foreground">Active Workers</span>
+                <span className="text-sm text-muted-foreground">{t('activity.activeWorkers')}</span>
                 <span className="text-2xl font-bold text-foreground">8</span>
               </div>
             </div>
@@ -416,14 +419,14 @@ export function RecordingDashboard() {
 
           {/* Data Sync */}
           <Card className="p-5">
-            <h3 className="font-semibold text-foreground mb-3">Sync Status</h3>
+            <h3 className="font-semibold text-foreground mb-3">{t('sync.syncStatus')}</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                <span className="text-xs text-muted-foreground">Synced to Server</span>
+                <span className="text-xs text-muted-foreground">{t('sync.syncedToServer')}</span>
                 <Badge className="bg-success text-success-foreground">24</Badge>
               </div>
               <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                <span className="text-xs text-muted-foreground">Pending Upload</span>
+                <span className="text-xs text-muted-foreground">{t('sync.pendingUpload')}</span>
                 <Badge variant="secondary">0</Badge>
               </div>
               <p className="text-xs text-muted-foreground">Last sync: Just now</p>
@@ -432,7 +435,7 @@ export function RecordingDashboard() {
 
           {/* Recent Entries Preview */}
           <Card className="p-5">
-            <h3 className="font-semibold text-foreground mb-3">Recent Entries</h3>
+            <h3 className="font-semibold text-foreground mb-3">{t('sync.recentEntries')}</h3>
             <div className="space-y-2">
               {recentEntries.slice(0, 3).map((entry, index) => (
                 <div key={index} className="p-2 bg-muted/30 rounded text-xs">
