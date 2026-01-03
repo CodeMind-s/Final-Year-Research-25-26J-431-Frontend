@@ -3,9 +3,9 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Button } from "@/components/valor/ui/button"
+import { Input } from "@/components/valor/ui/input"
+import { Label } from "@/components/valor/ui/label"
 import { X } from "lucide-react"
 
 interface PredictFormProps {
@@ -15,22 +15,41 @@ interface PredictFormProps {
 
 export function PredictForm({ onClose, onSubmit }: PredictFormProps) {
   const [formData, setFormData] = useState({
-    date: "",
-    byproduct1: "",
-    byproduct2: "",
-    byproduct3: "",
-    totalWasteWeight: "",
+    temperature_c: "",
+    humidity_pct: "",
+    rain_mm: "",
+    wind_speed_kmh: "",
+    production_volume: "",
+    evaporation_index: "",
+    predicted_waste_bags: "",
+    confidence: "",
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(formData)
+    
+    // Convert string values to numbers for API
+    const apiData = {
+      temperature_c: parseFloat(formData.temperature_c),
+      humidity_pct: parseFloat(formData.humidity_pct),
+      rain_mm: parseFloat(formData.rain_mm),
+      wind_speed_kmh: parseFloat(formData.wind_speed_kmh),
+      production_volume: parseFloat(formData.production_volume),
+      evaporation_index: parseFloat(formData.evaporation_index),
+      predicted_waste_bags: parseFloat(formData.predicted_waste_bags),
+      confidence: parseFloat(formData.confidence),
+    }
+    
+    onSubmit(apiData)
     setFormData({
-      date: "",
-      byproduct1: "",
-      byproduct2: "",
-      byproduct3: "",
-      totalWasteWeight: "",
+      temperature_c: "",
+      humidity_pct: "",
+      rain_mm: "",
+      wind_speed_kmh: "",
+      production_volume: "",
+      evaporation_index: "",
+      predicted_waste_bags: "",
+      confidence: "",
     })
   }
 
@@ -44,7 +63,7 @@ export function PredictForm({ onClose, onSubmit }: PredictFormProps) {
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-foreground">Predict By Product</h2>
+            <h2 className="text-xl font-bold text-foreground">Create Waste Prediction</h2>
             <button onClick={onClose} className="p-1 hover:bg-muted rounded-lg transition-colors">
               <X className="w-5 h-5 text-muted-foreground" />
             </button>
@@ -53,74 +72,137 @@ export function PredictForm({ onClose, onSubmit }: PredictFormProps) {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="pred-date" className="text-sm font-medium text-foreground">
-                Date
+              <Label htmlFor="temperature_c" className="text-sm font-medium text-foreground">
+                Temperature (°C)
               </Label>
               <Input
-                id="pred-date"
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                id="temperature_c"
+                type="number"
+                step="0.1"
+                placeholder="e.g., 28.0"
+                value={formData.temperature_c}
+                onChange={(e) => setFormData({ ...formData, temperature_c: e.target.value })}
                 className="mt-2 bg-input border-border text-foreground"
                 required
               />
             </div>
 
             <div>
-              <Label htmlFor="pred-byproduct1" className="text-sm font-medium text-foreground">
-                Byproduct 1 (Predicted)
+              <Label htmlFor="humidity_pct" className="text-sm font-medium text-foreground">
+                Humidity (%)
               </Label>
               <Input
-                id="pred-byproduct1"
+                id="humidity_pct"
                 type="number"
-                placeholder="Enter predicted weight (kg)"
-                value={formData.byproduct1}
-                onChange={(e) => setFormData({ ...formData, byproduct1: e.target.value })}
+                step="0.1"
+                placeholder="e.g., 65.0"
+                min="0"
+                max="100"
+                value={formData.humidity_pct}
+                onChange={(e) => setFormData({ ...formData, humidity_pct: e.target.value })}
                 className="mt-2 bg-input border-border text-foreground"
                 required
               />
             </div>
 
             <div>
-              <Label htmlFor="pred-byproduct2" className="text-sm font-medium text-foreground">
-                Byproduct 2 (Predicted)
+              <Label htmlFor="rain_mm" className="text-sm font-medium text-foreground">
+                Rainfall (mm)
               </Label>
               <Input
-                id="pred-byproduct2"
+                id="rain_mm"
                 type="number"
-                placeholder="Enter predicted weight (kg)"
-                value={formData.byproduct2}
-                onChange={(e) => setFormData({ ...formData, byproduct2: e.target.value })}
+                step="0.1"
+                placeholder="e.g., 5.0"
+                min="0"
+                value={formData.rain_mm}
+                onChange={(e) => setFormData({ ...formData, rain_mm: e.target.value })}
                 className="mt-2 bg-input border-border text-foreground"
                 required
               />
             </div>
 
             <div>
-              <Label htmlFor="pred-byproduct3" className="text-sm font-medium text-foreground">
-                Byproduct 3 (Predicted)
+              <Label htmlFor="wind_speed_kmh" className="text-sm font-medium text-foreground">
+                Wind Speed (km/h)
               </Label>
               <Input
-                id="pred-byproduct3"
+                id="wind_speed_kmh"
                 type="number"
-                placeholder="Enter predicted weight (kg)"
-                value={formData.byproduct3}
-                onChange={(e) => setFormData({ ...formData, byproduct3: e.target.value })}
+                step="0.1"
+                placeholder="e.g., 12.0"
+                min="0"
+                value={formData.wind_speed_kmh}
+                onChange={(e) => setFormData({ ...formData, wind_speed_kmh: e.target.value })}
                 className="mt-2 bg-input border-border text-foreground"
                 required
               />
             </div>
 
             <div>
-              <Label htmlFor="pred-totalWasteWeight" className="text-sm font-medium text-foreground">
-                Total Waste Weight (Predicted)
+              <Label htmlFor="production_volume" className="text-sm font-medium text-foreground">
+                Production Volume
               </Label>
               <Input
-                id="pred-totalWasteWeight"
+                id="production_volume"
                 type="number"
-                placeholder="Enter predicted total weight (kg)"
-                value={formData.totalWasteWeight}
-                onChange={(e) => setFormData({ ...formData, totalWasteWeight: e.target.value })}
+                step="0.1"
+                placeholder="e.g., 1500.0"
+                min="0"
+                value={formData.production_volume}
+                onChange={(e) => setFormData({ ...formData, production_volume: e.target.value })}
+                className="mt-2 bg-input border-border text-foreground"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="evaporation_index" className="text-sm font-medium text-foreground">
+                Evaporation Index
+              </Label>
+              <Input
+                id="evaporation_index"
+                type="number"
+                step="0.1"
+                placeholder="e.g., 45.0"
+                min="0"
+                value={formData.evaporation_index}
+                onChange={(e) => setFormData({ ...formData, evaporation_index: e.target.value })}
+                className="mt-2 bg-input border-border text-foreground"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="predicted_waste_bags" className="text-sm font-medium text-foreground">
+                Predicted Waste Bags
+              </Label>
+              <Input
+                id="predicted_waste_bags"
+                type="number"
+                step="0.1"
+                placeholder="e.g., 250.0"
+                min="0"
+                value={formData.predicted_waste_bags}
+                onChange={(e) => setFormData({ ...formData, predicted_waste_bags: e.target.value })}
+                className="mt-2 bg-input border-border text-foreground"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="confidence" className="text-sm font-medium text-foreground">
+                Confidence Level (0.0 - 1.0)
+              </Label>
+              <Input
+                id="confidence"
+                type="number"
+                step="0.01"
+                placeholder="e.g., 0.85"
+                min="0"
+                max="1"
+                value={formData.confidence}
+                onChange={(e) => setFormData({ ...formData, confidence: e.target.value })}
                 className="mt-2 bg-input border-border text-foreground"
                 required
               />
@@ -132,7 +214,7 @@ export function PredictForm({ onClose, onSubmit }: PredictFormProps) {
                 Cancel
               </Button>
               <Button type="submit" className="flex-1 bg-secondary hover:bg-secondary/90 text-secondary-foreground">
-                Predict
+                Generate Prediction
               </Button>
             </div>
           </form>

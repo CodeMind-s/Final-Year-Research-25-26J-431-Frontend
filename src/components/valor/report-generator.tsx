@@ -1,7 +1,7 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/valor/ui/card"
+import { Button } from "@/components/valor/ui/button"
 import { FileText, Download } from "lucide-react"
 import jsPDF from "jspdf"
 

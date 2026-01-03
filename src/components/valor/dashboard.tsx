@@ -1,8 +1,8 @@
 "use client"
 
 import { useMemo } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/valor/ui/card"
+import { Button } from "@/components/valor/ui/button"
 import RecordsTable from "@/components/valor/records-table"
 import { Download } from "lucide-react"
 
@@ -52,32 +52,32 @@ export default function Dashboard({ predictions, byProductRecords, companionMode
       <div>
         <h2 className="text-2xl font-bold text-foreground mb-4">Predicted Summaries</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-card border-border">
+          <Card className="valor-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Byproduct 1 Total</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-accent">{summaryTotals.byproduct1.toFixed(2)} kg</div>
+              <div className="text-3xl font-bold valor-highlight">{summaryTotals.byproduct1.toFixed(2)} kg</div>
               <p className="text-xs text-muted-foreground mt-2">From {predictions.length} predictions</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border">
+          <Card className="valor-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Byproduct 2 Total</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary">{summaryTotals.byproduct2.toFixed(2)} kg</div>
+              <div className="text-3xl font-bold text-accent">{summaryTotals.byproduct2.toFixed(2)} kg</div>
               <p className="text-xs text-muted-foreground mt-2">From {predictions.length} predictions</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border">
+          <Card className="valor-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Byproduct 3 Total</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-secondary">{summaryTotals.byproduct3.toFixed(2)} kg</div>
+              <div className="text-3xl font-bold text-chart-2">{summaryTotals.byproduct3.toFixed(2)} kg</div>
               <p className="text-xs text-muted-foreground mt-2">From {predictions.length} predictions</p>
             </CardContent>
           </Card>
@@ -92,7 +92,7 @@ export default function Dashboard({ predictions, byProductRecords, companionMode
             <h2 className="text-2xl font-bold text-foreground">Predictions</h2>
             <Button
               onClick={handleGenerateReport}
-              className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
+              className="valor-button-secondary gap-2"
               size="sm"
             >
               <Download className="w-4 h-4" />

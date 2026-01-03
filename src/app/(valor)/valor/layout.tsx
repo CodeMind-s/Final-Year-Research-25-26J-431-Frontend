@@ -1,7 +1,8 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
-import "./globals.css"
+import "../../styles/valor/globals.css"
+import { ThemeProvider } from "@/components/valor/theme-provider"
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
@@ -34,5 +35,14 @@ export default function ValorLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  return <>{children}</>
+  return (
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem
+      disableTransitionOnChange
+    >
+      {children}
+    </ThemeProvider>
+  )
 }
