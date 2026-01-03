@@ -217,29 +217,29 @@ export const LandownerDashboard: React.FC = () => {
     <div className="pb-24 lg:pb-6 bg-slate-50 min-h-screen">
 
       {/* Zone 1: Decision Strip */}
-      <div className="sticky top-0 z-20 bg-emerald-600 text-white shadow-lg rounded-b-3xl lg:rounded-none px-6 py-5">
+      <div className="sticky top-0 z-20 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white shadow-2xl rounded-b-2xl lg:rounded-none px-3 py-3 lg:px-6 lg:py-5">
         {/* Landowner Name */}
-        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-emerald-500/30">
-          <Users size={18} />
-          <h2 className="text-base font-bold">{LANDOWNER_NAME}</h2>
+        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-emerald-400/40 lg:mb-3 lg:pb-2">
+          <Users size={16} className="lg:w-[18px] lg:h-[18px]" />
+          <h2 className="text-sm font-semibold lg:text-base lg:font-bold">{LANDOWNER_NAME}</h2>
         </div>
 
-        <div className="flex justify-between items-start mb-2">
+        <div className="flex justify-between items-start mb-2 lg:mb-2">
           <div>
-            <div className="flex items-center gap-2 mb-1 opacity-90">
-              <span className="text-xl font-semibold uppercase tracking-wider">Landowner Dashboard</span>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-base font-semibold uppercase tracking-wide lg:text-xl lg:font-semibold lg:opacity-90">Landowner Dashboard</span>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 lg:gap-2">
             {/* Deals Button */}
             <button
               onClick={() => setShowDeals(true)}
-              className="relative bg-white/20 hover:bg-white/30 p-2 rounded-xl backdrop-blur-sm transition-colors group"
+              className="relative bg-white/20 hover:bg-white/30 p-2 lg:p-2 rounded-lg lg:rounded-xl backdrop-blur-sm transition-all hover:scale-105 group shadow-md"
               aria-label="My Deals"
             >
-              <Package className="w-8 h-8 text-white" />
+              <Package className="w-6 h-6 lg:w-8 lg:h-8 text-white" />
               {myDeals.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 lg:px-1.5 lg:py-0.5 rounded-full min-w-[18px] lg:min-w-[20px] text-center shadow-lg">
                   {myDeals.length}
                 </span>
               )}
@@ -251,28 +251,28 @@ export const LandownerDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex gap-3 mt-4">
-          <div className="bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 flex-1">
-            <p className="text-xs text-emerald-100">Total Available</p>
-            <p className="font-bold text-lg">{totalAvailableTons.toFixed(1)} tons</p>
+        <div className="flex flex-wrap gap-2 mt-3 lg:gap-3 lg:mt-4 lg:flex-nowrap">
+          <div className="bg-white/15 backdrop-blur-md rounded-lg px-2.5 py-1.5 flex-1 min-w-[45%] lg:min-w-0 lg:px-3 lg:py-2 lg:rounded-xl shadow-md hover:bg-white/20 transition-all">
+            <p className="text-[10px] text-emerald-50 mb-0.5 lg:text-xs lg:mb-0">Total Available</p>
+            <p className="font-bold text-base lg:text-lg">{totalAvailableTons.toFixed(1)} <span className="text-xs lg:text-sm font-normal opacity-90">tons</span></p>
           </div>
           {allocatedTons > 0 && (
-            <div className="bg-purple-500/20 backdrop-blur-md rounded-lg px-3 py-2 flex-1 border border-purple-300">
-              <p className="text-xs text-purple-100">Allocated</p>
-              <p className="font-bold text-lg text-white">{allocatedTons.toFixed(1)} tons</p>
+            <div className="bg-purple-500/30 backdrop-blur-md rounded-lg px-2.5 py-1.5 flex-1 min-w-[45%] lg:min-w-0 lg:px-3 lg:py-2 lg:rounded-xl border border-purple-300/50 lg:border-2 shadow-md hover:bg-purple-500/40 transition-all">
+              <p className="text-[10px] text-purple-50 mb-0.5 lg:text-xs lg:mb-0">Allocated</p>
+              <p className="font-bold text-base lg:text-lg text-white">{allocatedTons.toFixed(1)} <span className="text-xs lg:text-sm font-normal opacity-90">tons</span></p>
             </div>
           )}
-          <div className="bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 flex-1">
-            <p className="text-xs text-emerald-100">Remaining</p>
-            <p className="font-bold text-lg">{remainingTons.toFixed(1)} tons</p>
+          <div className="bg-white/15 backdrop-blur-md rounded-lg px-2.5 py-1.5 flex-1 min-w-[45%] lg:min-w-0 lg:px-3 lg:py-2 lg:rounded-xl shadow-md hover:bg-white/20 transition-all">
+            <p className="text-[10px] text-emerald-50 mb-0.5 lg:text-xs lg:mb-0">Remaining</p>
+            <p className="font-bold text-base lg:text-lg">{remainingTons.toFixed(1)} <span className="text-xs lg:text-sm font-normal opacity-90">tons</span></p>
           </div>
-          <div   onClick={() => setShowDeals(true)} className="bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 flex-1">
-            <p className="text-xs text-emerald-100">My Deals</p>
-            <p className="font-bold text-lg">{myDeals.length} active</p>
+          <div onClick={() => setShowDeals(true)} className="bg-white/15 backdrop-blur-md rounded-lg px-2.5 py-1.5 flex-1 min-w-[45%] lg:min-w-0 lg:px-3 lg:py-2 lg:rounded-xl shadow-md hover:bg-white/20 transition-all cursor-pointer active:scale-95">
+            <p className="text-[10px] text-emerald-50 mb-0.5 lg:text-xs lg:mb-0">My Deals</p>
+            <p className="font-bold text-base lg:text-lg">{myDeals.length} <span className="text-xs lg:text-sm font-normal opacity-90">active</span></p>
           </div>
-          <div className="bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 flex-1">
-            <p className="text-xs text-emerald-100">Best Profit</p>
-            <p className="font-bold text-lg">LKR {(bestProfitOffer.profit ).toFixed(2)}</p>
+          <div className="bg-white/15 backdrop-blur-md rounded-lg px-2.5 py-1.5 flex-1 min-w-[45%] lg:min-w-0 lg:px-3 lg:py-2 lg:rounded-xl shadow-md hover:bg-white/20 transition-all">
+            <p className="text-[10px] text-emerald-50 mb-0.5 lg:text-xs lg:mb-0">Best Profit</p>
+            <p className="font-bold text-base lg:text-lg">LKR <span className="text-sm lg:text-base">{(bestProfitOffer.profit ).toFixed(0)}</span></p>
           </div>
         </div>
       </div>
