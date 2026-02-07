@@ -103,6 +103,19 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+
+  /* Valor color palette - green theme matching brand color #01B87A */
+  --color-valor-50: #ecfdf5;
+  --color-valor-100: #d1fae5;
+  --color-valor-200: #a7f3d0;
+  --color-valor-300: #6ee7b7;
+  --color-valor-400: #34d399;
+  --color-valor-500: #01B87A;
+  --color-valor-600: #059669;
+  --color-valor-700: #047857;
+  --color-valor-800: #065f46;
+  --color-valor-900: #064e3b;
+  --color-valor-950: #022c22;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
