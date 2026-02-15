@@ -1,239 +1,206 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
+import { visionApi } from "@/lib/vision-api-client";
+import { Detection, PaginatedResponse } from "@/types/vision-detection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, CheckCircle, TrendingUp, Package } from "lucide-react";
+import { formatDate, formatMs } from "@/lib/utils";
+import { Eye, ChevronLeft, ChevronRight, Trash2, Package, Clock } from "lucide-react";
 import PageHeader from "@/components/vision/PageHeader";
 
+function getPurityColor(purity: number | null | undefined): string {
+  if (purity === null || purity === undefined) return "text-slate-400";
+  if (purity >= 80) return "text-emerald-600";
+  if (purity >= 60) return "text-yellow-600";
+  return "text-red-600";
+}
+
+function getPurityBgColor(purity: number | null | undefined): string {
+  if (purity === null || purity === undefined) return "bg-slate-100";
+  if (purity >= 80) return "bg-emerald-50";
+  if (purity >= 60) return "bg-yellow-50";
+  return "bg-red-50";
+}
+
 export default function DetectionGradingPage() {
-  const qualityMetrics = [
-    { label: "Whiteness Index", value: 87.5, color: "text-vision-600" },
-    { label: "Uniformity Score", value: 0.91, color: "text-vision-500" },
-    { label: "Purity Level", value: 94.2, color: "text-green-600" },
-  ];
+  const [detections, setDetections] = useState<Detection[]>([]);
+  const [meta, setMeta] = useState({ page: 1, totalPages: 1, total: 0 });
+  const [loading, setLoading] = useState(true);
 
-  const impurityClasses = [
-    { name: "Clay", count: 12, confidence: 89.3, color: "bg-orange-500" },
-    { name: "Sand", count: 8, confidence: 91.7, color: "bg-yellow-500" },
-    { name: "Black Speck", count: 5, confidence: 94.2, color: "bg-red-500" },
-    { name: "Organic", count: 3, confidence: 86.5, color: "bg-purple-500" },
-  ];
+  const fetchDetections = useCallback(async (page: number) => {
+    setLoading(true);
+    try {
+      const response = (await visionApi.getDetections({ page, limit: 10 })) as PaginatedResponse<Detection>;
+      setDetections(response.data);
+      setMeta({
+        page: response.meta.page,
+        totalPages: response.meta.totalPages,
+        total: response.meta.total,
+      });
+    } catch (error) {
+      console.error("Failed to fetch detections:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const recentLogs = [
-    { time: "14:32:18", action: "Detection completed", status: "success" },
-    { time: "14:32:15", action: "Black Speck detected (94.2%)", status: "warning" },
-    { time: "14:32:12", action: "Clay particle identified", status: "warning" },
-    { time: "14:32:09", action: "Frame processed successfully", status: "success" },
-    { time: "14:32:06", action: "AI inference started", status: "info" },
-  ];
+  useEffect(() => {
+    fetchDetections(1);
+  }, [fetchDetections]);
+
+  const handleDelete = async (id: string) => {
+    try {
+      await visionApi.deleteDetection(id);
+      fetchDetections(meta.page);
+    } catch (error) {
+      console.error("Failed to delete detection:", error);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <PageHeader title="Impurity Detection & Grading" description="AI-powered analysis and quality assessment" />
-
-      {/* Grade Summary */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card className="border-l-4 border-l-green-500">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Overall Grade</p>
-                <p className="mt-2 text-3xl font-bold text-green-600">A</p>
-              </div>
-              <CheckCircle className="h-10 w-10 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Impurity %</p>
-                <p className="mt-2 text-2xl font-bold text-foreground">2.8%</p>
-              </div>
-              <AlertTriangle className="h-10 w-10 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Crystal Size</p>
-                <p className="mt-2 text-2xl font-bold text-foreground">Medium</p>
-              </div>
-              <Package className="h-10 w-10 text-vision-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Confidence</p>
-                <p className="mt-2 text-2xl font-bold text-foreground">92.1%</p>
-              </div>
-              <TrendingUp className="h-10 w-10 text-vision-500" />
-            </div>
-          </CardContent>
-        </Card>
+      <div className="flex items-center justify-between">
+        <PageHeader title="Impurity Detection & Grading" description="All detection frames captured during analysis" />
+        <Badge variant="secondary" className="text-sm">
+          {meta.total} total detections
+        </Badge>
       </div>
 
-      {/* Main Content */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Processed Image */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Processed Image with AI Overlays</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="relative aspect-video overflow-hidden rounded-lg bg-slate-900">
-                <img
-                  src="https://images.unsplash.com/photo-1587845927850-0d2d2f672b50?w=800&h=600&fit=crop"
-                  alt="Processed salt sample"
-                  className="h-full w-full object-cover opacity-90"
-                />
-
-                {/* Impurity Highlights */}
-                <div className="absolute left-[15%] top-[20%] h-16 w-16 rounded-full border-4 border-red-500 bg-red-500/20 animate-pulse"></div>
-                <div className="absolute left-[60%] top-[40%] h-12 w-12 rounded-full border-4 border-orange-500 bg-orange-500/20"></div>
-                <div className="absolute left-[40%] top-[65%] h-10 w-10 rounded-full border-4 border-yellow-500 bg-yellow-500/20"></div>
-                <div className="absolute left-[75%] top-[55%] h-8 w-8 rounded-full border-4 border-purple-500 bg-purple-500/20"></div>
-
-                {/* Grade Badge */}
-                <div className="absolute right-4 top-4 rounded-lg bg-green-600 px-4 py-2 text-2xl font-bold text-white shadow-lg">
-                  Grade A
-                </div>
-              </div>
-
-              {/* Quality Metrics */}
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
-                {qualityMetrics.map((metric) => (
-                  <div key={metric.label} className="rounded-lg border border-border bg-muted/30 p-4">
-                    <p className="text-sm text-muted-foreground">{metric.label}</p>
-                    <p className={`mt-2 text-2xl font-bold ${metric.color}`}>
-                      {typeof metric.value === "number" && metric.value < 10
-                        ? metric.value.toFixed(2)
-                        : metric.value}
-                      {metric.label.includes("Score") ? "" : metric.label.includes("Index") ? "/100" : "%"}
-                    </p>
-                    <Progress value={typeof metric.value === "number" && metric.value < 10 ? metric.value * 100 : metric.value} className="mt-2" />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Real-time Log */}
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Real-Time Processing Log</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {recentLogs.map((log, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3"
-                  >
-                    <div className={`h-2 w-2 rounded-full ${log.status === "success"
-                      ? "bg-green-500"
-                      : log.status === "warning"
-                        ? "bg-orange-500"
-                        : "bg-vision-500"
-                      }`}></div>
-                    <span className="text-xs text-muted-foreground">{log.time}</span>
-                    <span className="flex-1 text-sm">{log.action}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* AI Inference Summary */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>AI Inference Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Impurity Classes */}
-              <div>
-                <h4 className="mb-3 text-sm font-semibold">Detected Impurity Classes</h4>
-                <div className="space-y-3">
-                  {impurityClasses.map((impurity) => (
-                    <div key={impurity.name}>
-                      <div className="mb-1 flex items-center justify-between text-sm">
-                        <span className="font-medium">{impurity.name}</span>
-                        <span className="text-muted-foreground">{impurity.count} items</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-200">
-                          <div
-                            className={`h-full ${impurity.color}`}
-                            style={{ width: `${impurity.confidence}%` }}
-                          ></div>
+      <Card>
+        <CardHeader className="border-b border-slate-100">
+          <CardTitle className="flex items-center gap-2 text-slate-900">
+            <Package className="h-5 w-5 text-slate-500" />
+            All Detection Frames
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="text-center py-12 text-slate-500">
+              <div className="animate-spin h-8 w-8 border-2 border-cyan-500 border-t-transparent rounded-full mx-auto mb-3"></div>
+              Loading detections...
+            </div>
+          ) : detections.length === 0 ? (
+            <div className="text-center py-12 text-slate-400">
+              <Eye className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p className="text-sm font-medium">No detections found</p>
+              <p className="text-xs mt-1">Start detecting to see records here</p>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50">
+                      <th className="text-left py-3 px-4 font-semibold text-slate-600">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3.5 w-3.5" />
+                          Timestamp
                         </div>
-                        <span className="text-xs font-semibold">{impurity.confidence}%</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                      </th>
+                      <th className="text-center py-3 px-4 font-semibold text-emerald-600">Pure</th>
+                      <th className="text-center py-3 px-4 font-semibold text-red-600">Impure</th>
+                      <th className="text-center py-3 px-4 font-semibold text-orange-600">Unwanted</th>
+                      <th className="text-center py-3 px-4 font-semibold text-slate-600">Total</th>
+                      <th className="text-center py-3 px-4 font-semibold text-slate-600">Purity</th>
+                      <th className="text-center py-3 px-4 font-semibold text-slate-600">Processing</th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-600">Batch</th>
+                      <th className="text-center py-3 px-4 font-semibold text-slate-600">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {detections.map((detection) => {
+                      const pureCount = detection.roiPureCount ?? detection.pureCount;
+                      const impureCount = detection.roiImpureCount ?? detection.impureCount;
+                      const unwantedCount = detection.roiUnwantedCount ?? detection.unwantedCount;
+                      const totalCount = detection.roiTotalCount ?? detection.totalCount;
+                      const purity = detection.roiPurityPercentage ?? detection.purityPercentage;
+
+                      return (
+                        <tr key={detection.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="py-3 px-4 text-slate-600">
+                            {formatDate(detection.timestamp)}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="font-semibold text-emerald-600">{pureCount}</span>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="font-semibold text-red-600">{impureCount}</span>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="font-semibold text-orange-600">{unwantedCount}</span>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="font-medium text-slate-700">{totalCount}</span>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span
+                              className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold ${getPurityColor(purity)} ${getPurityBgColor(purity)}`}
+                            >
+                              {purity !== null && purity !== undefined
+                                ? `${purity.toFixed(0)}%`
+                                : "--"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-center text-slate-500 text-xs">
+                            {formatMs(detection.processingTimeMs)}
+                          </td>
+                          <td className="py-3 px-4">
+                            {detection.batchId ? (
+                              <Badge variant="secondary" className="text-xs">
+                                {detection.batchId.slice(0, 8)}...
+                              </Badge>
+                            ) : (
+                              <span className="text-slate-400 text-xs">No batch</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleDelete(detection.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
 
-              {/* Donut Chart Mockup */}
-              <div>
-                <h4 className="mb-3 text-sm font-semibold">Quality Distribution</h4>
-                <div className="flex items-center justify-center py-4">
-                  <div className="relative h-48 w-48">
-                    <svg className="h-full w-full -rotate-90 transform">
-                      <circle
-                        cx="96"
-                        cy="96"
-                        r="80"
-                        stroke="#e2e8f0"
-                        strokeWidth="20"
-                        fill="none"
-                      />
-                      <circle
-                        cx="96"
-                        cy="96"
-                        r="80"
-                        stroke="#0ea5e9"
-                        strokeWidth="20"
-                        fill="none"
-                        strokeDasharray={`${87.5 * 5.03} ${100 * 5.03}`}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center">
-                        <p className="text-3xl font-bold text-foreground">87.5</p>
-                        <p className="text-xs text-muted-foreground">Whiteness</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Grading Badge */}
-              <div className="rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 p-4 text-center">
-                <Badge className="mb-2 bg-green-600 text-lg">Grade A</Badge>
-                <p className="text-xs text-muted-foreground">
-                  Passes all quality standards
+              <div className="flex items-center justify-between p-4 border-t border-slate-100">
+                <p className="text-sm text-slate-500">
+                  Page {meta.page} of {meta.totalPages}
                 </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fetchDetections(meta.page - 1)}
+                    disabled={meta.page === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fetchDetections(meta.page + 1)}
+                    disabled={meta.page === meta.totalPages}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
