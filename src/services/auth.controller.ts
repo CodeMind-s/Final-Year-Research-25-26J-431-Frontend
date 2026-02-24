@@ -5,14 +5,18 @@
 
 import { BaseController } from './base-controller';
 import { API_CONFIG } from '@/lib/api.config';
-import { tokenStorage } from '@/lib/storage.utils';
+import { tokenStorage, storage } from '@/lib/storage.utils';
 import {
+  SignInRequest,
+  SignInResponse,
+  VerifyOtpRequest,
+  VerifyOtpResponse,
+  PersonalDetailsResponse,
+  LandOwnerOnboardingRequest,
+  LaboratoryOnboardingRequest,
+  DistributorOnboardingRequest,
   LoginRequest,
   LoginResponse,
-  RefreshTokenRequest,
-  RefreshTokenResponse,
-  LogoutRequest,
-  ValidateTokenResponse,
   User,
 } from '@/dtos/auth.dto';
 
@@ -21,11 +25,77 @@ import {
  */
 class AuthController extends BaseController {
   constructor() {
-    super(''); // Empty base URL since we use full endpoint paths
+    super('');
   }
 
   /**
-   * Login user
+   * Send OTP to phone or email
+   */
+  async signIn(request: SignInRequest): Promise<SignInResponse> {
+    return this.post<SignInResponse, SignInRequest>(
+      API_CONFIG.ENDPOINTS.AUTH.SIGN_IN,
+      request
+    );
+  }
+
+  /**
+   * Verify OTP and get tokens
+   */
+  async verifyOtp(request: VerifyOtpRequest): Promise<VerifyOtpResponse> {
+    const response = await this.post<VerifyOtpResponse, VerifyOtpRequest>(
+      API_CONFIG.ENDPOINTS.AUTH.VERIFY_OTP,
+      request
+    );
+
+    if (response.accessToken) {
+      tokenStorage.setToken(response.accessToken);
+    }
+
+    return response;
+  }
+
+  /**
+   * Get personal details of authenticated user (GET /auth/personal-details)
+   */
+  async getPersonalDetails(): Promise<User> {
+    const response = await this.get<PersonalDetailsResponse>(
+      API_CONFIG.ENDPOINTS.AUTH.PERSONAL_DETAILS
+    );
+    return response.user;
+  }
+
+  /**
+   * Submit landowner onboarding
+   */
+  async onboardLandowner(request: LandOwnerOnboardingRequest): Promise<User> {
+    return this.post<User, LandOwnerOnboardingRequest>(
+      API_CONFIG.ENDPOINTS.AUTH.ONBOARDING_LANDOWNER,
+      request
+    );
+  }
+
+  /**
+   * Submit laboratory onboarding
+   */
+  async onboardLaboratory(request: LaboratoryOnboardingRequest): Promise<User> {
+    return this.post<User, LaboratoryOnboardingRequest>(
+      API_CONFIG.ENDPOINTS.AUTH.ONBOARDING_LABORATORY,
+      request
+    );
+  }
+
+  /**
+   * Submit distributor onboarding
+   */
+  async onboardDistributor(request: DistributorOnboardingRequest): Promise<User> {
+    return this.post<User, DistributorOnboardingRequest>(
+      API_CONFIG.ENDPOINTS.AUTH.ONBOARDING_DISTRIBUTOR,
+      request
+    );
+  }
+
+  /**
+   * Admin login with email/password
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await this.post<LoginResponse, LoginRequest>(
@@ -33,94 +103,19 @@ class AuthController extends BaseController {
       credentials
     );
 
-    console.log('🔑 Auth Controller - Login response:', response);
-    console.log('🔑 Access Token in response:', response.accessToken);
-    console.log('🔑 Refresh token in response:', response.refreshToken);
-
-    // Store tokens
     if (response.accessToken) {
-      console.log('💾 Saving access token to localStorage...');
       tokenStorage.setToken(response.accessToken);
-      console.log('✅ Token saved!');
-    } else {
-      console.warn('⚠️ No accessToken in response!');
-    }
-    
-    if (response.refreshToken) {
-      console.log('💾 Saving refresh token to localStorage...');
-      tokenStorage.setRefreshToken(response.refreshToken);
     }
 
     return response;
   }
 
   /**
-   * Logout user
+   * Logout user (client-side only — no backend endpoint)
    */
-  async logout(request?: LogoutRequest): Promise<void> {
-    try {
-      await this.post<void, LogoutRequest>(
-        API_CONFIG.ENDPOINTS.AUTH.LOGOUT,
-        request || { refreshToken: tokenStorage.getRefreshToken() || undefined }
-      );
-    } finally {
-      // Always clear tokens, even if API call fails
-      tokenStorage.clearTokens();
-    }
-  }
-
-  /**
-   * Refresh access token
-   */
-  async refreshToken(refreshToken?: string): Promise<RefreshTokenResponse> {
-    const token = refreshToken || tokenStorage.getRefreshToken();
-    
-    if (!token) {
-      throw new Error('No refresh token available');
-    }
-
-    const response = await this.post<RefreshTokenResponse, RefreshTokenRequest>(
-      API_CONFIG.ENDPOINTS.AUTH.REFRESH,
-      { refreshToken: token }
-    );
-
-    // Update stored tokens
-    if (response.token) {
-      tokenStorage.setToken(response.token);
-    }
-    if (response.refreshToken) {
-      tokenStorage.setRefreshToken(response.refreshToken);
-    }
-
-    return response;
-  }
-
-  /**
-   * Get current authenticated user
-   */
-  async getCurrentUser(): Promise<User> {
-    return this.get<User>(API_CONFIG.ENDPOINTS.AUTH.ME);
-  }
-
-  /**
-   * Validate token
-   */
-  async validateToken(token?: string): Promise<ValidateTokenResponse> {
-    const authToken = token || tokenStorage.getToken();
-    
-    if (!authToken) {
-      return { valid: false };
-    }
-
-    try {
-      const response = await this.post<ValidateTokenResponse>(
-        API_CONFIG.ENDPOINTS.AUTH.VALIDATE,
-        { token: authToken }
-      );
-      return response;
-    } catch {
-      return { valid: false };
-    }
+  logout(): void {
+    tokenStorage.clearTokens();
+    storage.remove('auth_user');
   }
 
   /**
@@ -142,6 +137,7 @@ class AuthController extends BaseController {
    */
   clearAuth(): void {
     tokenStorage.clearTokens();
+    storage.remove('auth_user');
   }
 }
 
