@@ -28,10 +28,12 @@ export const API_CONFIG = {
   ENDPOINTS: {
     AUTH: {
       LOGIN: '/auth/login',
-      LOGOUT: '/auth/logout',
-      REFRESH: '/auth/refresh',
-      ME: '/auth/me',
-      VALIDATE: '/auth/validate',
+      SIGN_IN: '/auth/sign-in',
+      VERIFY_OTP: '/auth/verify-otp',
+      PERSONAL_DETAILS: '/auth/personal-details',
+      ONBOARDING_LANDOWNER: '/auth/onboarding/landowner',
+      ONBOARDING_LABORATORY: '/auth/onboarding/laboratory',
+      ONBOARDING_DISTRIBUTOR: '/auth/onboarding/distributor',
     },
     USER: {
       CREATE: '/user/create',
@@ -39,7 +41,10 @@ export const API_CONFIG = {
       DELETE: '/user/delete',
       GET: '/user',
     },
-    // Add more endpoints as needed
+    PAYMENTS: {
+      CHECKOUT: '/payments/checkout',
+      HISTORY: '/payments',
+    },
   },
   
   // Headers
