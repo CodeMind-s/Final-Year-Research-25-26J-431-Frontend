@@ -12,6 +12,8 @@ export enum UserRole {
   SALTSOCIETY = 'SALTSOCIETY',
   SELLER = 'SELLER',
   LANDOWNER = 'LANDOWNER',
+  DISTRIBUTOR = 'DISTRIBUTOR',
+  LABORATORY = 'LABORATORY',
   VIEWER = 'VIEWER',
 }
 
@@ -20,16 +22,99 @@ export enum UserRole {
  */
 export interface User {
   id: string;
-  email: string;
-  name: string;
+  email?: string;
+  phone?: string;
   role: UserRole;
+  name?: string;
   avatar?: string;
+  isOnboarded: boolean;
+  plan?: string;
+  isSubscribed: boolean;
+  isVerified: boolean;
+  isTrialActive: boolean;
+  trialStartDate?: string;
+  trialEndDate?: string;
   createdAt?: string;
   updatedAt?: string;
 }
 
 /**
- * Login request DTO
+ * Sign in request DTO (OTP-based)
+ */
+export interface SignInRequest {
+  phone?: string;
+  email?: string;
+  role: UserRole;
+}
+
+/**
+ * Sign in response DTO
+ */
+export interface SignInResponse {
+  message: string;
+}
+
+/**
+ * Verify OTP request DTO
+ */
+export interface VerifyOtpRequest {
+  phone?: string;
+  email?: string;
+  code: string;
+}
+
+/**
+ * Verify OTP response DTO
+ */
+export interface VerifyOtpResponse {
+  accessToken: string;
+  isNewUser: boolean;
+  isOnboarded: boolean;
+}
+
+/**
+ * Personal details response DTO
+ */
+export interface PersonalDetailsResponse {
+  user: User;
+  landOwnerDetails?: Record<string, unknown> | null;
+  serviceProviderDetails?: Record<string, unknown> | null;
+  laboratoryDetails?: Record<string, unknown> | null;
+  distributorDetails?: Record<string, unknown> | null;
+}
+
+/**
+ * Landowner onboarding request DTO
+ */
+export interface LandOwnerOnboardingRequest {
+  nic: string;
+  address: string;
+  totalBeds: number;
+  docUrls: string[];
+}
+
+/**
+ * Laboratory onboarding request DTO
+ */
+export interface LaboratoryOnboardingRequest {
+  laboratoryName: string;
+  registrationNumber: string;
+  address: string;
+  docUrls: string[];
+}
+
+/**
+ * Distributor onboarding request DTO
+ */
+export interface DistributorOnboardingRequest {
+  companyName: string;
+  registrationNumber: string;
+  address: string;
+  docUrls: string[];
+}
+
+/**
+ * Login request DTO (admin email/password)
  */
 export interface LoginRequest {
   email: string;
@@ -40,41 +125,8 @@ export interface LoginRequest {
  * Login response DTO
  */
 export interface LoginResponse {
+  accessToken: string;
   user: User;
-  accessToken: string;  // Backend returns "accessToken" not "token"
-  refreshToken?: string;
-  expiresIn?: number;
-}
-
-/**
- * Token refresh request DTO
- */
-export interface RefreshTokenRequest {
-  refreshToken: string;
-}
-
-/**
- * Token refresh response DTO
- */
-export interface RefreshTokenResponse {
-  token: string;
-  refreshToken?: string;
-  expiresIn?: number;
-}
-
-/**
- * Logout request DTO
- */
-export interface LogoutRequest {
-  refreshToken?: string;
-}
-
-/**
- * Validate token response DTO
- */
-export interface ValidateTokenResponse {
-  valid: boolean;
-  user?: User;
 }
 
 /**
