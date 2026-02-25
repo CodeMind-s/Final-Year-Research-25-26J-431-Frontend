@@ -58,7 +58,7 @@ function getDashboardPath(role: UserRole): string {
             return '/vision/dashboard/camera';
         case UserRole.SUPERADMIN:
         case UserRole.ADMIN:
-            return '/vision/dashboard/camera';
+            return '/admin/dashboard';
         case UserRole.SALTSOCIETY:
             return '/crystal/dashboard/production';
         default:
