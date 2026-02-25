@@ -36,11 +36,6 @@ const createAxiosInstance = (): AxiosInstance => {
  */
 class HttpClient {
   private axiosInstance: AxiosInstance;
-  private isRefreshing = false;
-  private failedQueue: Array<{
-    resolve: (value?: unknown) => void;
-    reject: (reason?: unknown) => void;
-  }> = [];
 
   constructor() {
     this.axiosInstance = createAxiosInstance();
@@ -131,53 +126,9 @@ class HttpClient {
 
     const { status, data } = error.response;
 
-    // Handle 401 Unauthorized - attempt token refresh
-    if (status === HTTP_STATUS.UNAUTHORIZED && !originalRequest._retry) {
-      if (this.isRefreshing) {
-        // Queue the request while refreshing
-        return new Promise((resolve, reject) => {
-          this.failedQueue.push({ resolve, reject });
-        })
-          .then(() => this.axiosInstance(originalRequest))
-          .catch((err) => Promise.reject(err)) as Promise<never>;
-      }
-
-      originalRequest._retry = true;
-      this.isRefreshing = true;
-
-      try {
-        // Attempt to refresh token
-        const refreshToken = tokenStorage.getRefreshToken();
-        if (refreshToken) {
-          const response = await this.axiosInstance.post(
-            API_CONFIG.ENDPOINTS.AUTH.REFRESH,
-            { refreshToken }
-          );
-
-          const newToken = response.data.data.token;
-          tokenStorage.setToken(newToken);
-
-          // Retry all queued requests
-          this.failedQueue.forEach((promise) => promise.resolve());
-          this.failedQueue = [];
-
-          return this.axiosInstance(originalRequest) as Promise<never>;
-        }
-      } catch (refreshError) {
-        // Refresh failed - clear tokens and reject all queued requests
-        this.failedQueue.forEach((promise) => promise.reject(refreshError));
-        this.failedQueue = [];
-        tokenStorage.clearTokens();
-
-        const apiError = ApiErrorFactory.createFromResponse(
-          HTTP_STATUS.UNAUTHORIZED,
-          'Session expired. Please log in again.'
-        );
-        ErrorHandler.logError(apiError, 'Token Refresh');
-        return Promise.reject(apiError);
-      } finally {
-        this.isRefreshing = false;
-      }
+    // Handle 401 Unauthorized - clear tokens (no refresh endpoint available)
+    if (status === HTTP_STATUS.UNAUTHORIZED) {
+      tokenStorage.clearTokens();
     }
 
     // Handle retry logic for specific status codes
@@ -197,30 +148,27 @@ class HttpClient {
       return this.axiosInstance(originalRequest) as Promise<never>;
     }
 
-    // Create appropriate error
+    // Log full error response for debugging
+    if (ENV.isDevelopment) {
+      console.error('🔴 Full error response data:', JSON.stringify(data, null, 2));
+    }
+
+    // Create appropriate error — check multiple response formats
+    const dataAny = data as unknown as Record<string, unknown> | undefined;
+    const errorMessage = data?.error?.message
+      || (dataAny?.message as string)
+      || error.message;
+    const errorDetails = data?.error?.details
+      || (dataAny?.errors as Record<string, unknown>);
+
     const apiError = ApiErrorFactory.createFromResponse(
       status,
-      data?.error?.message || error.message,
-      data?.error?.details
+      errorMessage,
+      errorDetails
     );
 
     ErrorHandler.logError(apiError, 'Response');
     return Promise.reject(apiError);
-  }
-
-  /**
-   * Process failed queue
-   */
-  private processQueue(error: ApiError | null, token: string | null = null): void {
-    this.failedQueue.forEach((promise) => {
-      if (error) {
-        promise.reject(error);
-      } else {
-        promise.resolve(token);
-      }
-    });
-
-    this.failedQueue = [];
   }
 
   /**

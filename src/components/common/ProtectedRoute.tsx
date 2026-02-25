@@ -13,6 +13,8 @@ import { UserRole } from '@/dtos/auth.dto';
 interface ProtectedRouteProps {
     children: React.ReactNode;
     requiredRole?: UserRole[];
+    requireOnboarded?: boolean;
+    requireSubscription?: boolean;
     redirectTo?: string;
 }
 
@@ -22,31 +24,40 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({
     children,
     requiredRole,
+    requireOnboarded = false,
+    requireSubscription = false,
     redirectTo = '/',
 }: ProtectedRouteProps) {
     const { isAuthenticated, isLoading, user } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
-        console.log('🛡️ ProtectedRoute check:', { isLoading, isAuthenticated, user: user?.email, requiredRole });
+        if (isLoading) return;
 
-        if (!isLoading) {
-            // Not authenticated - redirect to login
-            if (!isAuthenticated) {
-                console.log('❌ Not authenticated, redirecting to:', redirectTo);
-                router.push(redirectTo);
-                return;
-            }
-
-            // Check role if required
-            if (requiredRole && user && !requiredRole.includes(user.role)) {
-                console.log('❌ Role check failed. User role:', user.role, 'Required:', requiredRole);
-                router.push('/unauthorized');
-            } else if (requiredRole && user) {
-                console.log('✅ Role check passed. User role:', user.role);
-            }
+        // Not authenticated - redirect to login
+        if (!isAuthenticated) {
+            router.push(redirectTo);
+            return;
         }
-    }, [isAuthenticated, isLoading, user, requiredRole, router, redirectTo]);
+
+        // Check role if required
+        if (requiredRole && user && !requiredRole.includes(user.role)) {
+            router.push('/unauthorized');
+            return;
+        }
+
+        // Check onboarding status
+        if (requireOnboarded && user && !user.isOnboarded) {
+            router.push('/auth/onboarding');
+            return;
+        }
+
+        // Check subscription status
+        if (requireSubscription && user && !user.isSubscribed && !user.isTrialActive) {
+            router.push('/auth/plans');
+            return;
+        }
+    }, [isAuthenticated, isLoading, user, requiredRole, requireOnboarded, requireSubscription, router, redirectTo]);
 
     // Show loading state
     if (isLoading) {
@@ -67,6 +78,16 @@ export function ProtectedRoute({
 
     // Role check failed
     if (requiredRole && user && !requiredRole.includes(user.role)) {
+        return null;
+    }
+
+    // Onboarding check failed
+    if (requireOnboarded && user && !user.isOnboarded) {
+        return null;
+    }
+
+    // Subscription check failed
+    if (requireSubscription && user && !user.isSubscribed && !user.isTrialActive) {
         return null;
     }
 

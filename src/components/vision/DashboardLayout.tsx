@@ -6,42 +6,36 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  Video,
-  Target,
-  Layers,
-  LineChart,
-  FileText,
-  Settings,
+  LayoutDashboard,
+  History,
+  BarChart3,
   Menu,
   X,
   Activity,
   Wifi,
   WifiOff,
-  Bell,
-  User,
+  Cpu,
   LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
+import { useVisionDetectionStore } from "@/stores/vision-detection-store";
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
 const navigationItems = [
-  { name: "Camera Monitoring", href: "/vision/dashboard/camera", icon: Video },
-  { name: "Detection & Grading", href: "/vision/dashboard/detection", icon: Target },
-  { name: "Batch Assessment", href: "/vision/dashboard/batch", icon: Layers },
-  { name: "Analytics", href: "/vision/dashboard/analytics", icon: LineChart },
-  { name: "Reports", href: "/vision/dashboard/reports", icon: FileText },
-  { name: "Settings", href: "/vision/dashboard/settings", icon: Settings },
+  { name: "Dashboard", href: "/vision/dashboard/camera", icon: LayoutDashboard },
+  { name: "Batches", href: "/vision/dashboard/batch", icon: History },
+  { name: "Statistics", href: "/vision/dashboard/statistics", icon: BarChart3 },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isConnected, setIsConnected] = useState(true);
+  const { isConnected, isModelLoaded } = useVisionDetectionStore();
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -97,11 +91,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 ) : (
                   <WifiOff className="h-3 w-3 text-red-500" />
                 )}
-                <span>Camera Units: 4/4</span>
+                <span>WebSocket: {isConnected ? "Connected" : "Disconnected"}</span>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Activity className="h-3 w-3 text-blue-500" />
-                <span>AI Model: v2.4.1</span>
+                {isModelLoaded ? (
+                  <Cpu className="h-3 w-3 text-green-500" />
+                ) : (
+                  <Activity className="h-3 w-3 text-yellow-500" />
+                )}
+                <span>YOLO Model: {isModelLoaded ? "Loaded" : "Not Loaded"}</span>
               </div>
             </div>
           </div>

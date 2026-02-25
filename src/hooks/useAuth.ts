@@ -10,6 +10,7 @@ import { AuthContext } from '@/context/auth.context';
 
 /**
  * Custom hook to use auth context
+ * Exposes: signIn, verifyOtp, login (admin), logout, refreshUser, user, error, etc.
  */
 export function useAuth() {
   const context = useContext(AuthContext);

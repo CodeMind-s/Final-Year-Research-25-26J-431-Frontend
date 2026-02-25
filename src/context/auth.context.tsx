@@ -8,7 +8,15 @@
 import React, { createContext, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authController } from '@/services/auth.controller';
-import { User, AuthState, LoginRequest } from '@/dtos/auth.dto';
+import {
+    User,
+    UserRole,
+    AuthState,
+    LoginRequest,
+    SignInRequest,
+    SignInResponse,
+    VerifyOtpRequest,
+} from '@/dtos/auth.dto';
 import { ApiError } from '@/lib/api-error';
 import { tokenStorage, storage } from '@/lib/storage.utils';
 
@@ -16,8 +24,10 @@ import { tokenStorage, storage } from '@/lib/storage.utils';
  * Auth context type
  */
 interface AuthContextType extends AuthState {
+    signIn: (request: SignInRequest) => Promise<SignInResponse>;
+    verifyOtp: (request: VerifyOtpRequest) => Promise<void>;
     login: (credentials: LoginRequest) => Promise<void>;
-    logout: () => Promise<void>;
+    logout: () => void;
     refreshUser: () => Promise<void>;
     error: string | null;
 }
@@ -32,6 +42,28 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
  */
 interface AuthProviderProps {
     children: React.ReactNode;
+}
+
+/**
+ * Get dashboard path for a given user role
+ */
+function getDashboardPath(role: UserRole): string {
+    switch (role) {
+        case UserRole.LANDOWNER:
+            return '/compass/landowner-dashboard';
+        case UserRole.DISTRIBUTOR:
+        case UserRole.SELLER:
+            return '/compass/seller-dashboard';
+        case UserRole.LABORATORY:
+            return '/vision/dashboard/camera';
+        case UserRole.SUPERADMIN:
+        case UserRole.ADMIN:
+            return '/vision/dashboard/camera';
+        case UserRole.SALTSOCIETY:
+            return '/crystal/dashboard/production';
+        default:
+            return '/';
+    }
 }
 
 /**
@@ -59,15 +91,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
      */
     const initializeAuth = () => {
         try {
-            console.log('🔄 Initializing auth from localStorage...');
             const token = tokenStorage.getToken();
             const storedUser = storage.get<User>('auth_user');
 
-            console.log('Token exists:', !!token);
-            console.log('Stored user exists:', !!storedUser);
-
             if (!token) {
-                console.log('❌ No token found');
                 setState({
                     user: null,
                     token: null,
@@ -78,8 +105,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
             }
 
             if (storedUser) {
-                // Restore user from storage immediately
-                console.log('✅ Restoring session from localStorage:', storedUser.email);
                 setState({
                     user: storedUser,
                     token,
@@ -87,8 +112,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
                     isLoading: false,
                 });
             } else {
-                // Token exists but no user data - clear everything
-                console.warn('⚠️ Token exists but no user data found, clearing session');
                 tokenStorage.clearTokens();
                 setState({
                     user: null,
@@ -97,9 +120,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
                     isLoading: false,
                 });
             }
-        } catch (err) {
-            console.error('❌ Error initializing auth:', err);
-            // Unexpected error
+        } catch {
             tokenStorage.clearTokens();
             storage.remove('auth_user');
             setState({
@@ -112,36 +133,65 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
 
     /**
-     * Login function
+     * Send OTP (phone or email based)
      */
-    const login = useCallback(async (credentials: LoginRequest) => {
+    const signIn = useCallback(async (request: SignInRequest): Promise<SignInResponse> => {
+        try {
+            setError(null);
+            return await authController.signIn(request);
+        } catch (err) {
+            const errorMessage = err instanceof ApiError
+                ? err.message
+                : 'Failed to send OTP. Please try again.';
+            setError(errorMessage);
+            throw err;
+        }
+    }, []);
+
+    /**
+     * Verify OTP and handle post-auth routing
+     */
+    const verifyOtp = useCallback(async (request: VerifyOtpRequest) => {
         try {
             setError(null);
             setState((prev) => ({ ...prev, isLoading: true }));
 
-            console.log('🔐 Attempting login...', credentials.email);
-            const response = await authController.login(credentials);
-            console.log('✅ Login response:', response);
+            const response = await authController.verifyOtp(request);
+
+            // Token is stored by controller, now fetch user details
+            const user = await authController.getPersonalDetails();
 
             setState({
-                user: response.user,
-                token: response.accessToken,  // Use accessToken from backend
+                user,
+                token: response.accessToken,
                 isAuthenticated: true,
                 isLoading: false,
             });
 
-            // Store user in localStorage for persistence
-            storage.set('auth_user', response.user);
+            storage.set('auth_user', user);
 
-            // Redirect based on user role
-            console.log('🚀 Redirecting user with role:', response.user.role);
-            redirectAfterLogin(response.user);
+            // Post-OTP routing logic
+            if (!response.isOnboarded) {
+                router.push('/auth/onboarding');
+                return;
+            }
+
+            if (user.role === UserRole.LABORATORY && !user.isSubscribed) {
+                router.push('/auth/plans');
+                return;
+            }
+
+            if (user.isTrialActive || user.isSubscribed) {
+                router.push(getDashboardPath(user.role));
+                return;
+            }
+
+            // Trial expired, not subscribed
+            router.push('/auth/plans');
         } catch (err) {
-            console.error('❌ Login error:', err);
             const errorMessage = err instanceof ApiError
                 ? err.message
-                : 'Login failed. Please try again.';
-
+                : 'OTP verification failed. Please try again.';
             setError(errorMessage);
             setState({
                 user: null,
@@ -151,68 +201,79 @@ export function AuthProvider({ children }: AuthProviderProps) {
             });
             throw err;
         }
-    }, []);
+    }, [router]);
 
     /**
-     * Logout function
+     * Admin login with email/password
      */
-    const logout = useCallback(async () => {
+    const login = useCallback(async (credentials: LoginRequest) => {
         try {
-            await authController.logout();
+            setError(null);
+            setState((prev) => ({ ...prev, isLoading: true }));
+
+            const response = await authController.login(credentials);
+
+            // Token stored by controller, fetch full user details
+            const user = await authController.getPersonalDetails();
+
+            setState({
+                user,
+                token: response.accessToken,
+                isAuthenticated: true,
+                isLoading: false,
+            });
+
+            storage.set('auth_user', user);
+
+            router.push(getDashboardPath(user.role));
         } catch (err) {
-            console.error('Logout error:', err);
-        } finally {
+            const errorMessage = err instanceof ApiError
+                ? err.message
+                : 'Login failed. Please try again.';
+            setError(errorMessage);
             setState({
                 user: null,
                 token: null,
                 isAuthenticated: false,
                 isLoading: false,
             });
-            setError(null);
-            storage.remove('auth_user');
-            router.push('/');
+            throw err;
         }
     }, [router]);
 
     /**
-     * Refresh user data
+     * Logout function
+     */
+    const logout = useCallback(() => {
+        authController.logout();
+        setState({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+        });
+        setError(null);
+        router.push('/');
+    }, [router]);
+
+    /**
+     * Refresh user data from GET /auth/personal-details
      */
     const refreshUser = useCallback(async () => {
         try {
-            const user = await authController.getCurrentUser();
+            const user = await authController.getPersonalDetails();
             setState((prev) => ({ ...prev, user }));
+            storage.set('auth_user', user);
         } catch (err) {
             console.error('Failed to refresh user:', err);
-            // If refresh fails, logout
-            await logout();
+            logout();
         }
     }, [logout]);
 
-    /**
-     * Redirect after login based on user role
-     */
-    const redirectAfterLogin = (user: User) => {
-        switch (user.role) {
-            case 'SUPERADMIN':
-            case 'ADMIN':
-                router.push('/vision/dashboard/camera');
-                break;
-            case 'SALTSOCIETY':
-                router.push('/crystal/dashboard/production');
-                break;
-            case 'SELLER':
-                router.push('/compass/seller-dashboard');
-                break;
-            case 'LANDOWNER':
-                router.push('/compass/landowner-dashboard');
-                break;
-            default:
-                router.push('/');
-        }
-    };
-
     const value: AuthContextType = {
         ...state,
+        signIn,
+        verifyOtp,
         login,
         logout,
         refreshUser,

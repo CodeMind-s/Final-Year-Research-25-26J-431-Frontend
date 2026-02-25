@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import HomeCard from "@/components/common/HomeCard";
 
 
@@ -54,6 +55,30 @@ export default function HomeSection() {
                             <p className="text-sm md:text-base font-regular text-gray-500 tracking-tight leading-5 md:leading-6">
                                 AI-powered quality inspection, crystallization forecasting, seasonal planning, and waste valorization — built exclusively for Sri Lanka's salt producers to increase yield, guarantee export quality, and eliminate waste.
                             </p>
+
+                            {/* Login Buttons */}
+                            <div className="flex flex-col sm:flex-row gap-3 mt-2">
+                                <Link
+                                    href="/auth/login"
+                                    className="inline-flex items-center justify-center h-11 px-6 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold shadow-lg transition-colors"
+                                >
+                                    Login as Landowner / Distributor
+                                </Link>
+                                <Link
+                                    href="/auth/laboratory"
+                                    className="inline-flex items-center justify-center h-11 px-6 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold shadow-lg transition-colors"
+                                >
+                                    Login as Laboratory
+                                </Link>
+                            </div>
+                            <div className="mt-1">
+                                <Link
+                                    href="/auth/admin"
+                                    className="text-xs text-gray-400 hover:text-gray-600 underline"
+                                >
+                                    Admin Login
+                                </Link>
+                            </div>
                         </div>
                     </div>
 
