@@ -110,7 +110,7 @@ export default function LaboratoryLoginPage() {
           <Button
             type="submit"
             disabled={isLoading}
-            className="h-12 w-full bg-vision-500 hover:bg-vision-400 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-12 w-full bg-blue-500 hover:bg-vision-400 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Sending OTP...' : 'Send OTP'}
           </Button>
@@ -148,7 +148,7 @@ export default function LaboratoryLoginPage() {
           <Button
             type="submit"
             disabled={isLoading || otp.length !== 6}
-            className="h-12 w-full bg-vision-500 hover:bg-vision-400 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-12 w-full bg-blue-500 hover:bg-vision-400 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Verifying...' : 'Verify OTP'}
           </Button>
