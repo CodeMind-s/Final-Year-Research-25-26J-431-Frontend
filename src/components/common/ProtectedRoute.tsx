@@ -46,14 +46,17 @@ export function ProtectedRoute({
             return;
         }
 
+        // Admin users skip onboarding and subscription checks
+        const isAdmin = user && (user.role === UserRole.ADMIN || user.role === UserRole.SUPERADMIN);
+
         // Check onboarding status
-        if (requireOnboarded && user && !user.isOnboarded) {
+        if (requireOnboarded && user && !user.isOnboarded && !isAdmin) {
             router.push('/auth/onboarding');
             return;
         }
 
         // Check subscription status
-        if (requireSubscription && user && !user.isSubscribed && !user.isTrialActive) {
+        if (requireSubscription && user && !user.isSubscribed && !user.isTrialActive && !isAdmin) {
             router.push('/auth/plans');
             return;
         }
@@ -81,13 +84,16 @@ export function ProtectedRoute({
         return null;
     }
 
+    // Admin users skip onboarding and subscription checks
+    const isAdminUser = user && (user.role === UserRole.ADMIN || user.role === UserRole.SUPERADMIN);
+
     // Onboarding check failed
-    if (requireOnboarded && user && !user.isOnboarded) {
+    if (requireOnboarded && user && !user.isOnboarded && !isAdminUser) {
         return null;
     }
 
     // Subscription check failed
-    if (requireSubscription && user && !user.isSubscribed && !user.isTrialActive) {
+    if (requireSubscription && user && !user.isSubscribed && !user.isTrialActive && !isAdminUser) {
         return null;
     }
 
