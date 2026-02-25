@@ -44,6 +44,31 @@ export const API_CONFIG = {
     PAYMENTS: {
       CHECKOUT: '/payments/checkout',
       HISTORY: '/payments',
+      ALL: '/payments/all',
+    },
+    SUBSCRIPTIONS: {
+      ALL: '/auth/subscriptions',
+    },
+    ADMIN: {
+      USERS_LIST: '/user/all/users',
+      USER_BY_ID: '/user',
+      USER_CREATE: '/user/create',
+      USER_DELETE: '/user',
+      USER_VERIFY: '/user',
+      USER_PROFILE: '/user',
+    },
+    PLANS: {
+      LIST: '/auth/plans',
+      BY_KEY: '/auth/plans',
+      CREATE: '/auth/plans',
+      UPDATE: '/auth/plans',
+      DELETE: '/auth/plans',
+    },
+    AUDIT_LOGS: {
+      LIST: '/audit-logs',
+      BY_USER: '/audit-logs/user',
+      BY_SERVICE: '/audit-logs/service',
+      BY_ID: '/audit-logs',
     },
   },
   

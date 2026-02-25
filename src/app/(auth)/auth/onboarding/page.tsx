@@ -206,7 +206,7 @@ function LaboratoryForm({ onSuccess }: { onSuccess: () => Promise<void> }) {
       <Button
         type="submit"
         disabled={loading}
-        className="h-12 w-full bg-vision-500 hover:bg-vision-400 font-semibold text-white"
+        className="h-12 w-full bg-blue-500 hover:bg-vision-400 font-semibold text-white"
       >
         {loading ? 'Submitting...' : 'Complete Setup'}
       </Button>

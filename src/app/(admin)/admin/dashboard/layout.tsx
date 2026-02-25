@@ -1,17 +1,16 @@
-'use client';
+"use client";
 
-import DashboardLayout from "@/components/vision/DashboardLayout";
+import { AdminDashboardLayout } from "@/components/admin/AdminDashboardLayout";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { UserRole } from "@/dtos/auth.dto";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute
-      requiredRole={[UserRole.LABORATORY]}
-      requireOnboarded
-      requireSubscription
+      requiredRole={[UserRole.ADMIN, UserRole.SUPERADMIN]}
+      redirectTo="/auth/admin"
     >
-      <DashboardLayout>{children}</DashboardLayout>
+      <AdminDashboardLayout>{children}</AdminDashboardLayout>
     </ProtectedRoute>
   );
 }

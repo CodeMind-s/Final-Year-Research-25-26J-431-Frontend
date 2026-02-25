@@ -1,4 +1,3 @@
-
 "use client";
 
 import { ReactNode, useState } from "react";
@@ -7,15 +6,16 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
-  History,
-  BarChart3,
+  Users,
+  CreditCard,
+  ScrollText,
+  FileText,
+  Receipt,
   Menu,
   X,
-  Activity,
-  Wifi,
-  WifiOff,
-  Cpu,
   LogOut,
+  Shield,
+  Logs,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,31 +29,43 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import Image from "next/image";
-import { useVisionDetectionStore } from "@/stores/vision-detection-store";
 import { useAuth } from "@/hooks/useAuth";
+import { UserRole } from "@/dtos/auth.dto";
 
-interface DashboardLayoutProps {
+interface AdminDashboardLayoutProps {
   children: ReactNode;
 }
 
 const navigationItems = [
-  { name: "Dashboard", href: "/vision/dashboard/camera", icon: LayoutDashboard },
-  { name: "Batches", href: "/vision/dashboard/batch", icon: History },
-  { name: "Statistics", href: "/vision/dashboard/statistics", icon: BarChart3 },
+  { name: "Overview", href: "/admin/dashboard", icon: LayoutDashboard },
+  { name: "Users", href: "/admin/dashboard/users", icon: Users },
+  { name: "Plans", href: "/admin/dashboard/plans", icon: CreditCard },
+  { name: "Payments", href: "/admin/dashboard/payments", icon: FileText },
+  { name: "Subscriptions", href: "/admin/dashboard/subscriptions", icon: Receipt },
+  {
+    name: "Audit Logs",
+    href: "/admin/dashboard/audit-logs",
+    icon: Logs,
+    superadminOnly: true,
+  },
 ];
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export function AdminDashboardLayout({
+  children,
+}: AdminDashboardLayoutProps) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-  const { isConnected, isModelLoaded } = useVisionDetectionStore();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const handleLogout = () => {
     localStorage.clear();
     logout();
   };
+
+  const visibleNavItems = navigationItems.filter(
+    (item) => !item.superadminOnly || user?.role === UserRole.SUPERADMIN
+  );
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -65,16 +77,22 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         )}
       >
         <div className="flex h-full flex-col">
-          {/* Logo */}
+          {/* Brand */}
           <div className="flex h-16 items-center gap-3 border-b border-border px-6">
-            <Image src={"/assets/images/vision-logo.svg"} alt={"Vision Logo"} width={150} height={100} />
+            <Shield className="h-6 w-6 text-primary" />
+            <span className="font-semibold text-lg tracking-tight">
+              BrineX Admin
+            </span>
           </div>
 
           {/* Navigation */}
           <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-            {navigationItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              const isActive =
+                pathname === item.href ||
+                (item.href !== "/admin/dashboard" &&
+                  pathname.startsWith(item.href));
               return (
                 <Link
                   key={item.href}
@@ -94,31 +112,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             })}
           </nav>
 
-          {/* System Status */}
+          {/* Admin Info */}
           <div className="border-t border-border p-4">
-            <div className="rounded-lg bg-muted/50 p-3 space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">System Status</span>
-                <Badge variant={isConnected ? "default" : "destructive"} className="text-xs">
-                  {isConnected ? "Online" : "Offline"}
-                </Badge>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                {isConnected ? (
-                  <Wifi className="h-3 w-3 text-green-500" />
-                ) : (
-                  <WifiOff className="h-3 w-3 text-red-500" />
-                )}
-                <span>WebSocket: {isConnected ? "Connected" : "Disconnected"}</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                {isModelLoaded ? (
-                  <Cpu className="h-3 w-3 text-green-500" />
-                ) : (
-                  <Activity className="h-3 w-3 text-yellow-500" />
-                )}
-                <span>YOLO Model: {isModelLoaded ? "Loaded" : "Not Loaded"}</span>
-              </div>
+            <div className="rounded-lg bg-muted/50 p-3 space-y-1">
+              <p className="text-sm font-medium truncate">
+                {user?.name || user?.email}
+              </p>
+              <Badge variant="secondary" className="text-xs">
+                {user?.role}
+              </Badge>
             </div>
           </div>
         </div>
@@ -135,22 +137,29 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               className="lg:hidden"
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
-              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {sidebarOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </Button>
             <div>
               <h2 className="text-lg font-semibold text-foreground tracking-tighter">
-                Industrial Saltern Monitoring
+                Administration Panel
               </h2>
               <p className="text-xs text-muted-foreground">
-                Real-time AI-powered quality inspection
+                BrineX Platform Management
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-
             <div className="h-6 w-px bg-border"></div>
-            <Button variant="ghost" size="icon" onClick={() => setShowLogoutDialog(true)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowLogoutDialog(true)}
+            >
               <LogOut className="h-5 w-5" />
             </Button>
           </div>
@@ -174,8 +183,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to log out? All local data will be cleared
-              and you will be redirected to the login page.
+              Are you sure you want to log out? You will be redirected to the
+              admin login page.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
