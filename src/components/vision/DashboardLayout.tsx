@@ -38,9 +38,9 @@ interface DashboardLayoutProps {
 }
 
 const navigationItems = [
-  { name: "Dashboard", href: "/vision/dashboard/camera", icon: LayoutDashboard },
-  { name: "Batches", href: "/vision/dashboard/batch", icon: History },
-  { name: "Statistics", href: "/vision/dashboard/statistics", icon: BarChart3 },
+  { name: "Dashboard", href: "/laboratory/dashboard", icon: LayoutDashboard },
+  { name: "Batches", href: "/laboratory/batch", icon: History },
+  { name: "Statistics", href: "/laboratory/statistics", icon: BarChart3 },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {

@@ -7,7 +7,7 @@ import { UserRole } from "@/dtos/auth.dto";
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute
-      requiredRole={[UserRole.ADMIN, UserRole.SUPERADMIN]}
+      requiredRole={[UserRole.ADMIN, UserRole.SUPERADMIN, UserRole.SALTSOCIETY, UserRole.LABORATORY]}
       redirectTo="/auth/admin"
     >
       <AdminDashboardLayout>{children}</AdminDashboardLayout>
