@@ -9,7 +9,7 @@ import { PlannerLanding, PlanRecord } from "@/components/compass/PlannerLanding"
 import { HarvestNowFlow } from "@/components/compass/HarvestNowFlow";
 import { MarketAnalysis } from "@/components/compass/MarketAnalysis";
 import { HomeDashboard } from "@/components/compass/HomeDashboard";
-import { generateMockCalendar } from "@/sample-data/compass/mockCalendarData";
+
 import { CircleUserRound } from "lucide-react";
 
 type PlannerView = "landing" | "creating" | "harvesting";
@@ -31,11 +31,6 @@ export default function LandownerDashboardLayout({
   // Worker count (carried over from creation)
   const [workerCount, setWorkerCount] = useState(3);
 
-  // Calendar days for the active plan
-  const calendarDays = useMemo(() => {
-    if (!activePlan) return [];
-    return generateMockCalendar(activePlan.date, activePlan.duration);
-  }, [activePlan]);
 
   // Predicted bags for harvest now flow
   const predictedBags = useMemo(() => {
@@ -118,7 +113,6 @@ export default function LandownerDashboardLayout({
           <PlannerLanding
             activePlan={activePlan}
             planHistory={planHistory}
-            calendarDays={calendarDays}
             onCreatePlan={() => setPlannerView("creating")}
             onHarvestNow={() => setPlannerView("harvesting")}
             onDiscardPlan={() => {
