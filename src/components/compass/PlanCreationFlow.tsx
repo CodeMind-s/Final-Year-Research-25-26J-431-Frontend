@@ -285,7 +285,7 @@ const MonthGrid: React.FC<{ year: number; month: number; startDate: Date; endDat
         <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">{monthLabel}</p>
       </div>
       <div className="grid grid-cols-7 mb-0.5">
-        {DAY_HEADERS.map(h => <div key={h} className="text-center text-[9px] font-bold text-slate-400 uppercase py-1">{h}</div>)}
+        {DAY_HEADERS.map(h => <div key={h} className="text-center text-[10px] font-bold text-slate-400 uppercase py-1">{h}</div>)}
       </div>
       <div className="grid grid-cols-7 gap-y-1 gap-x-0.5">
         {cells.map((date, idx) => {
@@ -305,11 +305,11 @@ const MonthGrid: React.FC<{ year: number; month: number; startDate: Date; endDat
               className={`relative flex flex-col items-center py-1 min-h-[52px] transition-all active:brightness-95 ${inRange && style ? style.bg : ""} ${roundL && inRange ? "rounded-l-lg" : ""} ${roundR && inRange ? "rounded-r-lg" : ""} ${isStart ? "ring-2 ring-compass-400 ring-inset z-10" : ""} ${isEnd ? "ring-2 ring-emerald-400 ring-inset z-10" : ""}`}>
               {wx ? (
                 <div className="flex flex-col items-center leading-none mb-0.5">
-                  <WeatherIcon kind={wx.kind} size={9} />
-                  <span className="text-[7px] text-slate-500 font-medium mt-px leading-none">{wx.temp}°</span>
+                  <WeatherIcon kind={wx.kind} size={11} />
+                  <span className="text-[9px] text-slate-500 font-medium mt-px leading-none">{wx.temp}°</span>
                 </div>
               ) : <div className="h-[18px]" />}
-              <span className={`text-[11px] font-bold leading-none ${inRange && style ? style.text : "text-slate-400"} ${isToday ? "underline underline-offset-2" : ""}`}>{date.getDate()}</span>
+              <span className={`text-xs font-bold leading-none ${inRange && style ? style.text : "text-slate-400"} ${isToday ? "underline underline-offset-2" : ""}`}>{date.getDate()}</span>
               {inRange && phase && <span className={`w-1 h-1 rounded-full mt-0.5 ${PHASE_STYLE[phase].dot}`} />}
               {isStart && <span className="absolute -bottom-3 left-1/2 -translate-x-1/2 text-[7px] font-extrabold text-compass-700 bg-compass-100 px-1 py-px rounded whitespace-nowrap z-10">Start</span>}
               {isEnd && <span className="absolute -bottom-3 left-1/2 -translate-x-1/2 text-[7px] font-extrabold text-emerald-700 bg-emerald-100 px-1 py-px rounded whitespace-nowrap z-10">End</span>}
