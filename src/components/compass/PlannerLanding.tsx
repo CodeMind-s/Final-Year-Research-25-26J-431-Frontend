@@ -22,8 +22,7 @@ import {
   ArrowRight,
   Lightbulb,
 } from "lucide-react";
-import { HarvestCalendar } from "@/components/compass/HarvestCalendar";
-import type { CalendarDay } from "@/sample-data/compass/mockCalendarData";
+
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -42,7 +41,6 @@ export interface PlanRecord {
 interface PlannerLandingProps {
   activePlan: PlanRecord | null;
   planHistory: PlanRecord[];
-  calendarDays: CalendarDay[];
   onCreatePlan: () => void;
   onHarvestNow: () => void;
   onDiscardPlan: () => void;
@@ -453,7 +451,6 @@ const PlanHistoryCard: React.FC<{ record: PlanRecord; onTap: () => void }> = ({ 
 export const PlannerLanding: React.FC<PlannerLandingProps> = ({
   activePlan,
   planHistory,
-  calendarDays,
   onCreatePlan,
   onHarvestNow,
   onDiscardPlan,
@@ -571,14 +568,6 @@ export const PlannerLanding: React.FC<PlannerLandingProps> = ({
             </div>
           )}
 
-          {calendarDays.length > 0 && (
-            <div className="mb-4">
-              <p className="text-sm font-bold text-slate-900 mb-3">Plan Calendar</p>
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                <HarvestCalendar days={calendarDays} planDuration={activePlan.duration} compact />
-              </div>
-            </div>
-          )}
 
           <WeatherForecastCalendar />
         </>
