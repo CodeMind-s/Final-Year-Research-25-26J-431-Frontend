@@ -23,7 +23,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
+    <div className="rounded-2xl max-w-xl mx-auto w-full border border-slate-200 bg-white p-8 shadow-xl">
       <div className="mb-6">
         <Image
           src="/assets/images/logo.svg"
@@ -32,11 +32,11 @@ export default function AdminLoginPage() {
           height={40}
         />
         <h2 className="text-2xl font-semibold text-slate-900 mt-4 tracking-tighter">
-          Admin Login
+          Super Admin Login
         </h2>
         <p className="mt-1 text-sm text-slate-600">
-          Sign in with your admin credentials
-        </p>
+          Sign in with your super admin credentials
+        </p>  
       </div>
 
       {error && (

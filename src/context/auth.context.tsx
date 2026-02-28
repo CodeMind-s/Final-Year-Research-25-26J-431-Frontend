@@ -55,12 +55,12 @@ function getDashboardPath(role: UserRole): string {
         case UserRole.SELLER:
             return '/compass/seller-dashboard';
         case UserRole.LABORATORY:
-            return '/vision/dashboard/camera';
+            return '/laboratory/dashboard';
         case UserRole.SUPERADMIN:
         case UserRole.ADMIN:
-            return '/admin/dashboard';
+            return '/superadmin/dashboard';
         case UserRole.SALTSOCIETY:
-            return '/crystal/dashboard/production';
+            return '/salt-society/dashboard';
         default:
             return '/';
     }

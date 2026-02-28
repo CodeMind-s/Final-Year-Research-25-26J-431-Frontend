@@ -64,7 +64,7 @@ export default function LaboratoryLoginPage() {
   const displayError = error || localError;
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
+    <div className="rounded-2xl max-w-xl mx-auto w-full border border-slate-200 bg-white p-8 shadow-xl">
       <div className="mb-6">
         <Image
           src="/assets/images/vision-logo.svg"

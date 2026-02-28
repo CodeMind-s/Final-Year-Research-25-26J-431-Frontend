@@ -8,14 +8,17 @@ import {
   LayoutDashboard,
   Users,
   CreditCard,
-  ScrollText,
   FileText,
   Receipt,
   Menu,
   X,
   LogOut,
-  Shield,
   Logs,
+  FlaskConical,
+  Video,
+  BarChart2,
+  Bell,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,24 +34,77 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/dtos/auth.dto";
+import Image from "next/image";
 
 interface AdminDashboardLayoutProps {
   children: ReactNode;
 }
 
-const navigationItems = [
-  { name: "Overview", href: "/admin/dashboard", icon: LayoutDashboard },
-  { name: "Users", href: "/admin/dashboard/users", icon: Users },
-  { name: "Plans", href: "/admin/dashboard/plans", icon: CreditCard },
-  { name: "Payments", href: "/admin/dashboard/payments", icon: FileText },
-  { name: "Subscriptions", href: "/admin/dashboard/subscriptions", icon: Receipt },
-  {
-    name: "Audit Logs",
-    href: "/admin/dashboard/audit-logs",
-    icon: Logs,
-    superadminOnly: true,
-  },
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ElementType;
+}
+
+const superadminNavItems: NavItem[] = [
+  { name: "Overview", href: "/superadmin/dashboard", icon: LayoutDashboard },
+  { name: "Users", href: "/superadmin/users", icon: Users },
+  { name: "Plans", href: "/superadmin/plans", icon: CreditCard },
+  { name: "Payments", href: "/superadmin/payments", icon: FileText },
+  { name: "Subscriptions", href: "/superadmin/subscriptions", icon: Receipt },
+  { name: "Audit Logs", href: "/superadmin/audit-logs", icon: Logs },
 ];
+
+const adminNavItems: NavItem[] = [
+  { name: "Overview", href: "/superadmin/dashboard", icon: LayoutDashboard },
+  { name: "Users", href: "/superadmin/users", icon: Users },
+  { name: "Plans", href: "/superadmin/plans", icon: CreditCard },
+  { name: "Payments", href: "/superadmin/payments", icon: FileText },
+  { name: "Subscriptions", href: "/superadmin/subscriptions", icon: Receipt },
+];
+
+const saltSocietyNavItems: NavItem[] = [
+  { name: "Dashboard", href: "/salt-society/dashboard", icon: LayoutDashboard },
+  { name: "Salt Production", href: "/salt-society/salt-production", icon: FlaskConical },
+  { name: "Recording", href: "/salt-society/recording", icon: Video },
+  { name: "Reports", href: "/salt-society/reports", icon: BarChart2 },
+  { name: "Alerts", href: "/salt-society/alerts", icon: Bell },
+  { name: "Settings", href: "/salt-society/settings", icon: Settings },
+];
+
+const laboratoryNavItems: NavItem[] = [
+  { name: "Dashboard", href: "/laboratory/dashboard", icon: LayoutDashboard },
+  { name: "Batches", href: "/laboratory/batches", icon: FlaskConical },
+  { name: "Statistics", href: "/laboratory/statistics", icon: BarChart2 },
+];
+
+function getNavItems(role?: UserRole): NavItem[] {
+  switch (role) {
+    case UserRole.SUPERADMIN:
+      return superadminNavItems;
+    case UserRole.ADMIN:
+      return adminNavItems;
+    case UserRole.SALTSOCIETY:
+      return saltSocietyNavItems;
+    case UserRole.LABORATORY:
+      return laboratoryNavItems;
+    default:
+      return [];
+  }
+}
+
+function getPanelTitle(role?: UserRole): { title: string; subtitle: string } {
+  switch (role) {
+    case UserRole.SALTSOCIETY:
+      return { title: "Salt Society Panel", subtitle: "BrineX Salt Society Management" };
+    case UserRole.LABORATORY:
+      return { title: "Laboratory Panel", subtitle: "BrineX AI-Powered Quality Inspection" };
+    case UserRole.ADMIN:
+    case UserRole.SUPERADMIN:
+    default:
+      return { title: "Administration Panel", subtitle: "BrineX Platform Management" };
+  }
+}
 
 export function AdminDashboardLayout({
   children,
@@ -63,9 +119,8 @@ export function AdminDashboardLayout({
     logout();
   };
 
-  const visibleNavItems = navigationItems.filter(
-    (item) => !item.superadminOnly || user?.role === UserRole.SUPERADMIN
-  );
+  const navItems = getNavItems(user?.role);
+  const { title, subtitle } = getPanelTitle(user?.role);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -79,20 +134,16 @@ export function AdminDashboardLayout({
         <div className="flex h-full flex-col">
           {/* Brand */}
           <div className="flex h-16 items-center gap-3 border-b border-border px-6">
-            <Shield className="h-6 w-6 text-primary" />
-            <span className="font-semibold text-lg tracking-tight">
-              BrineX Admin
-            </span>
+            <Image src={'/assets/images/logo.svg'} alt='brinex logo' width={500} height={100} />
           </div>
 
           {/* Navigation */}
           <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-            {visibleNavItems.map((item) => {
+            {navItems.map((item) => {
               const Icon = item.icon;
               const isActive =
                 pathname === item.href ||
-                (item.href !== "/admin/dashboard" &&
-                  pathname.startsWith(item.href));
+                pathname.startsWith(item.href + "/");
               return (
                 <Link
                   key={item.href}
@@ -112,7 +163,7 @@ export function AdminDashboardLayout({
             })}
           </nav>
 
-          {/* Admin Info */}
+          {/* User Info */}
           <div className="border-t border-border p-4">
             <div className="rounded-lg bg-muted/50 p-3 space-y-1">
               <p className="text-sm font-medium truncate">
@@ -145,10 +196,10 @@ export function AdminDashboardLayout({
             </Button>
             <div>
               <h2 className="text-lg font-semibold text-foreground tracking-tighter">
-                Administration Panel
+                {title}
               </h2>
               <p className="text-xs text-muted-foreground">
-                BrineX Platform Management
+                {subtitle}
               </p>
             </div>
           </div>
@@ -184,7 +235,7 @@ export function AdminDashboardLayout({
             <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to log out? You will be redirected to the
-              admin login page.
+              login page.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
