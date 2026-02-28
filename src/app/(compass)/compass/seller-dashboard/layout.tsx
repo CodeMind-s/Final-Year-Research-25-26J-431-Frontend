@@ -1,16 +1,13 @@
-import { AppProvider } from '@/context/compass/AppContext';
 import React from 'react';
 
-export default function SellerDashboardLayout({
+export default function DistributorDashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
     return (
         <section className="min-h-screen w-full">
-            <AppProvider>
-                {children}
-            </AppProvider>
+            {children}
         </section>
     );
 }
