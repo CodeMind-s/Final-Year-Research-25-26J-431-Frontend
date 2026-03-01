@@ -22,6 +22,7 @@ export interface BoundingBox {
 
 export interface Detection {
   id: string;
+  userId?: string;
   timestamp: string;
   frameWidth: number;
   frameHeight: number;
@@ -84,6 +85,7 @@ export interface BatchStats {
 
 export interface BatchSummary {
   id: string;
+  userId?: string;
   batchNumber: number;
   sessionId?: string;
   startTime: string;
