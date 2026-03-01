@@ -3,9 +3,6 @@
 import React from "react";
 import {
   Sun,
-  CloudRain,
-  Wind,
-  Droplets,
   Calendar,
   TrendingUp,
   ArrowRight,
@@ -15,6 +12,7 @@ import {
 import { SalternMap } from "@/components/compass/SalternMap";
 import { HarvestReadinessCards } from "@/components/compass/HarvestReadinessCards";
 import { MOCK_POND_GRID, MOCK_HARVEST_READINESS } from "@/sample-data/compass/mockSalternData";
+import { useAuth } from "@/hooks/useAuth";
 
 interface HomeDashboardProps {
   landownerName: string;
@@ -40,6 +38,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
     wind: 12, // km/h
     humidity: 65, // %
   };
+  const { logout, user } = useAuth();
 
   return (
     <div className="flex flex-col px-4 pt-6 pb-24 space-y-6 max-w-lg mx-auto w-full lg:max-w-4xl">
@@ -47,7 +46,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
       <div className="flex justify-between items-start">
         <div>
           <p className="text-sm font-medium text-slate-500">Good morning,</p>
-          <h1 className="text-2xl font-bold text-slate-900">{landownerName}</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{user?.name || "Muhammad"}</h1>
           <div className="flex items-center gap-1 mt-1 text-slate-400">
             <MapPin size={12} />
             <span className="text-xs">Puttalam, Sri Lanka</span>
