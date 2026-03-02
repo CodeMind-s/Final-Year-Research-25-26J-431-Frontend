@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   ArrowRight,
@@ -48,7 +49,13 @@ const StepHarvestDate: React.FC<{
   onChange: (v: string) => void;
   onNext: () => void;
 }> = ({ value, planStartDate, onChange, onNext }) => {
+  const t = useTranslations('compass');
   const today = new Date().toISOString().split("T")[0];
+
+  const quickDates = [
+    { label: t('harvest.today'), offset: 0 },
+    { label: t('harvest.yesterday'), offset: -1 },
+  ];
 
   return (
     <div className="flex flex-col items-center text-center">
@@ -57,16 +64,16 @@ const StepHarvestDate: React.FC<{
       </div>
 
       <h2 className="text-xl font-bold text-slate-900 mb-1">
-        When did you harvest?
+        {t('harvest.whenDidYouHarvest')}
       </h2>
       <p className="text-sm text-slate-500 mb-7 max-w-xs">
-        Select the exact date you completed your harvest
+        {t('harvest.selectExactDate')}
       </p>
 
       {/* Date input */}
       <div className="w-full mb-4">
         <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 text-left">
-          Actual Harvest Date
+          {t('harvest.actualHarvestDate')}
         </label>
         <input
           type="date"
@@ -80,13 +87,13 @@ const StepHarvestDate: React.FC<{
 
       {/* Quick select shortcuts */}
       <div className="flex gap-2 w-full mb-8">
-        {["Today", "Yesterday"].map((label) => {
+        {quickDates.map((item) => {
           const d = new Date();
-          if (label === "Yesterday") d.setDate(d.getDate() - 1);
+          d.setDate(d.getDate() + item.offset);
           const iso = d.toISOString().split("T")[0];
           return (
             <button
-              key={label}
+              key={item.offset}
               onClick={() => onChange(iso)}
               className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all active:scale-95 ${
                 value === iso
@@ -94,7 +101,7 @@ const StepHarvestDate: React.FC<{
                   : "bg-white text-slate-600 border-slate-200 hover:border-amber-300"
               }`}
             >
-              {label}
+              {item.label}
             </button>
           );
         })}
@@ -109,7 +116,7 @@ const StepHarvestDate: React.FC<{
             : "bg-slate-100 text-slate-400 cursor-not-allowed"
         }`}
       >
-        Continue <ArrowRight size={18} />
+        {t('harvest.continue')} <ArrowRight size={18} />
       </button>
     </div>
   );
@@ -123,6 +130,7 @@ const StepBagCount: React.FC<{
   onChange: (v: number) => void;
   onNext: () => void;
 }> = ({ value, predictedBags, onChange, onNext }) => {
+  const t = useTranslations('compass');
   const diff = value > 0 ? value - predictedBags : 0;
   const isOver = diff > 0;
   const isExact = diff === 0 && value > 0;
@@ -134,17 +142,17 @@ const StepBagCount: React.FC<{
       </div>
 
       <h2 className="text-xl font-bold text-slate-900 mb-1">
-        How many bags did you produce?
+        {t('harvest.howManyBags')}
       </h2>
       <p className="text-sm text-slate-500 mb-4 max-w-xs">
-        Count all bags ready for sale
+        {t('harvest.countAllBags')}
       </p>
 
       {/* Prediction reference */}
       <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl mb-6">
         <Star size={13} className="text-slate-400" />
         <span className="text-xs text-slate-500">
-          We predicted <strong className="text-slate-700">~{predictedBags} bags</strong> for your plan
+          {t('harvest.wePredicted', { bags: predictedBags })}
         </span>
       </div>
 
@@ -163,7 +171,7 @@ const StepBagCount: React.FC<{
           className="w-full px-6 py-5 rounded-2xl border-2 border-slate-200 text-center text-5xl font-extrabold text-slate-900
                      focus:outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 transition-all"
         />
-        <p className="text-xs text-slate-400 mt-2">bags of salt</p>
+        <p className="text-xs text-slate-400 mt-2">{t('harvest.bagsOfSalt')}</p>
       </div>
 
       {/* Comparison feedback */}
@@ -175,9 +183,9 @@ const StepBagCount: React.FC<{
             ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
             : "bg-amber-50 text-amber-700 border border-amber-100"
         }`}>
-          {isExact && "🎯 Perfect — right on target!"}
-          {isOver && `🎉 ${diff} more bags than predicted — great season!`}
-          {!isExact && !isOver && value > 0 && `📉 ${Math.abs(diff)} fewer than predicted — noted for next season`}
+          {isExact && `🎯 ${t('harvest.perfectOnTarget')}`}
+          {isOver && `🎉 ${t('harvest.moreGreatSeason', { count: diff })}`}
+          {!isExact && !isOver && value > 0 && `📉 ${t('harvest.fewerNoted', { count: Math.abs(diff) })}`}
         </div>
       )}
 
@@ -190,7 +198,7 @@ const StepBagCount: React.FC<{
             : "bg-slate-100 text-slate-400 cursor-not-allowed"
         }`}
       >
-        Submit Harvest <ArrowRight size={18} />
+        {t('harvest.submitHarvest')} <ArrowRight size={18} />
       </button>
     </div>
   );
@@ -204,6 +212,7 @@ const StepThankYou: React.FC<{
   actualDate: string;
   onDone: () => void;
 }> = ({ actualBags, predictedBags, actualDate, onDone }) => {
+  const t = useTranslations('compass');
   const diff = actualBags - predictedBags;
   const dateLabel = new Date(actualDate + "T00:00:00").toLocaleDateString("en-US", {
     weekday: "long", month: "long", day: "numeric", year: "numeric",
@@ -220,10 +229,10 @@ const StepThankYou: React.FC<{
       </div>
 
       <h2 className="text-2xl font-extrabold text-slate-900 mb-2">
-        Harvest Recorded!
+        {t('harvest.harvestRecorded')}
       </h2>
       <p className="text-sm text-slate-500 mb-6 max-w-xs">
-        Your harvest has been successfully logged. Great job this season!
+        {t('harvest.harvestLoggedSuccess')}
       </p>
 
       {/* Result cards */}
@@ -234,7 +243,7 @@ const StepThankYou: React.FC<{
               <CalendarDays size={20} className="text-amber-600" />
             </div>
             <div className="text-left">
-              <p className="text-xs text-slate-400 font-medium">Harvest Date</p>
+              <p className="text-xs text-slate-400 font-medium">{t('harvest.harvestDateLabel')}</p>
               <p className="text-sm font-bold text-slate-900">{dateLabel}</p>
             </div>
           </div>
@@ -248,14 +257,14 @@ const StepThankYou: React.FC<{
               <Package size={20} className={diff >= 0 ? "text-emerald-600" : "text-amber-600"} />
             </div>
             <div className="text-left">
-              <p className={`text-xs font-medium ${diff >= 0 ? "text-emerald-600" : "text-amber-600"}`}>Bags Produced</p>
+              <p className={`text-xs font-medium ${diff >= 0 ? "text-emerald-600" : "text-amber-600"}`}>{t('harvest.bagsProducedLabel')}</p>
               <p className="text-xl font-extrabold text-slate-900">{actualBags}</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[10px] text-slate-400">vs predicted</p>
+            <p className="text-[10px] text-slate-400">{t('harvest.vsPredicted')}</p>
             <p className={`text-sm font-bold ${diff >= 0 ? "text-emerald-600" : "text-amber-600"}`}>
-              {diff >= 0 ? "+" : ""}{diff} bags
+              {t('harvest.bagsDiff', { count: `${diff >= 0 ? "+" : ""}${diff}` })}
             </p>
           </div>
         </div>
@@ -265,19 +274,19 @@ const StepThankYou: React.FC<{
       <div className="w-full bg-compass-50 border border-compass-100 rounded-2xl p-4 mb-8 text-left">
         <div className="flex items-center gap-2 mb-2">
           <Sparkles size={14} className="text-compass-600" />
-          <p className="text-xs font-bold text-compass-700 uppercase tracking-wide">PSS Insight</p>
+          <p className="text-xs font-bold text-compass-700 uppercase tracking-wide">{t('harvest.pssInsight')}</p>
         </div>
         <p className="text-xs text-slate-600 leading-relaxed">
           {diff > 0
-            ? `You exceeded the prediction by ${diff} bags. Our model will learn from your results to improve future recommendations.`
+            ? t('harvest.exceededPrediction', { count: diff })
             : diff === 0
-            ? "Your production matched the prediction exactly — excellent planning and execution!"
-            : `You produced ${Math.abs(diff)} fewer bags than predicted. Weather and brine conditions may have been factors. We'll refine future forecasts.`
+            ? t('harvest.matchedPrediction')
+            : t('harvest.fewerProduced', { count: Math.abs(diff) })
           }
         </p>
         <div className="flex items-center gap-1.5 mt-2">
           <Leaf size={11} className="text-compass-500" />
-          <p className="text-[10px] text-compass-500 font-medium">Data saved to improve your next season</p>
+          <p className="text-[10px] text-compass-500 font-medium">{t('harvest.dataSaved')}</p>
         </div>
       </div>
 
@@ -286,7 +295,7 @@ const StepThankYou: React.FC<{
         className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-base font-bold bg-compass-600 text-white shadow-xl shadow-compass-600/25 active:scale-[0.98] transition-all"
       >
         <CheckCircle2 size={20} />
-        Back to Planner
+        {t('harvest.backToPlanner')}
       </button>
     </div>
   );
@@ -300,6 +309,7 @@ export const HarvestNowFlow: React.FC<HarvestNowFlowProps> = ({
   onComplete,
   onBack,
 }) => {
+  const t = useTranslations('compass');
   const TOTAL = 3;
   const [step, setStep] = useState(0);
   const [actualDate, setActualDate] = useState("");
@@ -315,7 +325,7 @@ export const HarvestNowFlow: React.FC<HarvestNowFlowProps> = ({
       {/* Header (hidden on thank you page) */}
       {step < 2 && (
         <div className="flex items-center justify-between mb-6">
-          <button onClick={handleBack} className="p-2 -ml-2 rounded-xl hover:bg-slate-100 active:scale-95 transition-all" aria-label="Go back">
+          <button onClick={handleBack} className="p-2 -ml-2 rounded-xl hover:bg-slate-100 active:scale-95 transition-all" aria-label={t('harvest.goBack')}>
             <ArrowLeft size={22} className="text-slate-700" />
           </button>
           <div className="flex items-center gap-2">

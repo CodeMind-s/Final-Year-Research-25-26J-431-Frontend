@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   TrendingUp,
   MapPin,
@@ -35,23 +36,14 @@ import {
   DealStatus,
 } from "@/sample-data/compass/mockMarketData";
 
-// ─── Status config ────────────────────────────────────────────────
-
-const STATUS_CFG: Record<DealStatus, { label: string; color: string; icon: React.ReactNode }> = {
-  DRAFT:    { label: "Draft",    color: "bg-slate-100 text-slate-500",  icon: <Clock size={11} /> },
-  PENDING:  { label: "Pending",  color: "bg-amber-100 text-amber-700",  icon: <Clock size={11} /> },
-  ACCEPTED: { label: "Accepted", color: "bg-emerald-100 text-emerald-700", icon: <CheckCircle2 size={11} /> },
-  CLOSED:   { label: "Closed",   color: "bg-blue-100 text-blue-700",    icon: <CheckCircle2 size={11} /> },
-  CANCELED: { label: "Cancelled", color: "bg-red-100 text-red-500",     icon: <XCircle size={11} /> },
-};
-
-
+// ─── Distributor card ────────────────────────────────────────────
 
 const DistributorCard: React.FC<{
   distributor: Distributor;
   rank: number;
   onSelect: () => void;
 }> = ({ distributor, rank, onSelect }) => {
+  const t = useTranslations('compass');
   const isRecommended = rank === 1;
   return (
     <button
@@ -65,7 +57,7 @@ const DistributorCard: React.FC<{
       {/* Top row */}
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1 min-w-0">
-         
+
           <p className="text-sm font-bold text-slate-900">{distributor.name}</p>
           <div className="flex items-center gap-1 mt-0.5">
             <MapPin size={11} className="text-slate-400" />
@@ -77,21 +69,21 @@ const DistributorCard: React.FC<{
         }`}>#{rank}</div>
       </div>
 
-   
+
       {/* Offer details */}
       <div className="flex items-center gap-3 mt-3">
         <div className="flex-1 bg-white rounded-xl border border-slate-100 px-3 py-2">
-          <p className="text-[9px] text-slate-400 font-medium uppercase tracking-wide">Offers</p>
+          <p className="text-[9px] text-slate-400 font-medium uppercase tracking-wide">{t('market.offers')}</p>
           <p className="text-base font-extrabold text-slate-900">Rs. {distributor.offerPricePerBag.toLocaleString()}</p>
-          <p className="text-[9px] text-slate-400">per bag</p>
+          <p className="text-[9px] text-slate-400">{t('market.perBag')}</p>
         </div>
         <div className="flex-1 bg-white rounded-xl border border-slate-100 px-3 py-2">
-          <p className="text-[9px] text-slate-400 font-medium uppercase tracking-wide">Needs</p>
+          <p className="text-[9px] text-slate-400 font-medium uppercase tracking-wide">{t('market.needs')}</p>
           <p className="text-base font-extrabold text-slate-900">{distributor.bagsNeeded}</p>
-          <p className="text-[9px] text-slate-400">bags</p>
+          <p className="text-[9px] text-slate-400">{t('market.bags')}</p>
         </div>
         <div className="flex items-center gap-1 text-compass-600 flex-shrink-0">
-          <span className="text-xs font-bold">Offer</span>
+          <span className="text-xs font-bold">{t('market.offer')}</span>
           <ChevronRight size={14} />
         </div>
       </div>
@@ -106,6 +98,7 @@ const RequestSheet: React.FC<{
   onClose: () => void;
   onSend: (bags: number, price: number) => void;
 }> = ({ distributor, onClose, onSend }) => {
+  const t = useTranslations('compass');
   const [bags, setBags] = useState(distributor.bagsNeeded);
   const [price, setPrice] = useState(distributor.offerPricePerBag);
   const totalValue = bags * price;
@@ -121,7 +114,7 @@ const RequestSheet: React.FC<{
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
             <div>
-              <p className="text-xs text-slate-400 mb-0.5">Make a request to</p>
+              <p className="text-xs text-slate-400 mb-0.5">{t('market.makeRequestTo')}</p>
               <h3 className="text-lg font-bold text-slate-900">{distributor.name}</h3>
               <div className="flex items-center gap-1 mt-0.5">
                 <MapPin size={11} className="text-slate-400" />
@@ -135,14 +128,14 @@ const RequestSheet: React.FC<{
 
           {/* Their offer */}
           <div className="bg-compass-50 border border-compass-100 rounded-2xl p-3 mb-5">
-            <p className="text-xs font-bold text-compass-700 mb-2">Their offer to you</p>
+            <p className="text-xs font-bold text-compass-700 mb-2">{t('market.theirOffer')}</p>
             <div className="flex gap-3">
               <div className="flex-1 bg-white rounded-xl px-3 py-2 border border-compass-100">
-                <p className="text-[9px] text-slate-400 uppercase tracking-wide">Price / bag</p>
+                <p className="text-[9px] text-slate-400 uppercase tracking-wide">{t('market.pricePerBag')}</p>
                 <p className="text-base font-extrabold text-compass-700">Rs. {distributor.offerPricePerBag.toLocaleString()}</p>
               </div>
               <div className="flex-1 bg-white rounded-xl px-3 py-2 border border-compass-100">
-                <p className="text-[9px] text-slate-400 uppercase tracking-wide">Bags needed</p>
+                <p className="text-[9px] text-slate-400 uppercase tracking-wide">{t('market.bagsNeeded')}</p>
                 <p className="text-base font-extrabold text-compass-700">{distributor.bagsNeeded}</p>
               </div>
             </div>
@@ -150,11 +143,11 @@ const RequestSheet: React.FC<{
           </div>
 
           {/* Your request */}
-          <p className="text-sm font-bold text-slate-900 mb-3">Your counter-request</p>
+          <p className="text-sm font-bold text-slate-900 mb-3">{t('market.yourCounterRequest')}</p>
           <div className="space-y-3 mb-5">
             <div>
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1">
-                Bags you can offer
+                {t('market.bagsYouCanOffer')}
               </label>
               <input
                 type="number"
@@ -170,7 +163,7 @@ const RequestSheet: React.FC<{
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1">
-                Your price per bag (Rs.)
+                {t('market.yourPricePerBag')}
               </label>
               <input
                 type="number"
@@ -188,7 +181,7 @@ const RequestSheet: React.FC<{
 
           {/* Total preview */}
           <div className="bg-slate-50 rounded-2xl px-4 py-3 mb-5 flex items-center justify-between">
-            <p className="text-sm text-slate-500">Total deal value</p>
+            <p className="text-sm text-slate-500">{t('market.totalDealValue')}</p>
             <p className="text-lg font-extrabold text-slate-900">Rs. {totalValue.toLocaleString()}</p>
           </div>
 
@@ -198,9 +191,9 @@ const RequestSheet: React.FC<{
             className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-compass-600 text-white text-sm font-bold shadow-lg shadow-compass-600/25 active:scale-[0.98] transition-all"
           >
             <Send size={16} />
-            Send Request
+            {t('market.sendRequest')}
           </button>
-          <p className="text-xs text-slate-400 text-center mt-2">The distributor will review and accept or decline your request</p>
+          <p className="text-xs text-slate-400 text-center mt-2">{t('market.distributorReview')}</p>
         </div>
       </div>
     </>
@@ -215,8 +208,24 @@ const DealCard: React.FC<{
   onClose: () => void;
   onCancel: () => void;
 }> = ({ deal, onAccept, onClose, onCancel }) => {
+  const t = useTranslations('compass');
+
+  const STATUS_CFG: Record<DealStatus, { label: string; color: string; icon: React.ReactNode }> = {
+    DRAFT:    { label: t('market.draft'),    color: "bg-slate-100 text-slate-500",  icon: <Clock size={11} /> },
+    PENDING:  { label: t('market.pending'),  color: "bg-amber-100 text-amber-700",  icon: <Clock size={11} /> },
+    ACCEPTED: { label: t('market.accepted'), color: "bg-emerald-100 text-emerald-700", icon: <CheckCircle2 size={11} /> },
+    CLOSED:   { label: t('market.closed'),   color: "bg-blue-100 text-blue-700",    icon: <CheckCircle2 size={11} /> },
+    CANCELED: { label: t('market.cancelled'), color: "bg-red-100 text-red-500",     icon: <XCircle size={11} /> },
+  };
+
   const sc = STATUS_CFG[deal.status];
   const totalValue = deal.requestedBags * deal.requestedPricePerBag;
+
+  const dealRows = [
+    { label: t('market.bags'), value: deal.requestedBags.toString() },
+    { label: t('market.pricePerBag'), value: `Rs. ${deal.requestedPricePerBag.toLocaleString()}` },
+    { label: t('market.total'), value: `Rs. ${totalValue.toLocaleString()}` },
+  ];
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
@@ -236,11 +245,7 @@ const DealCard: React.FC<{
 
       {/* Numbers */}
       <div className="grid grid-cols-3 gap-2 mb-3">
-        {[
-          { label: "Bags", value: deal.requestedBags.toString() },
-          { label: "Price / bag", value: `Rs. ${deal.requestedPricePerBag.toLocaleString()}` },
-          { label: "Total", value: `Rs. ${totalValue.toLocaleString()}` },
-        ].map((row) => (
+        {dealRows.map((row) => (
           <div key={row.label} className="bg-slate-50 rounded-xl px-2 py-2 text-center">
             <p className="text-[9px] text-slate-400 uppercase tracking-wide">{row.label}</p>
             <p className="text-xs font-bold text-slate-900 mt-0.5">{row.value}</p>
@@ -255,40 +260,40 @@ const DealCard: React.FC<{
             onClick={onCancel}
             className="flex-1 py-2 rounded-xl text-xs font-bold text-red-500 bg-red-50 border border-red-100 active:scale-95 transition-all"
           >
-            Cancel
+            {t('market.cancel')}
           </button>
           <button
             onClick={onAccept}
             className="flex-1 py-2 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 active:scale-95 transition-all"
           >
-            ✓ Simulate Accept
+            ✓ {t('market.simulateAccept')}
           </button>
         </div>
       )}
       {deal.status === "ACCEPTED" && (
         <div className="pt-2 border-t border-slate-100">
           <div className="bg-emerald-50 rounded-xl px-3 py-2 mb-2 text-center">
-            <p className="text-xs font-bold text-emerald-700">Deal accepted! Ready to complete.</p>
+            <p className="text-xs font-bold text-emerald-700">{t('market.dealAcceptedReady')}</p>
           </div>
           <button
             onClick={onClose}
             className="w-full py-2 rounded-xl text-xs font-bold text-blue-700 bg-blue-50 border border-blue-100 active:scale-95 transition-all"
           >
-            Mark as Closed
+            {t('market.markAsClosed')}
           </button>
         </div>
       )}
       {deal.status === "CLOSED" && (
         <div className="pt-2 border-t border-slate-100">
           <div className="bg-blue-50 rounded-xl px-3 py-2 text-center">
-            <p className="text-xs font-bold text-blue-700">✅ Transaction complete</p>
+            <p className="text-xs font-bold text-blue-700">✅ {t('market.transactionComplete')}</p>
           </div>
         </div>
       )}
       {deal.status === "CANCELED" && (
         <div className="pt-2 border-t border-slate-100">
           <div className="bg-slate-50 rounded-xl px-3 py-2 text-center">
-            <p className="text-xs text-slate-400">This deal was cancelled</p>
+            <p className="text-xs text-slate-400">{t('market.dealCancelled')}</p>
           </div>
         </div>
       )}
@@ -299,6 +304,7 @@ const DealCard: React.FC<{
 // ─── Main MarketAnalysis component ───────────────────────────────
 
 export const MarketAnalysis: React.FC = () => {
+  const t = useTranslations('compass');
   const [selectedDist, setSelectedDist] = useState<Distributor | null>(null);
   const [deals, setDeals] = useState<MarketDeal[]>([]);
   const [dealsTab, setDealsTab] = useState<"active" | "done">("active");
@@ -331,6 +337,11 @@ export const MarketAnalysis: React.FC = () => {
   const activeDeals = deals.filter((d) => d.status === "PENDING" || d.status === "ACCEPTED");
   const doneDeals = deals.filter((d) => d.status === "CLOSED" || d.status === "CANCELED" || d.status === "DRAFT");
 
+  const pssStats = [
+    { label: t('market.currentPriceLabel'), value: t('market.currentPriceValue') },
+    { label: t('market.expectedPeak'), value: t('market.expectedPeakValue') },
+  ];
+
   return (
     <div className="flex flex-col px-4 pt-5 pb-28 max-w-lg mx-auto w-full">
 
@@ -340,17 +351,14 @@ export const MarketAnalysis: React.FC = () => {
         <div className="relative z-10">
           <div className="flex items-center gap-1.5 mb-1">
             <Sparkles size={14} className="text-indigo-200" />
-            <p className="text-indigo-100 text-[10px] font-bold uppercase tracking-wider">PSS Recommendation</p>
+            <p className="text-indigo-100 text-[10px] font-bold uppercase tracking-wider">{t('market.pssRecommendation')}</p>
           </div>
-          <h2 className="text-xl font-extrabold mb-2">Hold for ~4 weeks</h2>
+          <h2 className="text-xl font-extrabold mb-2">{t('market.holdForWeeks')}</h2>
           <p className="text-indigo-100 text-sm leading-relaxed mb-4">
-            Prices are trending upward. Waiting until early May could increase your profit by ~15%.
+            {t('market.holdDescription')}
           </p>
           <div className="grid grid-cols-2 gap-2">
-            {[
-              { label: "Current price", value: "Rs. 1,850/bag" },
-              { label: "Expected peak", value: "Rs. 2,150 (May)" },
-            ].map((s) => (
+            {pssStats.map((s) => (
               <div key={s.label} className="bg-white/15 rounded-xl px-3 py-2 backdrop-blur-sm">
                 <p className="text-[9px] text-indigo-200 uppercase tracking-wide">{s.label}</p>
                 <p className="text-sm font-bold text-white">{s.value}</p>
@@ -363,8 +371,8 @@ export const MarketAnalysis: React.FC = () => {
       {/* ── Salt Distributors ── */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-slate-900">Salt Distributors</h2>
-          <span className="text-[10px] font-semibold text-compass-600 uppercase tracking-wide">Tap to make an offer</span>
+          <h2 className="text-sm font-bold text-slate-900">{t('market.saltDistributors')}</h2>
+          <span className="text-[10px] font-semibold text-compass-600 uppercase tracking-wide">{t('market.tapToOffer')}</span>
         </div>
         {/* Mobile: vertical list | Desktop: 2-col grid */}
         <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0">
@@ -382,7 +390,7 @@ export const MarketAnalysis: React.FC = () => {
       {/* ── My Deals ── */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-slate-900">My Deals</h2>
+          <h2 className="text-sm font-bold text-slate-900">{t('market.myDeals')}</h2>
           <div className="flex bg-slate-100 rounded-xl p-0.5 gap-0.5">
             {(["active", "done"] as const).map((tab) => (
               <button
@@ -392,7 +400,7 @@ export const MarketAnalysis: React.FC = () => {
                   dealsTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
                 }`}
               >
-                {tab === "active" ? `Active (${activeDeals.length})` : `Done (${doneDeals.length})`}
+                {tab === "active" ? t('market.activeDealCount', { count: activeDeals.length }) : t('market.doneDealCount', { count: doneDeals.length })}
               </button>
             ))}
           </div>
@@ -402,7 +410,7 @@ export const MarketAnalysis: React.FC = () => {
           <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-8 text-center">
             <Package size={28} className="text-slate-300 mx-auto mb-2" />
             <p className="text-sm text-slate-400">
-              {dealsTab === "active" ? "No active deals yet. Tap a distributor above to send a request." : "No completed deals yet."}
+              {dealsTab === "active" ? t('market.noActiveDeals') : t('market.noCompletedDeals')}
             </p>
           </div>
         ) : (
@@ -430,21 +438,21 @@ export const MarketAnalysis: React.FC = () => {
               <TrendingUp size={16} className="text-emerald-600" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-bold text-slate-900">Price Trend</p>
-              <p className="text-xs text-slate-500">Last 6 months + next 6 months (Rs./bag)</p>
+              <p className="text-sm font-bold text-slate-900">{t('market.priceTrend')}</p>
+              <p className="text-xs text-slate-500">{t('market.priceTrendSub')}</p>
             </div>
-            <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">+12% YoY</span>
+            <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">{t('market.yoyChange')}</span>
           </div>
 
           {/* Legend */}
           <div className="flex items-center gap-4 mb-3 ml-1">
             <div className="flex items-center gap-1.5">
               <div className="w-6 h-0.5 bg-emerald-500 rounded" />
-              <span className="text-[10px] text-slate-500">Actual</span>
+              <span className="text-[10px] text-slate-500">{t('market.actual')}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-6 h-0.5 bg-emerald-300 rounded border-dashed" style={{borderTop: '1px dashed #6ee7b7'}} />
-              <span className="text-[10px] text-slate-500">Forecast</span>
+              <span className="text-[10px] text-slate-500">{t('market.forecastLabel')}</span>
             </div>
           </div>
 
@@ -463,13 +471,13 @@ export const MarketAnalysis: React.FC = () => {
                 <Tooltip
                   contentStyle={{ backgroundColor: "#1e293b", border: "none", borderRadius: "8px", color: "#fff", fontSize: "12px" }}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  formatter={(v: number, _: string, entry: any) => [
-                    `Rs. ${v.toLocaleString()}${entry?.payload?.isForecast ? " (forecast)" : ""}`,
-                    "Price",
+                  formatter={(v: any, _: any, entry: any) => [
+                    `Rs. ${Number(v).toLocaleString()}${entry?.payload?.isForecast ? ` ${t('market.forecastSuffix')}` : ""}`,
+                    t('market.price'),
                   ]}
                   cursor={{ stroke: "#e2e8f0", strokeWidth: 1 }}
                 />
-                <ReferenceLine x="Feb" stroke="#6366f1" strokeDasharray="4 3" label={{ position: "top", value: "Now", fill: "#6366f1", fontSize: 9, fontWeight: 700 }} />
+                <ReferenceLine x="Feb" stroke="#6366f1" strokeDasharray="4 3" label={{ position: "top", value: t('market.now'), fill: "#6366f1", fontSize: 9, fontWeight: 700 }} />
                 <Line
                   type="monotone"
                   dataKey="price"
@@ -486,7 +494,10 @@ export const MarketAnalysis: React.FC = () => {
             </ResponsiveContainer>
           </div>
           <p className="text-xs text-slate-400 text-center mt-1">
-            Projected peak: <span className="font-semibold text-slate-700">Rs. 2,150</span> in May 2026
+            {t('market.projectedPeak', {
+              price: t('market.projectedPeakValue'),
+              month: t('market.projectedPeakMonth'),
+            })}
           </p>
         </div>
 
@@ -497,21 +508,21 @@ export const MarketAnalysis: React.FC = () => {
               <TrendingUp size={16} className="text-orange-500" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-bold text-slate-900">Market Demand</p>
-              <p className="text-xs text-slate-500">Buyer activity score (0–100)</p>
+              <p className="text-sm font-bold text-slate-900">{t('market.marketDemand')}</p>
+              <p className="text-xs text-slate-500">{t('market.marketDemandSub')}</p>
             </div>
-            <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">High now</span>
+            <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">{t('market.highNow')}</span>
           </div>
 
           {/* Legend */}
           <div className="flex items-center gap-4 mb-3 ml-1">
             <div className="flex items-center gap-1.5">
               <div className="w-4 h-3 bg-orange-400 rounded-sm" />
-              <span className="text-[10px] text-slate-500">Actual</span>
+              <span className="text-[10px] text-slate-500">{t('market.actual')}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-4 h-3 bg-orange-200 rounded-sm" />
-              <span className="text-[10px] text-slate-500">Forecast</span>
+              <span className="text-[10px] text-slate-500">{t('market.forecastLabel')}</span>
             </div>
           </div>
 
@@ -525,12 +536,12 @@ export const MarketAnalysis: React.FC = () => {
                   cursor={{ fill: "#fafafa" }}
                   contentStyle={{ backgroundColor: "#1e293b", border: "none", borderRadius: "8px", color: "#fff", fontSize: "12px" }}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  formatter={(v: number, _: string, entry: any) => [
-                    `${v}${entry?.payload?.isForecast ? " (forecast)" : ""}`,
-                    "Demand",
+                  formatter={(v: any, _: any, entry: any) => [
+                    `${v}${entry?.payload?.isForecast ? ` ${t('market.forecastSuffix')}` : ""}`,
+                    t('market.demand'),
                   ]}
                 />
-                <ReferenceLine x="Feb" stroke="#6366f1" strokeDasharray="4 3" label={{ position: "top", value: "Now", fill: "#6366f1", fontSize: 9, fontWeight: 700 }} />
+                <ReferenceLine x="Feb" stroke="#6366f1" strokeDasharray="4 3" label={{ position: "top", value: t('market.now'), fill: "#6366f1", fontSize: 9, fontWeight: 700 }} />
                 <Bar dataKey="demand" radius={[4, 4, 0, 0]}>
                   {DEMAND_DATA.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.isForecast ? "#fdba74" : "#f97316"} fillOpacity={0.9} />
@@ -540,7 +551,9 @@ export const MarketAnalysis: React.FC = () => {
             </ResponsiveContainer>
           </div>
           <p className="text-xs text-slate-400 text-center mt-1">
-            Demand expected to peak in <span className="font-semibold text-slate-700">April 2026</span>
+            {t('market.demandPeakExpected', {
+              month: t('market.demandPeakMonth'),
+            })}
           </p>
         </div>
 

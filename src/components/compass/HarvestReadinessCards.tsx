@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslations } from 'next-intl';
 import { Waves, CloudRain, Thermometer } from "lucide-react";
 import type { HarvestReadiness } from "@/sample-data/compass/mockSalternData";
 
@@ -8,71 +9,81 @@ interface HarvestReadinessCardsProps {
   readiness: HarvestReadiness[];
 }
 
-const CARD_CONFIG: Record<
-  HarvestReadiness["type"],
-  {
-    icon: React.ElementType;
-    label: string;
-    messages: Record<HarvestReadiness["level"], string>;
-    colors: Record<HarvestReadiness["level"], { bg: string; iconBg: string; dot: string; text: string }>;
-  }
-> = {
-  salinity: {
-    icon: Waves,
-    label: "Salinity",
-    messages: {
-      good: "Conditions are ideal for crystal growth",
-      moderate: "Moderate levels — monitor closely",
-      concern: "Too low for harvesting right now",
-    },
-    colors: {
-      good: { bg: "bg-emerald-50", iconBg: "bg-emerald-100 text-emerald-600", dot: "bg-emerald-500", text: "text-emerald-800" },
-      moderate: { bg: "bg-amber-50", iconBg: "bg-amber-100 text-amber-600", dot: "bg-amber-500", text: "text-amber-800" },
-      concern: { bg: "bg-red-50", iconBg: "bg-red-100 text-red-600", dot: "bg-red-500", text: "text-red-800" },
-    },
-  },
-  rainfall: {
-    icon: CloudRain,
-    label: "Rainfall",
-    messages: {
-      good: "Low rainfall risk — safe to plan harvest",
-      moderate: "Some rain expected — plan around it",
-      concern: "Heavy rain likely — delay harvest",
-    },
-    colors: {
-      good: { bg: "bg-sky-50", iconBg: "bg-sky-100 text-sky-600", dot: "bg-emerald-500", text: "text-sky-800" },
-      moderate: { bg: "bg-amber-50", iconBg: "bg-amber-100 text-amber-600", dot: "bg-amber-500", text: "text-amber-800" },
-      concern: { bg: "bg-red-50", iconBg: "bg-red-100 text-red-600", dot: "bg-red-500", text: "text-red-800" },
-    },
-  },
-  temperature: {
-    icon: Thermometer,
-    label: "Temperature",
-    messages: {
-      good: "Perfect evaporation conditions",
-      moderate: "Slightly cool — slower drying expected",
-      concern: "Too cold — poor crystallization likely",
-    },
-    colors: {
-      good: { bg: "bg-orange-50", iconBg: "bg-orange-100 text-orange-600", dot: "bg-emerald-500", text: "text-orange-800" },
-      moderate: { bg: "bg-amber-50", iconBg: "bg-amber-100 text-amber-600", dot: "bg-amber-500", text: "text-amber-800" },
-      concern: { bg: "bg-red-50", iconBg: "bg-red-100 text-red-600", dot: "bg-red-500", text: "text-red-800" },
-    },
-  },
-};
-
 export const HarvestReadinessCards: React.FC<HarvestReadinessCardsProps> = ({
   readiness,
 }) => {
+  const t = useTranslations('compass');
+
+  const CARD_CONFIG: Record<
+    HarvestReadiness["type"],
+    {
+      icon: React.ElementType;
+      label: string;
+      messages: Record<HarvestReadiness["level"], string>;
+      colors: Record<HarvestReadiness["level"], { bg: string; iconBg: string; dot: string; text: string }>;
+    }
+  > = {
+    salinity: {
+      icon: Waves,
+      label: t('readiness.salinity'),
+      messages: {
+        good: t('readiness.salinityGood'),
+        moderate: t('readiness.salinityModerate'),
+        concern: t('readiness.salinityConcern'),
+      },
+      colors: {
+        good: { bg: "bg-emerald-50", iconBg: "bg-emerald-100 text-emerald-600", dot: "bg-emerald-500", text: "text-emerald-800" },
+        moderate: { bg: "bg-amber-50", iconBg: "bg-amber-100 text-amber-600", dot: "bg-amber-500", text: "text-amber-800" },
+        concern: { bg: "bg-red-50", iconBg: "bg-red-100 text-red-600", dot: "bg-red-500", text: "text-red-800" },
+      },
+    },
+    rainfall: {
+      icon: CloudRain,
+      label: t('readiness.rainfall'),
+      messages: {
+        good: t('readiness.rainfallGood'),
+        moderate: t('readiness.rainfallModerate'),
+        concern: t('readiness.rainfallConcern'),
+      },
+      colors: {
+        good: { bg: "bg-sky-50", iconBg: "bg-sky-100 text-sky-600", dot: "bg-emerald-500", text: "text-sky-800" },
+        moderate: { bg: "bg-amber-50", iconBg: "bg-amber-100 text-amber-600", dot: "bg-amber-500", text: "text-amber-800" },
+        concern: { bg: "bg-red-50", iconBg: "bg-red-100 text-red-600", dot: "bg-red-500", text: "text-red-800" },
+      },
+    },
+    temperature: {
+      icon: Thermometer,
+      label: t('readiness.temperatureLabel'),
+      messages: {
+        good: t('readiness.tempGood'),
+        moderate: t('readiness.tempModerate'),
+        concern: t('readiness.tempConcern'),
+      },
+      colors: {
+        good: { bg: "bg-orange-50", iconBg: "bg-orange-100 text-orange-600", dot: "bg-emerald-500", text: "text-orange-800" },
+        moderate: { bg: "bg-amber-50", iconBg: "bg-amber-100 text-amber-600", dot: "bg-amber-500", text: "text-amber-800" },
+        concern: { bg: "bg-red-50", iconBg: "bg-red-100 text-red-600", dot: "bg-red-500", text: "text-red-800" },
+      },
+    },
+  };
+
+  const getLevelLabel = (level: HarvestReadiness["level"]) => {
+    switch (level) {
+      case "good": return t('readiness.ideal');
+      case "moderate": return t('readiness.moderate');
+      case "concern": return t('readiness.caution');
+    }
+  };
+
   return (
     <div className="space-y-3">
       {/* Section Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-base font-bold text-slate-900">
-          Harvest Readiness
+          {t('readiness.harvestReadiness')}
         </h2>
         <span className="text-[11px] text-slate-400 font-medium bg-slate-100 px-2 py-0.5 rounded-full">
-          45-day outlook
+          {t('readiness.outlook45Day')}
         </span>
       </div>
 
@@ -102,7 +113,7 @@ export const HarvestReadinessCards: React.FC<HarvestReadinessCardsProps> = ({
                 <div className="flex items-center gap-1.5">
                   <span className={`w-2 h-2 rounded-full ${colors.dot}`} />
                   <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
-                    {level === "good" ? "Ideal" : level === "moderate" ? "Moderate" : "Caution"}
+                    {getLevelLabel(level)}
                   </span>
                 </div>
               </div>

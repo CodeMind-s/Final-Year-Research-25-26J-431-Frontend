@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslations } from "next-intl";
 import { Home, CalendarDays, BarChart3, CircleUserRound } from "lucide-react";
 
 export type NavTab = "home" | "planner" | "market" | "profile";
@@ -11,13 +12,6 @@ interface NavItem {
   icon: React.ElementType;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { id: "home", label: "Home", icon: Home },
-  { id: "planner", label: "Planner", icon: CalendarDays },
-  { id: "market", label: "Market", icon: BarChart3 },
-  { id: "profile", label: "Profile", icon: CircleUserRound },
-];
-
 interface BottomNavBarProps {
   activeTab: NavTab;
   onTabChange: (tab: NavTab) => void;
@@ -27,6 +21,15 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   activeTab,
   onTabChange,
 }) => {
+  const t = useTranslations('nav');
+
+  const NAV_ITEMS: NavItem[] = [
+    { id: "home", label: t('compass.home'), icon: Home },
+    { id: "planner", label: t('compass.planner'), icon: CalendarDays },
+    { id: "market", label: t('compass.market'), icon: BarChart3 },
+    { id: "profile", label: t('compass.profile'), icon: CircleUserRound },
+  ];
+
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 lg:hidden"

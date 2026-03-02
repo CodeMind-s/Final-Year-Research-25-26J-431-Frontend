@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslations } from 'next-intl';
 import {
   Sun,
   CloudRain,
@@ -33,6 +34,8 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
   onNavigateToPlanner,
   onNavigateToMarket,
 }) => {
+  const t = useTranslations('compass');
+
   // Mock weather - this would come from an API normally
   const weather = {
     temp: 32,
@@ -46,7 +49,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
       {/* 1. Header & Weather */}
       <div className="flex justify-between items-start">
         <div>
-          <p className="text-sm font-medium text-slate-500">Good morning,</p>
+          <p className="text-sm font-medium text-slate-500">{t('home.goodMorning')}</p>
           <h1 className="text-2xl font-bold text-slate-900">{landownerName}</h1>
           <div className="flex items-center gap-1 mt-1 text-slate-400">
             <MapPin size={12} />
@@ -63,12 +66,12 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
       {/* 2. Active Plan Widget (or create CTA) */}
       <div className="w-full">
         <div className="flex items-center justify-between mb-3 px-1">
-          <h2 className="text-sm font-bold text-slate-900">Your Harvest Plan</h2>
-          <button 
+          <h2 className="text-sm font-bold text-slate-900">{t('home.yourHarvestPlan')}</h2>
+          <button
             onClick={onNavigateToPlanner}
             className="text-xs font-semibold text-compass-600 flex items-center gap-1 hover:underline"
           >
-            Go to Planner <ArrowRight size={12} />
+            {t('home.goToPlanner')} <ArrowRight size={12} />
           </button>
         </div>
         
@@ -83,12 +86,12 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                 <Calendar size={20} />
               </div>
               <div className="flex-1">
-                <p className="text-xs font-semibold text-compass-600 uppercase tracking-wide">Active Season</p>
+                <p className="text-xs font-semibold text-compass-600 uppercase tracking-wide">{t('home.activeSeason')}</p>
                 <h3 className="text-base font-bold text-slate-900">
-                  {savedPlan.duration} Day Plan
+                  {t('home.dayPlan', { duration: savedPlan.duration })}
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Started {new Date(savedPlan.date).toLocaleDateString("en-US", { month: 'short', day: 'numeric' })} • {savedPlan.bedCount} beds
+                  {t('home.started', { date: new Date(savedPlan.date).toLocaleDateString("en-US", { month: 'short', day: 'numeric' }), beds: savedPlan.bedCount })}
                 </p>
               </div>
               <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-compass-600 group-hover:text-white transition-all">
@@ -104,27 +107,27 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
             <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm">
               <Calendar size={18} className="text-slate-400" />
             </div>
-            <p className="text-sm font-semibold text-slate-900">No active plan</p>
-            <p className="text-xs text-slate-500 mt-0.5">Start planning your next harvest season</p>
+            <p className="text-sm font-semibold text-slate-900">{t('home.noActivePlan')}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{t('home.startPlanning')}</p>
           </div>
         )}
       </div>
  {/* 3. Readiness Status (Existing Visual) */}
       <div className="w-full">
          <div className="flex items-center justify-between mb-3 px-1">
-          <h2 className="text-sm font-bold text-slate-900">Harvest Readiness</h2>
+          <h2 className="text-sm font-bold text-slate-900">{t('home.harvestReadiness')}</h2>
         </div>
         <HarvestReadinessCards readiness={MOCK_HARVEST_READINESS} />
       </div>
       {/* 4. Market Widget */}
       <div className="w-full">
          <div className="flex items-center justify-between mb-3 px-1">
-          <h2 className="text-sm font-bold text-slate-900">Market Pulse</h2>
-           <button 
+          <h2 className="text-sm font-bold text-slate-900">{t('home.marketPulse')}</h2>
+           <button
             onClick={onNavigateToMarket}
             className="text-xs font-semibold text-indigo-600 flex items-center gap-1 hover:underline"
           >
-            Analysis <ArrowRight size={12} />
+            {t('home.analysis')} <ArrowRight size={12} />
           </button>
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -136,7 +139,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                 <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">+5%</span>
              </div>
              <div>
-                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wide">Current Price</p>
+                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wide">{t('home.currentPrice')}</p>
                 <p className="text-lg font-bold text-slate-900">Rs. 1,850</p>
              </div>
           </div>
@@ -148,8 +151,8 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                 <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded">High</span>
              </div>
              <div>
-                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wide">Buyer Demand</p>
-                <p className="text-lg font-bold text-slate-900">Strong</p>
+                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wide">{t('home.buyerDemand')}</p>
+                <p className="text-lg font-bold text-slate-900">{t('home.strong')}</p>
              </div>
           </div>
         </div>
@@ -158,7 +161,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
       {/* 5. Saltern Map (Existing Visual) */}
       <div className="w-full">
          <div className="flex items-center justify-between mb-3 px-1">
-          <h2 className="text-sm font-bold text-slate-900">My Saltern</h2>
+          <h2 className="text-sm font-bold text-slate-900">{t('home.mySaltern')}</h2>
         </div>
         <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
              <SalternMap
