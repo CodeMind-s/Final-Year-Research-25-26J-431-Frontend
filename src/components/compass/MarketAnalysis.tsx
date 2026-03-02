@@ -40,7 +40,17 @@ import { distributorOffersController } from "@/services/distributor-ffers.contro
 import { dealController } from "@/services/deal.controller";
 import { useToast } from "@/hooks/use-toast";
 import { DealObject } from "@/types/deals.types";
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 // ─── Status config ────────────────────────────────────────────────
 
 const STATUS_CFG: Record<
@@ -83,11 +93,10 @@ const DistributorCard: React.FC<{
   return (
     <button
       onClick={onSelect}
-      className={`w-full text-left rounded-2xl border-2 p-4 transition-all active:scale-[0.99] hover:shadow-md ${
-        isRecommended
-          ? "border-compass-300 bg-compass-50"
-          : "border-slate-100 bg-white"
-      }`}
+      className={`w-full text-left rounded-2xl border-2 p-4 transition-all active:scale-[0.99] hover:shadow-md ${isRecommended
+        ? "border-compass-300 bg-compass-50"
+        : "border-slate-100 bg-white"
+        }`}
     >
       {/* Top row */}
       <div className="flex items-start justify-between mb-2">
@@ -105,11 +114,10 @@ const DistributorCard: React.FC<{
           </div>
         </div>
         <div
-          className={`w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-sm flex-shrink-0 ${
-            isRecommended
-              ? "bg-compass-600 text-white"
-              : "bg-slate-100 text-slate-500"
-          }`}
+          className={`w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-sm flex-shrink-0 ${isRecommended
+            ? "bg-compass-600 text-white"
+            : "bg-slate-100 text-slate-500"
+            }`}
         >
           #{rank}
         </div>
@@ -235,22 +243,6 @@ const RequestSheet: React.FC<{
                 className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 text-lg font-bold text-slate-900 focus:outline-none focus:border-compass-400 focus:ring-2 focus:ring-compass-100 transition-all"
               />
             </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1">
-                Your price per bag (Rs.)
-              </label>
-              <input
-                type="number"
-                min={1}
-                max={99999}
-                value={price}
-                onChange={(e) => {
-                  const v = parseInt(e.target.value);
-                  if (!isNaN(v) && v > 0) setPrice(v);
-                }}
-                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 text-lg font-bold text-slate-900 focus:outline-none focus:border-compass-400 focus:ring-2 focus:ring-compass-100 transition-all"
-              />
-            </div>
           </div>
 
           {/* Total preview */}
@@ -264,11 +256,10 @@ const RequestSheet: React.FC<{
           <button
             onClick={() => onSend(bags, price)}
             disabled={!bags || !price || isSending}
-            className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-sm font-bold shadow-lg transition-all ${
-              isSending
-                ? "bg-slate-400 text-white cursor-not-allowed"
-                : "bg-compass-600 text-white shadow-compass-600/25 active:scale-[0.98]"
-            }`}
+            className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-sm font-bold shadow-lg transition-all ${isSending
+              ? "bg-slate-400 text-white cursor-not-allowed"
+              : "bg-compass-600 text-white shadow-compass-600/25 active:scale-[0.98]"
+              }`}
           >
             {isSending ? (
               <>
@@ -295,20 +286,20 @@ const RequestSheet: React.FC<{
 
 const DealCard: React.FC<{
   deal: DealObject;
-  onAccept: () => void;
+  onDelete: () => void;
   onClose: () => void;
   onCancel: () => void;
-}> = ({ deal, onAccept, onClose, onCancel }) => {
+}> = ({ deal, onDelete, onClose, onCancel }) => {
   const sc = STATUS_CFG[deal.status];
   const totalValue = deal.quantity * deal.pricePerKilo;
 
   // Safely extract distributor info with fallbacks
   const distributorInfo = deal.offer?.distributor || deal.distributor;
-  const companyName = 
-    distributorInfo?.distributorDetails?.companyName || 
+  const companyName =
+    distributorInfo?.distributorDetails?.companyName ||
     "Unknown Distributor";
-  const address = 
-    distributorInfo?.distributorDetails?.address || 
+  const address =
+    distributorInfo?.distributorDetails?.address ||
     "Unknown Location";
 
   return (
@@ -362,16 +353,34 @@ const DealCard: React.FC<{
         <div className="flex gap-2 pt-2 border-t border-slate-100">
           <button
             onClick={onCancel}
-            className="flex-1 py-2 rounded-xl text-xs font-bold text-red-500 bg-red-50 border border-red-100 active:scale-95 transition-all"
+            className="flex-1 py-2 rounded-xl text-xs font-bold text-gray-700 bg-gray-100 border border-gray-200 active:scale-95 transition-all"
           >
             Cancel
           </button>
-          {/* <button
-            onClick={onAccept}
-            className="flex-1 py-2 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 active:scale-95 transition-all"
-          >
-            ✓ Simulate Accept
-          </button> */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button className="flex-1 py-2 rounded-xl text-xs font-bold text-red-500 bg-red-50 border border-red-100 active:scale-95 transition-all">
+                Delete
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete this deal.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={onDelete}
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                >
+                  Delete Deal
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
       {deal.status === "ACCEPTED" && (
@@ -582,12 +591,36 @@ export const MarketAnalysis: React.FC = () => {
         title: "Deal Updated",
         description: `Deal has been marked as ${status.toLowerCase()}.`,
       });
-      
+
       fetchLandownerDeals();
     } catch (error) {
       console.error(`Failed to update deal ${id} to status ${status}:`, error);
       toast({
         title: "Failed to Update Deal",
+        description:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteDeal = async (id: string) => {
+    try {
+      const response = await dealController.deleteDeal(id);
+      if (!response.success) {
+        throw new Error(response.message || "Failed to delete deal");
+      }
+      toast({
+        title: "Deal Deleted",
+        description: `Deal has been deleted successfully.`,
+      });
+      fetchLandownerDeals();
+    } catch (error) {
+      console.error(`Failed to delete deal ${id}:`, error);
+      toast({
+        title: "Failed to Delete Deal",
         description:
           error instanceof Error
             ? error.message
@@ -689,11 +722,10 @@ export const MarketAnalysis: React.FC = () => {
               <button
                 key={tab}
                 onClick={() => setDealsTab(tab)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  dealsTab === tab
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-500"
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${dealsTab === tab
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500"
+                  }`}
               >
                 {tab === "active"
                   ? `Active (${activeDeals.length})`
@@ -724,7 +756,7 @@ export const MarketAnalysis: React.FC = () => {
                 <DealCard
                   key={deal._id}
                   deal={deal}
-                  onAccept={() => updateDealStatus(deal._id, "ACCEPTED")}
+                  onDelete={() => handleDeleteDeal(deal._id)}
                   onClose={() => updateDealStatus(deal._id, "CLOSED")}
                   onCancel={() => updateDealStatus(deal._id, "CANCELED")}
                 />

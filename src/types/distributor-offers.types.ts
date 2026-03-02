@@ -84,3 +84,22 @@ export interface GetDistributorOffersResponse {
     itemsPerPage: number;
   };
 }
+
+export interface GetMyDistributorOffersRequest {
+  limit?: number;
+  page?: number;
+  requirement?: "HIGH" | "MEDIUM" | "LOW";
+  status?: "DRAFT" | "PUBLISH" | "CLOSED";
+}
+
+export interface GetMyDistributorOffersResponse {
+  success: true;
+  message: string;
+  data: DistributorOfferObject[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  };
+}

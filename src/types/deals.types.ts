@@ -95,6 +95,24 @@ export interface GetLandownerDealsResponse {
   };
 }
 
+export interface GetDistributorDealsRequest {
+  page?: number;
+  limit?: number;
+  status?: "ACTIVE" | "CLOSED" | "CANCELLED";
+}
+
+export interface GetDistributorDealsResponse {
+  success: true;
+  message: string;
+  data: DealObject[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  };
+}
+
 export interface UpdateDealsRequest {
   quantity?: number;
   pricePerKilo?: number;
@@ -106,3 +124,9 @@ export interface UpdateDealsResponse {
   message: string;
   data: DealObject;
 }
+
+export interface DeleteDealResponse {
+  success: boolean;
+  message: string;
+}
+

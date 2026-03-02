@@ -5,16 +5,13 @@
  * Handles all harvest plan-related API requests
  */
 
-import {
-  CreateDistributorOfferRequest,
-  CreateDistributorOfferResponse,
-  GetDistributorOffersRequest,
-  GetDistributorOffersResponse,
-} from "@/types/distributor-offers.types";
 import { BaseController } from "./base-controller";
 import {
   CreateDealRequest,
   CreateDealResponse,
+  DeleteDealResponse,
+  GetDistributorDealsRequest,
+  GetDistributorDealsResponse,
   GetLandownerDealsRequest,
   GetLandownerDealsResponse,
   UpdateDealsRequest,
@@ -58,11 +55,33 @@ class DealController extends BaseController {
     return this.get<GetLandownerDealsResponse>(endpoint);
   }
 
+  async getDistributorDeals(
+    request: GetDistributorDealsRequest,
+  ): Promise<GetDistributorDealsResponse> {
+    const params = new URLSearchParams();
+    if (request.page) params.append("page", request.page.toString());
+    if (request.limit) params.append("limit", request.limit.toString());
+    if (request.status) params.append("status", request.status);
+
+    const queryString = params.toString();
+    const endpoint = queryString ? `/distributor/my-deals?${queryString}` : "/distributor/my-deals";
+
+    return this.get<GetDistributorDealsResponse>(endpoint);
+  }
+
   async updateDeals(
     request: UpdateDealsRequest, dealId: string
   ): Promise<UpdateDealsResponse> {
     return this.patch<UpdateDealsResponse>(`/${dealId}`, request);
   }
+
+  async deleteDeal(dealId: string): Promise<DeleteDealResponse> {
+    return this.delete<DeleteDealResponse>(`/${dealId}`);
+  }
+
+
+
+
 }
 
 /**

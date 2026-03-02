@@ -52,7 +52,6 @@ function getDashboardPath(role: UserRole): string {
         case UserRole.LANDOWNER:
             return '/compass/landowner-dashboard';
         case UserRole.DISTRIBUTOR:
-        case UserRole.SELLER:
             return '/compass/seller-dashboard';
         case UserRole.LABORATORY:
             return '/laboratory/dashboard';

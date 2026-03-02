@@ -5,7 +5,7 @@
  * Handles all harvest plan-related API requests
  */
 
-import { CreateDistributorOfferRequest, CreateDistributorOfferResponse, GetDistributorOffersRequest, GetDistributorOffersResponse } from "@/types/distributor-offers.types";
+import { CreateDistributorOfferRequest, CreateDistributorOfferResponse, GetDistributorOffersRequest, GetDistributorOffersResponse, GetMyDistributorOffersRequest, GetMyDistributorOffersResponse } from "@/types/distributor-offers.types";
 import { BaseController } from "./base-controller";
 
 /**
@@ -22,9 +22,9 @@ class DistributorOffersController extends BaseController {
    * @returns Response with success status and created distributor offer data
    */
   async createDistributorOffer(
-    request: CreateDistributorOfferRequest,
+    request: CreateDistributorOfferRequest
   ): Promise<CreateDistributorOfferResponse> {
-    return this.post<CreateDistributorOfferResponse, CreateDistributorOfferRequest>("", request);
+    return this.post<CreateDistributorOfferResponse, CreateDistributorOfferRequest>(``, request);
   }
 
   /**
@@ -42,11 +42,26 @@ class DistributorOffersController extends BaseController {
     if (request.limit) params.append('limit', request.limit.toString());
     if (request.requirement) params.append('requirement', request.requirement);
     if (request.status) params.append('status', request.status);
-    
+
     const queryString = params.toString();
     const endpoint = queryString ? `?${queryString}` : '';
-    
+
     return this.get<GetDistributorOffersResponse>(endpoint);
+  }
+
+  async getMyDistributorOffers(
+    request: GetMyDistributorOffersRequest,
+  ): Promise<GetMyDistributorOffersResponse> {
+    const params = new URLSearchParams();
+    if (request.page) params.append('page', request.page.toString());
+    if (request.limit) params.append('limit', request.limit.toString());
+    if (request.requirement) params.append('requirement', request.requirement);
+    if (request.status) params.append('status', request.status);
+
+    const queryString = params.toString();
+    const endpoint = queryString ? `/my-offers/?${queryString}` : '';
+
+    return this.get<GetMyDistributorOffersResponse>(endpoint);
   }
 }
 
