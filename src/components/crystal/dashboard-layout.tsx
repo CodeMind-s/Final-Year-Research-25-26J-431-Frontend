@@ -1,6 +1,7 @@
 "use client"
 
 import { type ReactNode, useState } from "react"
+import { useTranslations } from "next-intl"
 import { LayoutDashboard, ClipboardList, FileText, Bell, Settings, Menu, X, User, Calendar, Package } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -12,24 +13,26 @@ import { NotificationsPanel } from "@/components/crystal/dialogs/notifications-p
 import { UserMenu } from "@/components/crystal/dialogs/user-menu"
 import { Toaster } from "@/components/crystal/ui/toaster"
 import Image from "next/image"
+import LanguageSwitcher from "@/components/common/LanguageSwitcher"
 
 interface DashboardLayoutProps {
   children: ReactNode
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const t = useTranslations('nav')
   const pathname = usePathname()
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [syncDialogOpen, setSyncDialogOpen] = useState(false)
   const [notificationsPanelOpen, setNotificationsPanelOpen] = useState(false)
 
   const navigation = [
-    { name: "Production Prediction", href: "/crystal/dashboard/production", icon: LayoutDashboard },
-    { name: "Parameter Recording", href: "/crystal/dashboard/recording", icon: ClipboardList },
-    { name: "Salt Production Recording", href: "/crystal/dashboard/salt-production", icon: Package },
-    { name: "Reports", href: "/crystal/dashboard/reports", icon: FileText },
-    { name: "System Alerts", href: "/crystal/dashboard/alerts", icon: Bell },
-    { name: "Settings", href: "/crystal/dashboard/settings", icon: Settings },
+    { name: t('crystal.productionPrediction'), href: "/crystal/dashboard/production", icon: LayoutDashboard },
+    { name: t('crystal.parameterRecording'), href: "/crystal/dashboard/recording", icon: ClipboardList },
+    { name: t('crystal.saltProductionRecording'), href: "/crystal/dashboard/salt-production", icon: Package },
+    { name: t('crystal.reports'), href: "/crystal/dashboard/reports", icon: FileText },
+    { name: t('crystal.systemAlerts'), href: "/crystal/dashboard/alerts", icon: Bell },
+    { name: t('crystal.settings'), href: "/crystal/dashboard/settings", icon: Settings },
   ]
 
   return (
@@ -111,8 +114,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <Button variant="outline" size="sm" onClick={() => setSyncDialogOpen(true)}>
-              Sync Data
+              {t('crystal.syncData')}
             </Button>
             <Button
               variant="ghost"

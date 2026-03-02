@@ -3,6 +3,7 @@
 import { Card } from "@/components/crystal/ui/card"
 import { Badge } from "@/components/crystal/ui/badge"
 import { Button } from "@/components/crystal/ui/button"
+import { useTranslations } from 'next-intl'
 import { TrendingUp, Droplets, Activity, Cloud, AlertCircle, CloudCog } from "lucide-react"
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine, Label } from "recharts"
 import { useState, useEffect } from "react"
@@ -158,6 +159,7 @@ const transformDailyEnvironmentalData = (
 }
 
 export function ProductionDashboard() {
+  const t = useTranslations('crystal')
   const [forecastDialogOpen, setForecastDialogOpen] = useState(false)
   const [notifyDialogOpen, setNotifyDialogOpen] = useState(false)
   const [monthlyProductionData, setMonthlyProductionData] = useState<PredictedMonthlyProduction[]>([])
@@ -444,7 +446,7 @@ export function ProductionDashboard() {
       {/* Compact Header with Season */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Daily Environmental Monitoring & Production Forecast</h1>
+          <h1 className="text-2xl font-semibold text-foreground">{t('dashboard.title')}</h1>
           <p className="text-sm text-muted-foreground">Puttalam Salt Society - Critical Operational Data</p>
         </div>
         <div className="text-right">
@@ -459,7 +461,7 @@ export function ProductionDashboard() {
       <div className="grid gap-3 grid-cols-4">
         <Card className="p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground">Season Forecast</span>
+            <span className="text-xs text-muted-foreground">{t('dashboard.seasonForecast')}</span>
             <TrendingUp className="h-3 w-3 text-success" />
           </div>
           <div className="text-xl font-bold text-foreground">{totalPrediction.toLocaleString()}</div>
@@ -468,7 +470,7 @@ export function ProductionDashboard() {
 
         <Card className="p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground">OR Brine Level</span>
+            <span className="text-xs text-muted-foreground">{t('dashboard.orBrineLevel')}</span>
             <Droplets className="h-3 w-3 text-primary" />
           </div>
           <div className="text-xl font-bold text-foreground">{latestEnv?.OR_brine_level?.toFixed(1) || '--'}</div>
@@ -477,7 +479,7 @@ export function ProductionDashboard() {
 
         <Card className="p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground">Temperature</span>
+            <span className="text-xs text-muted-foreground">{t('dashboard.temperature')}</span>
             <Activity className="h-3 w-3 text-destructive" />
           </div>
           <div className="text-xl font-bold text-foreground">{latestEnv?.temperature?.toFixed(1) || '--'}</div>
@@ -486,7 +488,7 @@ export function ProductionDashboard() {
 
         <Card className="p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground">Humidity</span>
+            <span className="text-xs text-muted-foreground">{t('dashboard.humidity')}</span>
             <Cloud className="h-3 w-3 text-success" />
           </div>
           <div className="text-xl font-bold text-foreground">{latestEnv?.humidity?.toFixed(0) || '--'}</div>
@@ -499,7 +501,7 @@ export function ProductionDashboard() {
         <div className="mb-3">
           <div className="flex items-center gap-2 mb-1">
             <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
-            <h2 className="text-lg font-bold text-foreground">Daily Environmental Predictions</h2>
+            <h2 className="text-lg font-bold text-foreground">{t('dashboard.dailyPredictions')}</h2>
             <Badge className="bg-primary/20 text-primary">Critical for PSS Maintenance</Badge>
           </div>
           <p className="text-xs text-muted-foreground">Past 6 months (solid) vs Future 6 months (dashed) - All Environmental Parameters</p>
@@ -757,11 +759,11 @@ export function ProductionDashboard() {
         <div className="flex items-center gap-6 mt-3 text-xs text-muted-foreground justify-center border-t pt-3">
           <div className="flex items-center gap-2 px-3 py-1 bg-muted/30 rounded">
             <div className="h-0.5 w-10 bg-primary"></div>
-            <span className="font-medium">← Past 6 months (Historical)</span>
+            <span className="font-medium">{`← ${t('dashboard.historicalData')}`}</span>
           </div>
           <div className="h-6 w-px bg-destructive"></div>
           <div className="flex items-center gap-2 px-3 py-1 bg-primary/5 rounded">
-            <span className="font-medium">Future 6 months (Predicted) →</span>
+            <span className="font-medium">{`${t('dashboard.predictedData')} →`}</span>
             <div className="h-0.5 w-10 bg-primary"></div>
           </div>
         </div>
@@ -772,7 +774,7 @@ export function ProductionDashboard() {
         {/* Seasonal Production (Yala/Maha) */}
         <Card className="p-4">
           <div className="mb-3">
-            <h2 className="text-base font-semibold text-foreground">Seasonal Production - Yala/Maha</h2>
+            <h2 className="text-base font-semibold text-foreground">{t('dashboard.seasonalProduction')}</h2>
             <p className="text-xs text-muted-foreground">6-month seasonal totals (historical & predicted)</p>
           </div>
           <div className="h-56">
@@ -814,7 +816,7 @@ export function ProductionDashboard() {
         {/* Monthly Production Breakdown */}
         <Card className="p-4">
           <div className="mb-3">
-            <h2 className="text-base font-semibold text-foreground">Monthly Production - Past & Future</h2>
+            <h2 className="text-base font-semibold text-foreground">{t('dashboard.monthlyBreakdown')}</h2>
             <p className="text-xs text-muted-foreground">Maha 2024/25 (actual) + Maha 2025/26 (predicted)</p>
           </div>
           <div className="h-56">
@@ -851,7 +853,7 @@ export function ProductionDashboard() {
       <div className="grid gap-4 grid-cols-3">
         {/* Overall Saltern Status */}
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-foreground mb-3">Overall Saltern Status</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-3">{t('dashboard.salternStatus')}</h3>
           <div className="space-y-2">
             <div className="flex justify-between items-center p-2 bg-success/10 rounded">
               <span className="text-sm text-foreground">Avg Brine Density</span>
@@ -874,7 +876,7 @@ export function ProductionDashboard() {
 
         {/* Current Season Summary */}
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-foreground mb-3">Current Season (Maha 2025/26)</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-3">{t('dashboard.seasonSummary')}</h3>
           <div className="space-y-2">
             <div className="p-2 bg-primary/10 rounded">
               <p className="text-xs text-muted-foreground">Total Forecast</p>
@@ -898,7 +900,7 @@ export function ProductionDashboard() {
 
         {/* PSS Recommendations */}
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-foreground mb-3">PSS Actions Required</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-3">{t('dashboard.pssActions')}</h3>
           <div className="space-y-2">
             <div className="flex items-start gap-2 p-2 bg-success/10 border border-success/20 rounded text-xs">
               <Activity className="h-4 w-4 text-success mt-0.5 flex shrink-0" />
@@ -919,10 +921,10 @@ export function ProductionDashboard() {
 
           <div className="flex gap-2 mt-3">
             <Button size="sm" onClick={() => setForecastDialogOpen(true)} className="flex-1 text-xs h-8">
-              View Details
+              {t('dashboard.forecastReport')}
             </Button>
             <Button size="sm" variant="outline" onClick={() => setNotifyDialogOpen(true)} className="flex-1 text-xs h-8">
-              Alert Teams
+              {t('dashboard.notifications')}
             </Button>
           </div>
         </Card>

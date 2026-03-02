@@ -7,6 +7,7 @@ import { Label } from "@/components/crystal/ui/label"
 import { useState, useEffect } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/crystal/ui/select"
 import { Badge } from "@/components/crystal/ui/badge"
+import { useTranslations } from 'next-intl'
 import { TrendingUp, Edit, Trash2, Plus, Calendar, Package, BarChart3 } from "lucide-react"
 import { productionController } from "@/services/production.controller"
 import { ActualMonthlyProductionData } from "@/types/production.types"
@@ -33,6 +34,7 @@ import {
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
 export function SaltProductionRecording() {
+    const t = useTranslations('crystal')
     const { toast } = useToast()
     const [productions, setProductions] = useState<ActualMonthlyProductionData[]>([])
     const [predictedProductions, setPredictedProductions] = useState<any[]>([])
@@ -301,8 +303,8 @@ export function SaltProductionRecording() {
                         <Package className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-semibold text-foreground">Salt Production Recording</h1>
-                        <p className="text-sm text-muted-foreground">Manage monthly production records</p>
+                        <h1 className="text-2xl font-semibold text-foreground">{t('recording.title')}</h1>
+                        <p className="text-sm text-muted-foreground">{t('recording.productionRecords')}</p>
                     </div>
                 </div>
                 <Button
@@ -313,7 +315,7 @@ export function SaltProductionRecording() {
                     className="bg-primary hover:bg-primary/90"
                 >
                     <Plus className="h-4 w-4 mr-2" />
-                    New Record
+                    {t('recording.addRecord')}
                 </Button>
             </div>
 
@@ -323,8 +325,8 @@ export function SaltProductionRecording() {
                     <div className="mb-4 flex items-center gap-2">
                         <BarChart3 className="h-5 w-5 text-primary" />
                         <div>
-                            <h2 className="text-lg font-semibold text-foreground">Production Overview</h2>
-                            <p className="text-sm text-muted-foreground">Actual vs Predicted Seasonal Production</p>
+                            <h2 className="text-lg font-semibold text-foreground">{t('recording.productionOverview')}</h2>
+                            <p className="text-sm text-muted-foreground">{t('recording.actualVsPredicted')}</p>
                         </div>
                     </div>
                     <div className="h-80">
@@ -394,8 +396,8 @@ export function SaltProductionRecording() {
             {/* Production Records Table */}
             <Card className="p-6">
                 <div className="mb-4">
-                    <h2 className="text-lg font-semibold text-foreground">Production Records</h2>
-                    <p className="text-sm text-muted-foreground">View and manage all production records</p>
+                    <h2 className="text-lg font-semibold text-foreground">{t('recording.productionRecords')}</h2>
+                    <p className="text-sm text-muted-foreground">{t('recording.actualVsPredicted')}</p>
                 </div>
 
                 {isLoading ? (
