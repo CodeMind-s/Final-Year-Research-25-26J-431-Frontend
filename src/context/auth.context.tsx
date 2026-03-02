@@ -13,6 +13,7 @@ import {
     UserRole,
     AuthState,
     LoginRequest,
+    SignUpRequest,
     SignInRequest,
     SignInResponse,
     VerifyOtpRequest,
@@ -24,6 +25,7 @@ import { tokenStorage, storage } from '@/lib/storage.utils';
  * Auth context type
  */
 interface AuthContextType extends AuthState {
+    signUp: (request: SignUpRequest) => Promise<SignInResponse>;
     signIn: (request: SignInRequest) => Promise<SignInResponse>;
     verifyOtp: (request: VerifyOtpRequest) => Promise<void>;
     login: (credentials: LoginRequest) => Promise<void>;
@@ -131,6 +133,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
             });
         }
     };
+
+    /**
+     * Send OTP for new user registration (includes role)
+     */
+    const signUp = useCallback(async (request: SignUpRequest): Promise<SignInResponse> => {
+        try {
+            setError(null);
+            return await authController.signUp(request);
+        } catch (err) {
+            const errorMessage = err instanceof ApiError
+                ? err.message
+                : 'Failed to send OTP. Please try again.';
+            setError(errorMessage);
+            throw err;
+        }
+    }, []);
 
     /**
      * Send OTP (phone or email based)
@@ -272,6 +290,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const value: AuthContextType = {
         ...state,
+        signUp,
         signIn,
         verifyOtp,
         login,

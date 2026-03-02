@@ -74,8 +74,10 @@ const saltSocietyNavItems: NavItem[] = [
 
 const laboratoryNavItems: NavItem[] = [
   { name: "Dashboard", href: "/laboratory/dashboard", icon: LayoutDashboard },
-  { name: "Batches", href: "/laboratory/batches", icon: FlaskConical },
+  { name: "Batches", href: "/laboratory/batch", icon: FlaskConical },
   { name: "Statistics", href: "/laboratory/statistics", icon: BarChart2 },
+  { name: "Reports", href: "/laboratory/reports", icon: FileText },
+  { name: "Settings", href: "/laboratory/settings", icon: Settings },
 ];
 
 function getNavItems(role?: UserRole): NavItem[] {
@@ -134,7 +136,7 @@ export function AdminDashboardLayout({
         <div className="flex h-full flex-col">
           {/* Brand */}
           <div className="flex h-16 items-center gap-3 border-b border-border px-6">
-            <Image src={'/assets/images/logo.svg'} alt='brinex logo' width={500} height={100} />
+            <Image src={'/assets/images/logo.svg'} alt='brinex logo' width={500} height={50} />
           </div>
 
           {/* Navigation */}

@@ -37,12 +37,20 @@ export interface User {
 }
 
 /**
- * Sign in request DTO (OTP-based)
+ * Sign up request DTO (OTP-based, new user registration)
+ */
+export interface SignUpRequest {
+  phone?: string;
+  email?: string;
+  role: UserRole;
+}
+
+/**
+ * Sign in request DTO (OTP-based, existing user login)
  */
 export interface SignInRequest {
   phone?: string;
   email?: string;
-  role: UserRole;
 }
 
 /**
