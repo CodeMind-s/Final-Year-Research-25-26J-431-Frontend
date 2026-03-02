@@ -21,6 +21,8 @@ import {
   Plus,
   LogOut,
   AlertTriangle,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { distributorOffersController } from "@/services/distributor-ffers.controller";
 import { DistributorOfferObject } from "@/types/distributor-offers.types";
@@ -30,29 +32,9 @@ import { DealObject } from "@/types/deals.types";
 // ─── Types ────────────────────────────────────────────────────────
 
 type OfferRequirement = "HIGH" | "MEDIUM" | "LOW";
-type RequestStatus = "PENDING" | "ACCEPTED" | "DECLINED";
+type RequestStatus = "PENDING" | "ACCEPTED" | "CANCELED" | "DRAFT";
 type DealStatus = "PENDING" | "ACCEPTED" | "CLOSED" | "CANCELED";
 type Tab = "home" | "offers" | "requests" | "deals" | "account";
-
-interface IncomingRequest {
-  id: string;
-  landownerName: string;
-  landownerLocation: string;
-  offeredBags: number;
-  offeredPricePerBag: number;
-  status: RequestStatus;
-  createdAt: number;
-  offerId: string;
-}
-
-interface DistributorDeal {
-  id: string;
-  landownerName: string;
-  bags: number;
-  pricePerBag: number;
-  status: DealStatus;
-  createdAt: number;
-}
 
 // ─── Config ───────────────────────────────────────────────────────
 
@@ -72,7 +54,12 @@ const REQ_CFG: Record<
     color: "bg-emerald-100 text-emerald-700",
     icon: <CheckCircle2 size={11} />,
   },
-  DECLINED: {
+  DRAFT: {
+    label: "Pending",
+    color: "bg-slate-100 text-slate-500",
+    icon: <Clock size={11} />,
+  },
+  CANCELED: {
     label: "Declined",
     color: "bg-red-100 text-red-500",
     icon: <XCircle size={11} />,
@@ -91,70 +78,6 @@ const REQ_BADGE: Record<OfferRequirement, { label: string; color: string }> = {
   MEDIUM: { label: "Normal", color: "bg-amber-100 text-amber-700" },
   LOW: { label: "Relaxed", color: "bg-slate-100 text-slate-500" },
 };
-
-// ─── Seed data ────────────────────────────────────────────────────
-
-const SEED_REQUESTS: IncomingRequest[] = [
-  {
-    id: "req-1",
-    landownerName: "Ravi Kumara",
-    landownerLocation: "Puttalam",
-    offeredBags: 50,
-    offeredPricePerBag: 1950,
-    status: "PENDING",
-    createdAt: Date.now() - 3600000 * 2,
-    offerId: "off-1",
-  },
-  {
-    id: "req-2",
-    landownerName: "Saman Perera",
-    landownerLocation: "Chilaw",
-    offeredBags: 30,
-    offeredPricePerBag: 1900,
-    status: "PENDING",
-    createdAt: Date.now() - 3600000 * 5,
-    offerId: "off-1",
-  },
-  {
-    id: "req-3",
-    landownerName: "Nimal Silva",
-    landownerLocation: "Kalpitiya",
-    offeredBags: 60,
-    offeredPricePerBag: 1950,
-    status: "ACCEPTED",
-    createdAt: Date.now() - 86400000,
-    offerId: "off-1",
-  },
-  {
-    id: "req-4",
-    landownerName: "K. Gunaratne",
-    landownerLocation: "Mannar",
-    offeredBags: 20,
-    offeredPricePerBag: 1800,
-    status: "DECLINED",
-    createdAt: Date.now() - 86400000 * 2,
-    offerId: "off-1",
-  },
-];
-
-const SEED_DEALS: DistributorDeal[] = [
-  {
-    id: "deal-1",
-    landownerName: "Nimal Silva",
-    bags: 60,
-    pricePerBag: 1950,
-    status: "ACCEPTED",
-    createdAt: Date.now() - 86400000,
-  },
-  {
-    id: "deal-2",
-    landownerName: "Ayesha Fonseka",
-    bags: 20,
-    pricePerBag: 1950,
-    status: "CLOSED",
-    createdAt: Date.now() - 86400000 * 5,
-  },
-];
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
@@ -220,13 +143,15 @@ const ConfirmDialog: React.FC<{
 // ─── Publish Offer Form ───────────────────────────────────────────
 
 const PublishOfferForm: React.FC<{
+  offerId?: string;
   initialPrice?: number;
   initialBags?: number;
   initialReq?: OfferRequirement;
-  onPublish: (price: number, bags: number, req: OfferRequirement) => void;
+  onPublish: (price: number, bags: number, req: OfferRequirement) => Promise<void>;
   onCancel?: () => void;
   isEdit?: boolean;
 }> = ({
+  offerId,
   initialPrice = 1950,
   initialBags = 200,
   initialReq = "MEDIUM",
@@ -237,10 +162,49 @@ const PublishOfferForm: React.FC<{
   const [price, setPrice] = useState(initialPrice);
   const [bags, setBags] = useState(initialBags);
   const [req, setReq] = useState<OfferRequirement>(initialReq);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    // Validation
+    if (price < 500) {
+      setError("Price must be at least Rs. 500 per bag");
+      return;
+    }
+    if (bags < 10) {
+      setError("Minimum quantity is 10 bags");
+      return;
+    }
+    if (bags > 10000) {
+      setError("Maximum quantity is 10,000 bags");
+      return;
+    }
+
+    setError(null);
+    setIsLoading(true);
+    try {
+      await onPublish(price, bags, req);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save offer");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-      <div className="flex items-center justify-between mb-4">
+    <>
+      <style>{`
+        .number-input::-webkit-outer-spin-button,
+        .number-input::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        .number-input {
+          -moz-appearance: textfield;
+        }
+      `}</style>
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+        <div className="flex items-center justify-between mb-4">
         <p className="text-base font-bold text-slate-900">
           {isEdit ? " Edit Your Offer" : "📢 Publish a New Offer"}
         </p>
@@ -274,9 +238,20 @@ const PublishOfferForm: React.FC<{
               −
             </button>
             <div className="flex-1 text-center">
-              <span className="text-4xl font-extrabold text-slate-900">
-                Rs.{price.toLocaleString()}
-              </span>
+              <div className="relative">
+                <span className="text-xl font-extrabold text-slate-900 absolute left-0 top-1/2 -translate-y-1/2">
+                  Rs.
+                </span>
+                <input
+                  type="number"
+                  value={price}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 0;
+                    setPrice(Math.max(0, val));
+                  }}
+                  className="number-input w-full text-4xl font-extrabold text-slate-900 bg-transparent text-center border-none outline-none focus:ring-2 focus:ring-compass-200 rounded-lg px-2 py-1"
+                />
+              </div>
               <span className="block text-xs text-slate-400 mt-0.5 font-medium">
                 per bag
               </span>
@@ -303,9 +278,15 @@ const PublishOfferForm: React.FC<{
               −
             </button>
             <div className="flex-1 text-center">
-              <span className="text-4xl font-extrabold text-slate-900">
-                {bags}
-              </span>
+              <input
+                type="number"
+                value={bags}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value) || 0;
+                  setBags(Math.max(0, val));
+                }}
+                className="number-input w-full text-4xl font-extrabold text-slate-900 bg-transparent text-center border-none outline-none focus:ring-2 focus:ring-compass-200 rounded-lg px-2 py-1"
+              />
               <span className="block text-xs text-slate-400 mt-0.5 font-medium">
                 bags
               </span>
@@ -357,17 +338,36 @@ const PublishOfferForm: React.FC<{
         </p>
       </div>
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
+          <p className="text-xs text-red-600 font-medium">{error}</p>
+        </div>
+      )}
+
       <button
-        onClick={() => onPublish(price, bags, req)}
-        className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-compass-600 text-white text-base font-bold shadow-lg shadow-compass-600/20 active:scale-[0.98] transition-all"
+        onClick={handleSubmit}
+        disabled={isLoading}
+        className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-compass-600 text-white text-base font-bold shadow-lg shadow-compass-600/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <Send size={18} />
-        {isEdit ? "Update Offer" : "Publish Offer to All Landowners"}
+        {isLoading ? (
+          <>
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            {isEdit ? "Updating..." : "Saving..."}
+          </>
+        ) : (
+          <>
+            <Send size={18} />
+            {isEdit ? "Update Offer" : "Save as Draft"}
+          </>
+        )}
       </button>
       <p className="text-xs text-slate-400 text-center mt-2">
-        Landowners near your area will see this offer immediately
+        {isEdit
+          ? "Changes will be saved to your offer"
+          : "You can publish your offer after creating it"}
       </p>
-    </div>
+      </div>
+    </>
   );
 };
 
@@ -377,19 +377,19 @@ const ActiveOfferCard: React.FC<{
   offer: DistributorOfferObject;
   hasRequests: boolean;
   onClose: () => void;
-}> = ({ offer, hasRequests, onClose }) => {
+  onEdit: () => void;
+  onPublish: () => void;
+}> = ({ offer, hasRequests, onClose, onEdit, onPublish }) => {
   const pct =
     offer.targetQuantity > 0
       ? Math.min(100, (offer.collectedQuantity / offer.targetQuantity) * 100)
       : 0;
   const remaining = Math.max(0, offer.targetQuantity - offer.collectedQuantity);
   const rb = REQ_BADGE[offer.requirement];
+  const canModify = offer.collectedQuantity === 0;
 
   return (
     <div className="bg-compass-600 rounded-3xl p-5 text-white shadow-xl shadow-compass-600/30 relative overflow-hidden">
-      {/* bg decoration */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
-
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -404,18 +404,26 @@ const ActiveOfferCard: React.FC<{
               {rb.label}
             </span>
           </div>
-          <div className="flex gap-1.5">
-            {/* Close button — only shown when no requests exist for this offer */}
-            {!hasRequests && (
+          {canModify && (
+            <div className="flex gap-1.5">
+              {/* Edit button */}
+              <button
+                onClick={onEdit}
+                className="p-2 rounded-xl bg-white/20 hover:bg-white/30 transition-all"
+                title="Edit offer"
+              >
+                <Pencil size={14} />
+              </button>
+              {/* Delete button */}
               <button
                 onClick={onClose}
                 className="p-2 rounded-xl bg-white/20 hover:bg-white/30 transition-all"
-                title="End this offer"
+                title="Delete offer"
               >
-                <EyeOff size={14} />
+                <Trash2 size={14} />
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-6 mb-5">
@@ -433,7 +441,7 @@ const ActiveOfferCard: React.FC<{
         </div>
 
         {/* Progress */}
-        <div className="bg-white/15 rounded-2xl p-4">
+        <div className="bg-white/15 rounded-2xl p-4 mb-4">
           <div className="flex justify-between text-sm mb-2">
             <span className="text-white/70 font-medium">
               Bags filled so far
@@ -451,12 +459,24 @@ const ActiveOfferCard: React.FC<{
             <span>{remaining} bags still needed</span>
           </div>
         </div>
-        {/* Readonly note */}
-        <p className="text-[10px] text-white/50 text-center mt-3">
-          {hasRequests
-            ? "Cannot end offer — accept or decline all requests first."
-            : "To change your offer, end this one and post a new one."}
-        </p>
+
+        {/* Publish button for DRAFT offers */}
+        {offer.status === "DRAFT" && (
+          <button
+            onClick={onPublish}
+            className="w-full py-3.5 rounded-2xl bg-white text-compass-600 text-sm font-bold shadow-lg hover:bg-white/95 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+          >
+            <Send size={16} />
+            Publish Offer to Landowners
+          </button>
+        )}
+
+        {/* Info note */}
+        {!canModify && (
+          <p className="text-[10px] text-white/50 text-center mt-3">
+            Cannot modify — some bags are already secured
+          </p>
+        )}
       </div>
     </div>
   );
@@ -465,24 +485,32 @@ const ActiveOfferCard: React.FC<{
 // ─── Request Card ─────────────────────────────────────────────────
 
 const RequestCard: React.FC<{
-  req: IncomingRequest;
+  req: DealObject;
   onAccept: () => void;
   onDecline: () => void;
 }> = ({ req, onAccept, onDecline }) => {
-  const sc = REQ_CFG[req.status];
-  const total = req.offeredBags * req.offeredPricePerBag;
+  const sc = REQ_CFG[req.status as RequestStatus];
+
+  // Safeguard in case status is not mapped
+  if (!sc) {
+    return null;
+  }
+
+  const total = req.quantity * req.pricePerKilo;
+  const landownerName =
+    req.landowner?.user?.email?.split("@")[0] || "Unknown Landowner";
+  const landownerLocation =
+    req.landowner?.landOwnerDetails?.address || "Unknown Location";
+  const createdAtTimestamp = new Date(req.createdAt).getTime();
+
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
       <div className="flex items-start justify-between mb-3">
         <div>
-          <p className="text-base font-bold text-slate-900">
-            {req.landownerName}
-          </p>
+          <p className="text-base font-bold text-slate-900">{landownerName}</p>
           <div className="flex items-center gap-1 mt-0.5">
             <MapPin size={11} className="text-slate-400" />
-            <span className="text-xs text-slate-400">
-              {req.landownerLocation}
-            </span>
+            <span className="text-xs text-slate-400">{landownerLocation}</span>
           </div>
         </div>
         <div className="text-right">
@@ -492,17 +520,17 @@ const RequestCard: React.FC<{
             {sc.icon} {sc.label}
           </span>
           <p className="text-[10px] text-slate-400 mt-0.5">
-            {timeAgo(req.createdAt)}
+            {timeAgo(createdAtTimestamp)}
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2 mb-4">
         {[
-          { label: "Bags offered", value: `${req.offeredBags} bags` },
+          { label: "Bags offered", value: `${req.quantity} bags` },
           {
             label: "Price / bag",
-            value: `Rs. ${req.offeredPricePerBag.toLocaleString()}`,
+            value: `Rs. ${req.pricePerKilo.toLocaleString()}`,
           },
           { label: "Total value", value: `Rs. ${total.toLocaleString()}` },
         ].map((r) => (
@@ -518,7 +546,7 @@ const RequestCard: React.FC<{
         ))}
       </div>
 
-      {req.status === "PENDING" && (
+      {(req.status === "PENDING" || req.status === "DRAFT") && (
         <div className="flex gap-2">
           <button
             onClick={onDecline}
@@ -540,16 +568,20 @@ const RequestCard: React.FC<{
 
 // ─── Deal Card ────────────────────────────────────────────────────
 
-const DealCard: React.FC<{ deal: DistributorDeal }> = ({ deal }) => {
-  const sc = DEAL_CFG[deal.status];
+const DealCard: React.FC<{ deal: DealObject }> = ({ deal }) => {
+  const sc = DEAL_CFG[deal.status as DealStatus];
+  const landownerName =
+    deal.landowner?.user?.email?.split("@")[0] || "Unknown Landowner";
+  const createdAtTimestamp = new Date(deal.createdAt).getTime();
+
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <p className="text-base font-bold text-slate-900">
-            {deal.landownerName}
+          <p className="text-base font-bold text-slate-900">{landownerName}</p>
+          <p className="text-xs text-slate-400">
+            {timeAgo(createdAtTimestamp)}
           </p>
-          <p className="text-xs text-slate-400">{timeAgo(deal.createdAt)}</p>
         </div>
         <span
           className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${sc.color}`}
@@ -559,14 +591,14 @@ const DealCard: React.FC<{ deal: DistributorDeal }> = ({ deal }) => {
       </div>
       <div className="grid grid-cols-3 gap-2">
         {[
-          { label: "Bags", value: `${deal.bags}` },
+          { label: "Bags", value: `${deal.quantity}` },
           {
             label: "Price / bag",
-            value: `Rs. ${deal.pricePerBag.toLocaleString()}`,
+            value: `Rs. ${deal.pricePerKilo.toLocaleString()}`,
           },
           {
             label: "Total",
-            value: `Rs. ${(deal.bags * deal.pricePerBag).toLocaleString()}`,
+            value: `Rs. ${(deal.quantity * deal.pricePerKilo).toLocaleString()}`,
           },
         ].map((r) => (
           <div
@@ -590,7 +622,7 @@ export default function DistributorDashboard() {
   const [tab, setTab] = useState<Tab>("home");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [offers, setOffers] = useState<DistributorOfferObject[]>([]);
-  const [requests, setRequests] = useState<IncomingRequest[]>(SEED_REQUESTS);
+  const [requests, setRequests] = useState<DealObject[]>([]);
   const [deals, setDeals] = useState<DealObject[]>([]);
   const [dealsTab, setDealsTab] = useState<"active" | "done">("active");
   const [reqFilter, setReqFilter] = useState<RequestStatus | "ALL">("ALL");
@@ -605,7 +637,7 @@ export default function DistributorDashboard() {
       const response = await distributorOffersController.getMyDistributorOffers(
         {
           page: 1,
-          limit: 10,
+          limit: 50, // Increased limit to include past offers
         },
       );
 
@@ -632,14 +664,32 @@ export default function DistributorDashboard() {
       });
 
       // Check if response is wrapped or direct array
-      let dealsData = null;
+      let dealsData: DealObject[] = [];
       if (Array.isArray(response)) {
         dealsData = response;
       } else if (response.success && response.data) {
         dealsData = response.data;
       }
 
-      setDeals(dealsData as unknown as DealObject[]);
+      // Filter deals based on status:
+      // - Requests: DRAFT, PENDING, ACCEPTED, or CANCELED (all request-related statuses)
+      // - Deals: ACCEPTED, CLOSED, or CANCELED (finalized deals)
+      const requestsData = dealsData.filter(
+        (deal) =>
+          deal.status === "DRAFT" ||
+          deal.status === "PENDING" ||
+          deal.status === "ACCEPTED" ||
+          deal.status === "CANCELED",
+      );
+      const dealsDataFiltered = dealsData.filter(
+        (deal) =>
+          deal.status === "ACCEPTED" ||
+          deal.status === "CLOSED" ||
+          deal.status === "CANCELED",
+      );
+
+      setRequests(requestsData);
+      setDeals(dealsDataFiltered);
     } catch (error) {
       console.error("Failed to fetch landowner deals:", error);
       console.error("Error details:", error);
@@ -663,25 +713,31 @@ export default function DistributorDashboard() {
   } | null>(null);
 
   const activeOffer = useMemo(
-    () => offers.find((o) => o.status === "PUBLISH") ?? null,
+    () => {
+      // First try to find a PUBLISH offer (active), then DRAFT
+      const publishedOffer = offers.find((o) => o.status === "PUBLISH");
+      if (publishedOffer) return publishedOffer;
+      return offers.find((o) => o.status === "DRAFT") ?? null;
+    },
     [offers],
   );
   const pendingRequests = useMemo(
-    () => requests.filter((r) => r.status === "PENDING"),
-    [deals],
+    () =>
+      requests.filter((r) => r.status === "PENDING" || r.status === "DRAFT"),
+    [requests],
   );
   const unreadCount = pendingRequests.length;
 
-  const activeDeals = deals.filter(
-    (d) => d.status === "PENDING" || d.status === "ACCEPTED",
-  );
+  const activeDeals = deals.filter((d) => d.status === "ACCEPTED");
   const doneDeals = deals.filter(
     (d) => d.status === "CLOSED" || d.status === "CANCELED",
   );
   const filteredRequests =
     reqFilter === "ALL"
       ? requests
-      : requests.filter((r) => r.status === reqFilter);
+      : reqFilter === "PENDING"
+        ? requests.filter((r) => r.status === "PENDING" || r.status === "DRAFT")
+        : requests.filter((r) => r.status === reqFilter);
 
   // ── Actions ────────────────────────────────────────────────────
 
@@ -691,88 +747,127 @@ export default function DistributorDashboard() {
     req: OfferRequirement,
   ) => {
     try {
-      await distributorOffersController.createDistributorOffer({
-        pricePerKilo: price,
-        targetQuantity: bags,
-        totalInvestment: price * bags,
-        requirement: req,
-      });
+      if (editingOffer && activeOffer) {
+        // Update existing offer
+        await distributorOffersController.updateDistributorOffer(
+          activeOffer._id,
+          {
+            pricePerKilo: price,
+            targetQuantity: bags,
+            totalInvestment: price * bags,
+            requirement: req,
+          },
+        );
+      } else {
+        // Create new offer with DRAFT status
+        await distributorOffersController.createDistributorOffer({
+          pricePerKilo: price,
+          targetQuantity: bags,
+          totalInvestment: price * bags,
+          requirement: req,
+        });
+      }
       await fetchDistributorOffers();
       setEditingOffer(false);
     } catch (error) {
-      console.error("Failed to publish distributor offer:", error);
+      console.error("Failed to save distributor offer:", error);
+      throw error;
+    }
+  };
+
+  const handleEdit = () => {
+    setEditingOffer(true);
+  };
+
+  const handlePublishOffer = async () => {
+    if (!activeOffer) return;
+    
+    try {
+      await distributorOffersController.updateDistributorOffer(
+        activeOffer._id,
+        { status: "PUBLISH" },
+      );
+      await fetchDistributorOffers();
+    } catch (error) {
+      console.error("Failed to publish offer:", error);
+      alert("Failed to publish the offer. Please try again.");
     }
   };
 
   const handleCloseOffer = () => {
+    if (!activeOffer) return;
+
     setConfirm({
-      title: "Remove this offer?",
+      title: "Close this offer?",
       message:
-        "Your offer will no longer be visible to landowners. You can always publish a new one.",
-      confirmLabel: "Yes, Remove",
+        "This offer will be closed and moved to your history. You can create a new offer afterwards.",
+      confirmLabel: "Yes, Close",
       confirmColor: "bg-red-500",
-      onConfirm: () => {
-        setOffers((prev) =>
-          prev.map((o) =>
-            o.status === "PUBLISH" ? { ...o, status: "CLOSED" } : o,
-          ),
-        );
-        setConfirm(null);
+      onConfirm: async () => {
+        try {
+          await distributorOffersController.updateDistributorOffer(
+            activeOffer._id,
+            { status: "CLOSED" },
+          );
+          await fetchDistributorOffers();
+          setConfirm(null);
+        } catch (error) {
+          console.error("Failed to close offer:", error);
+          alert("Failed to close the offer. Please try again.");
+        }
       },
     });
   };
 
   const handleAccept = (reqId: string) => {
-    const r = requests.find((x) => x.id === reqId);
+    const r = requests.find((x) => x._id === reqId);
     if (!r) return;
+    const landownerName =
+      r.landowner?.user?.email?.split("@")[0] || "Landowner";
     setConfirm({
       title: "Accept this deal?",
-      message: `You are agreeing to buy ${r.offeredBags} bags from ${r.landownerName} at Rs. ${r.offeredPricePerBag.toLocaleString()} each.`,
+      message: `You are agreeing to buy ${r.quantity} bags from ${landownerName} at Rs. ${r.pricePerKilo.toLocaleString()} each.`,
       confirmLabel: "✓ Yes, Accept",
       confirmColor: "bg-emerald-600",
-      onConfirm: () => {
-        setRequests((prev) =>
-          prev.map((x) => (x.id === reqId ? { ...x, status: "ACCEPTED" } : x)),
-        );
-        setDeals((prev) => [
-          {
-            id: `deal-${Date.now()}`,
-            landownerName: r.landownerName,
-            bags: r.offeredBags,
-            pricePerBag: r.offeredPricePerBag,
-            status: "ACCEPTED",
-            createdAt: Date.now(),
-          },
-          ...prev,
-        ]);
-        setOffers((prev) =>
-          prev.map((o) =>
-            o._id === r.offerId
-              ? {
-                  ...o,
-                  collectedQuantity: o.collectedQuantity + r.offeredBags,
-                }
-              : o,
-          ),
-        );
-        setConfirm(null);
+      onConfirm: async () => {
+        try {
+          await dealController.updateDeals({ status: "ACCEPTED" }, reqId);
+
+          // Refetch data to get updated statuses from backend
+          await fetchDistributorDeals();
+          await fetchDistributorOffers();
+
+          setConfirm(null);
+        } catch (error) {
+          console.error("Failed to accept deal:", error);
+          alert("Failed to accept the deal. Please try again.");
+        }
       },
     });
   };
 
   const handleDecline = (reqId: string) => {
-    const r = requests.find((x) => x.id === reqId);
+    const r = requests.find((x) => x._id === reqId);
     if (!r) return;
+    const landownerName =
+      r.landowner?.user?.email?.split("@")[0] || "Landowner";
     setConfirm({
       title: "Decline this request?",
-      message: `${r.landownerName}'s offer of ${r.offeredBags} bags will be declined. They will be notified.`,
+      message: `${landownerName}'s offer of ${r.quantity} bags will be declined. They will be notified.`,
       confirmLabel: "Decline",
       confirmColor: "bg-red-500",
-      onConfirm: () => {
-        setRequests((prev) =>
-          prev.map((x) => (x.id === reqId ? { ...x, status: "DECLINED" } : x)),
-        );
-        setConfirm(null);
+      onConfirm: async () => {
+        try {
+          await dealController.updateDeals({ status: "CANCELED" }, reqId);
+
+          // Refetch data to get updated statuses from backend
+          await fetchDistributorDeals();
+
+          setConfirm(null);
+        } catch (error) {
+          console.error("Failed to decline deal:", error);
+          alert("Failed to decline the deal. Please try again.");
+        }
       },
     });
   };
@@ -800,7 +895,6 @@ export default function DistributorDashboard() {
       {/* Summary chips */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-compass-600 rounded-2xl p-4 text-white relative overflow-hidden">
-          <div className="absolute -top-4 -right-4 w-16 h-16 bg-white/10 rounded-full" />
           <p className="text-xs text-white/60 font-medium">Active Deals</p>
           <p className="text-3xl font-extrabold mt-1">{activeDeals.length}</p>
           <p className="text-[10px] text-white/50 mt-0.5">deals in progress</p>
@@ -823,12 +917,15 @@ export default function DistributorDashboard() {
           hasRequests={requests.some(
             (r) =>
               r.offerId === activeOffer._id &&
-              (r.status === "PENDING" || r.status === "ACCEPTED"),
+              (r.status === "PENDING" || r.status === "DRAFT"),
           )}
           onClose={handleCloseOffer}
+          onEdit={handleEdit}
+          onPublish={handlePublishOffer}
         />
       ) : (
         <PublishOfferForm
+          offerId={activeOffer?._id}
           initialPrice={activeOffer?.pricePerKilo}
           initialBags={activeOffer?.targetQuantity}
           initialReq={activeOffer?.requirement}
@@ -873,10 +970,10 @@ export default function DistributorDashboard() {
           <div className="space-y-3">
             {pendingRequests.slice(0, 2).map((r) => (
               <RequestCard
-                key={r.id}
+                key={r._id}
                 req={r}
-                onAccept={() => handleAccept(r.id)}
-                onDecline={() => handleDecline(r.id)}
+                onAccept={() => handleAccept(r._id)}
+                onDecline={() => handleDecline(r._id)}
               />
             ))}
             {pendingRequests.length > 2 && (
@@ -904,9 +1001,11 @@ export default function DistributorDashboard() {
             hasRequests={requests.some(
               (r) =>
                 r.offerId === activeOffer._id &&
-                (r.status === "PENDING" || r.status === "ACCEPTED"),
+                (r.status === "PENDING" || r.status === "DRAFT"),
             )}
             onClose={handleCloseOffer}
+            onEdit={handleEdit}
+            onPublish={handlePublishOffer}
           />
           <button
             onClick={() => setShowReplaceConfirm(true)}
@@ -917,6 +1016,7 @@ export default function DistributorDashboard() {
         </>
       ) : (
         <PublishOfferForm
+          offerId={activeOffer?._id}
           initialPrice={activeOffer?.pricePerKilo}
           initialBags={activeOffer?.targetQuantity}
           initialReq={activeOffer?.requirement}
@@ -926,37 +1026,45 @@ export default function DistributorDashboard() {
         />
       )}
 
-      {/* Past offers */}
-      {offers.filter((o) => o.status !== "PUBLISH").length > 0 && (
-        <div>
-          <p className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wide">
-            Past Offers
-          </p>
+      {/* Recent offers (readonly) */}
+      <div>
+        <p className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wide">
+          Recent Offers (History)
+        </p>
+        {offers.filter((o) => o._id !== activeOffer?._id).length > 0 ? (
           <div className="space-y-2">
             {offers
-              .filter((o) => o.status !== "PUBLISH")
+              .filter((o) => o._id !== activeOffer?._id)
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
               .map((o) => (
                 <div
                   key={o._id}
-                  className="bg-white rounded-2xl border border-slate-100 p-4 flex items-center justify-between"
+                  className="bg-slate-50 rounded-2xl border border-slate-200 p-4 flex items-center justify-between opacity-75"
                 >
                   <div>
                     <p className="text-sm font-bold text-slate-900">
                       Rs. {o.pricePerKilo.toLocaleString()} / bag
                     </p>
                     <p className="text-xs text-slate-400">
-                      {o.targetQuantity} bags ·{" "}
+                      {o.targetQuantity} bags · {o.collectedQuantity} bags collected ·{" "}
                       {timeAgo(new Date(o.createdAt).getTime())}
                     </p>
                   </div>
-                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">
-                    Closed
+                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-200 text-slate-600">
+                    {o.status === "CLOSED" ? "Closed" : o.status === "PUBLISH" ? "Published" : "Archived"}
                   </span>
                 </div>
               ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6 text-center">
+            <p className="text-sm text-slate-400">No past offers yet</p>
+            <p className="text-xs text-slate-300 mt-1">
+              Your closed offers will appear here
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 
@@ -972,7 +1080,7 @@ export default function DistributorDashboard() {
       </div>
 
       <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
-        {(["ALL", "PENDING", "ACCEPTED", "DECLINED"] as const).map((f) => (
+        {(["ALL", "PENDING", "ACCEPTED", "CANCELED"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setReqFilter(f)}
@@ -981,10 +1089,10 @@ export default function DistributorDashboard() {
             {f === "ALL"
               ? `All (${requests.length})`
               : f === "PENDING"
-                ? `Waiting (${requests.filter((r) => r.status === "PENDING").length})`
+                ? `Waiting (${requests.filter((r) => r.status === "PENDING" || r.status === "DRAFT").length})`
                 : f === "ACCEPTED"
                   ? `Accepted (${requests.filter((r) => r.status === "ACCEPTED").length})`
-                  : `Declined (${requests.filter((r) => r.status === "DECLINED").length})`}
+                  : `Declined (${requests.filter((r) => r.status === "CANCELED").length})`}
           </button>
         ))}
       </div>
@@ -1000,10 +1108,10 @@ export default function DistributorDashboard() {
         <div className="space-y-3">
           {filteredRequests.map((r) => (
             <RequestCard
-              key={r.id}
+              key={r._id}
               req={r}
-              onAccept={() => handleAccept(r.id)}
-              onDecline={() => handleDecline(r.id)}
+              onAccept={() => handleAccept(r._id)}
+              onDecline={() => handleDecline(r._id)}
             />
           ))}
         </div>
@@ -1045,7 +1153,7 @@ export default function DistributorDashboard() {
       ) : (
         <div className="space-y-3">
           {(dealsTab === "active" ? activeDeals : doneDeals).map((d) => (
-            <DealCard key={d.id} deal={d} />
+            <DealCard key={d._id} deal={d} />
           ))}
         </div>
       )}

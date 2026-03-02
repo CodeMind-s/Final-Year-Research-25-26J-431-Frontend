@@ -93,10 +93,11 @@ const DistributorCard: React.FC<{
   return (
     <button
       onClick={onSelect}
-      className={`w-full text-left rounded-2xl border-2 p-4 transition-all active:scale-[0.99] hover:shadow-md ${isRecommended
-        ? "border-compass-300 bg-compass-50"
-        : "border-slate-100 bg-white"
-        }`}
+      className={`w-full text-left rounded-2xl border-2 p-4 transition-all active:scale-[0.99] hover:shadow-md ${
+        isRecommended
+          ? "border-compass-300 bg-compass-50"
+          : "border-slate-100 bg-white"
+      }`}
     >
       {/* Top row */}
       <div className="flex items-start justify-between mb-2">
@@ -114,10 +115,11 @@ const DistributorCard: React.FC<{
           </div>
         </div>
         <div
-          className={`w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-sm flex-shrink-0 ${isRecommended
-            ? "bg-compass-600 text-white"
-            : "bg-slate-100 text-slate-500"
-            }`}
+          className={`w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-sm flex-shrink-0 ${
+            isRecommended
+              ? "bg-compass-600 text-white"
+              : "bg-slate-100 text-slate-500"
+          }`}
         >
           #{rank}
         </div>
@@ -157,7 +159,7 @@ const DistributorCard: React.FC<{
 const RequestSheet: React.FC<{
   distributor: DistributorOfferObject;
   onClose: () => void;
-  onSend: (bags: number, price: number) => void;
+  onSend: (bags: number, price: number, onClose: () => void) => void;
   isSending?: boolean;
 }> = ({ distributor, onClose, onSend, isSending = false }) => {
   const [bags, setBags] = useState(distributor.targetQuantity);
@@ -254,12 +256,13 @@ const RequestSheet: React.FC<{
           </div>
 
           <button
-            onClick={() => onSend(bags, price)}
+            onClick={() => onSend(bags, price, onClose)}
             disabled={!bags || !price || isSending}
-            className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-sm font-bold shadow-lg transition-all ${isSending
-              ? "bg-slate-400 text-white cursor-not-allowed"
-              : "bg-compass-600 text-white shadow-compass-600/25 active:scale-[0.98]"
-              }`}
+            className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-sm font-bold shadow-lg transition-all ${
+              isSending
+                ? "bg-slate-400 text-white cursor-not-allowed"
+                : "bg-compass-600 text-white shadow-compass-600/25 active:scale-[0.98]"
+            }`}
           >
             {isSending ? (
               <>
@@ -296,25 +299,19 @@ const DealCard: React.FC<{
   // Safely extract distributor info with fallbacks
   const distributorInfo = deal.offer?.distributor || deal.distributor;
   const companyName =
-    distributorInfo?.distributorDetails?.companyName ||
-    "Unknown Distributor";
+    distributorInfo?.distributorDetails?.companyName || "Unknown Distributor";
   const address =
-    distributorInfo?.distributorDetails?.address ||
-    "Unknown Location";
+    distributorInfo?.distributorDetails?.address || "Unknown Location";
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div>
-          <p className="text-sm font-bold text-slate-900">
-            {companyName}
-          </p>
+          <p className="text-sm font-bold text-slate-900">{companyName}</p>
           <div className="flex items-center gap-1 mt-0.5">
             <MapPin size={10} className="text-slate-400" />
-            <span className="text-xs text-slate-400">
-              {address}
-            </span>
+            <span className="text-xs text-slate-400">{address}</span>
           </div>
         </div>
         <span
@@ -367,7 +364,8 @@ const DealCard: React.FC<{
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete this deal.
+                  This action cannot be undone. This will permanently delete
+                  this deal.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -543,7 +541,11 @@ export const MarketAnalysis: React.FC = () => {
     fetchLandownerDeals();
   }, []);
 
-  const handleSendRequest = async (bags: number, price: number) => {
+  const handleSendRequest = async (
+    bags: number,
+    price: number,
+    onClose: () => void,
+  ) => {
     if (!selectedDist) return;
 
     setIsSendingRequest(true);
@@ -554,6 +556,13 @@ export const MarketAnalysis: React.FC = () => {
       const response = await dealController.createDeal(data, selectedDist._id);
 
       if (response.success) {
+        // Clear loading state first
+        setIsSendingRequest(false);
+
+        // Close the sheet using the callback
+        onClose();
+
+        // Show success message
         toast({
           title: "Deal Created Successfully",
           description: `Your offer for ${bags} bags has been sent to the distributor.`,
@@ -561,13 +570,12 @@ export const MarketAnalysis: React.FC = () => {
 
         // Refetch deals to show the newly created deal
         fetchLandownerDeals();
-
-        setSelectedDist(null);
       } else {
         throw new Error(response.message || "Failed to create deal");
       }
     } catch (error) {
       console.error("Failed to create deal:", error);
+      setIsSendingRequest(false);
       toast({
         title: "Failed to Create Deal",
         description:
@@ -576,12 +584,13 @@ export const MarketAnalysis: React.FC = () => {
             : "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsSendingRequest(false);
     }
   };
 
-  const updateDealStatus = async (id: string, status: "ACCEPTED" | "CLOSED" | "CANCELED") => {
+  const updateDealStatus = async (
+    id: string,
+    status: "ACCEPTED" | "CLOSED" | "CANCELED",
+  ) => {
     try {
       const response = await dealController.updateDeals({ status }, id);
       if (!response.success) {
@@ -722,10 +731,11 @@ export const MarketAnalysis: React.FC = () => {
               <button
                 key={tab}
                 onClick={() => setDealsTab(tab)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${dealsTab === tab
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-500"
-                  }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  dealsTab === tab
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500"
+                }`}
               >
                 {tab === "active"
                   ? `Active (${activeDeals.length})`

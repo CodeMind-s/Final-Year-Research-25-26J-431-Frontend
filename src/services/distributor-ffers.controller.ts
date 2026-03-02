@@ -5,7 +5,17 @@
  * Handles all harvest plan-related API requests
  */
 
-import { CreateDistributorOfferRequest, CreateDistributorOfferResponse, GetDistributorOffersRequest, GetDistributorOffersResponse, GetMyDistributorOffersRequest, GetMyDistributorOffersResponse } from "@/types/distributor-offers.types";
+import {
+  CreateDistributorOfferRequest,
+  CreateDistributorOfferResponse,
+  DeleteDistributorOfferResponse,
+  GetDistributorOffersRequest,
+  GetDistributorOffersResponse,
+  GetMyDistributorOffersRequest,
+  GetMyDistributorOffersResponse,
+  UpdateDistributorOfferRequest,
+  UpdateDistributorOfferResponse,
+} from "@/types/distributor-offers.types";
 import { BaseController } from "./base-controller";
 
 /**
@@ -22,9 +32,12 @@ class DistributorOffersController extends BaseController {
    * @returns Response with success status and created distributor offer data
    */
   async createDistributorOffer(
-    request: CreateDistributorOfferRequest
+    request: CreateDistributorOfferRequest,
   ): Promise<CreateDistributorOfferResponse> {
-    return this.post<CreateDistributorOfferResponse, CreateDistributorOfferRequest>(``, request);
+    return this.post<
+      CreateDistributorOfferResponse,
+      CreateDistributorOfferRequest
+    >(``, request);
   }
 
   /**
@@ -38,13 +51,13 @@ class DistributorOffersController extends BaseController {
     request: GetDistributorOffersRequest,
   ): Promise<GetDistributorOffersResponse> {
     const params = new URLSearchParams();
-    if (request.page) params.append('page', request.page.toString());
-    if (request.limit) params.append('limit', request.limit.toString());
-    if (request.requirement) params.append('requirement', request.requirement);
-    if (request.status) params.append('status', request.status);
+    if (request.page) params.append("page", request.page.toString());
+    if (request.limit) params.append("limit", request.limit.toString());
+    if (request.requirement) params.append("requirement", request.requirement);
+    if (request.status) params.append("status", request.status);
 
     const queryString = params.toString();
-    const endpoint = queryString ? `?${queryString}` : '';
+    const endpoint = queryString ? `?${queryString}` : "";
 
     return this.get<GetDistributorOffersResponse>(endpoint);
   }
@@ -53,15 +66,31 @@ class DistributorOffersController extends BaseController {
     request: GetMyDistributorOffersRequest,
   ): Promise<GetMyDistributorOffersResponse> {
     const params = new URLSearchParams();
-    if (request.page) params.append('page', request.page.toString());
-    if (request.limit) params.append('limit', request.limit.toString());
-    if (request.requirement) params.append('requirement', request.requirement);
-    if (request.status) params.append('status', request.status);
+    if (request.page) params.append("page", request.page.toString());
+    if (request.limit) params.append("limit", request.limit.toString());
+    if (request.requirement) params.append("requirement", request.requirement);
+    if (request.status) params.append("status", request.status);
 
     const queryString = params.toString();
-    const endpoint = queryString ? `/my-offers/?${queryString}` : '';
+    const endpoint = queryString ? `/my-offers/?${queryString}` : "";
 
     return this.get<GetMyDistributorOffersResponse>(endpoint);
+  }
+
+  async deleteDistributorOffer(
+    offerId: string,
+  ): Promise<DeleteDistributorOfferResponse> {
+    return this.delete<DeleteDistributorOfferResponse>(`/${offerId}`);
+  }
+
+  async updateDistributorOffer(
+    offerId: string,
+    request: UpdateDistributorOfferRequest,
+  ): Promise<UpdateDistributorOfferResponse> {
+    return this.patch<
+      UpdateDistributorOfferResponse,
+      UpdateDistributorOfferRequest
+    >(`/${offerId}`, request);
   }
 }
 

@@ -103,3 +103,22 @@ export interface GetMyDistributorOffersResponse {
     itemsPerPage: number;
   };
 }
+
+export interface DeleteDistributorOfferResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface UpdateDistributorOfferRequest {
+  pricePerKilo?: number;
+  targetQuantity?: number;
+  totalInvestment?: number;
+  requirement?: "HIGH" | "MEDIUM" | "LOW";
+  status?: "DRAFT" | "PUBLISH" | "CLOSED";
+}
+
+export interface UpdateDistributorOfferResponse {
+  success: boolean;
+  message: string;
+  data: DistributorOfferObject;
+}

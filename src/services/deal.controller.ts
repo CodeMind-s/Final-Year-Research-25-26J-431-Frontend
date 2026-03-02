@@ -79,9 +79,6 @@ class DealController extends BaseController {
     return this.delete<DeleteDealResponse>(`/${dealId}`);
   }
 
-
-
-
 }
 
 /**
