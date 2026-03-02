@@ -62,13 +62,13 @@ export default function HomeSection() {
                                     href="/auth/login"
                                     className="inline-flex items-center justify-center h-11 px-6 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold shadow-lg transition-colors"
                                 >
-                                    Login as Landowner / Distributor
+                                    Sign In
                                 </Link>
                                 <Link
-                                    href="/auth/laboratory"
+                                    href="/auth/signup"
                                     className="inline-flex items-center justify-center h-11 px-6 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold shadow-lg transition-colors"
                                 >
-                                    Login as Laboratory
+                                    Create Account
                                 </Link>
                             </div>
                             <div className="mt-1">

@@ -7,6 +7,7 @@ import { BaseController } from './base-controller';
 import { API_CONFIG } from '@/lib/api.config';
 import { tokenStorage, storage } from '@/lib/storage.utils';
 import {
+  SignUpRequest,
   SignInRequest,
   SignInResponse,
   VerifyOtpRequest,
@@ -29,7 +30,17 @@ class AuthController extends BaseController {
   }
 
   /**
-   * Send OTP to phone or email
+   * Send OTP for new user registration (includes role)
+   */
+  async signUp(request: SignUpRequest): Promise<SignInResponse> {
+    return this.post<SignInResponse, SignUpRequest>(
+      API_CONFIG.ENDPOINTS.AUTH.SIGN_UP,
+      request
+    );
+  }
+
+  /**
+   * Send OTP to phone or email (existing user login)
    */
   async signIn(request: SignInRequest): Promise<SignInResponse> {
     return this.post<SignInResponse, SignInRequest>(
