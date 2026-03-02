@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/hooks/useAuth';
 import { UserRole } from '@/dtos/auth.dto';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import Link from 'next/link';
 type SignUpRole = UserRole.LANDOWNER | UserRole.DISTRIBUTOR | UserRole.LABORATORY;
 
 export default function CommonSignUpPage() {
+  const t = useTranslations('auth');
   const { signUp, verifyOtp, error, isLoading } = useAuth();
   const [step, setStep] = useState<'input' | 'otp'>('input');
   const [role, setRole] = useState<SignUpRole>(UserRole.LANDOWNER);
@@ -35,7 +37,7 @@ export default function CommonSignUpPage() {
 
     if (isEmailRole) {
       if (!email.trim()) {
-        setLocalError('Please enter your email address.');
+        setLocalError(t('validation.enterEmail'));
         return;
       }
       try {
@@ -46,7 +48,7 @@ export default function CommonSignUpPage() {
       }
     } else {
       if (!phone.trim()) {
-        setLocalError('Please enter your phone number.');
+        setLocalError(t('validation.enterPhone'));
         return;
       }
       try {
@@ -63,7 +65,7 @@ export default function CommonSignUpPage() {
     setLocalError(null);
 
     if (otp.length !== 6) {
-      setLocalError('Please enter the 6-digit OTP.');
+      setLocalError(t('validation.enterOtp'));
       return;
     }
 
@@ -97,10 +99,10 @@ export default function CommonSignUpPage() {
           height={40}
         />
         <h2 className="text-2xl font-semibold text-slate-900 mt-4 tracking-tighter">
-          Create Account
+          {t('signup.title')}
         </h2>
         <p className="mt-1 text-sm text-slate-600">
-          Sign up to get started with Brinex
+          {t('signup.subtitle')}
         </p>
       </div>
 
@@ -116,7 +118,7 @@ export default function CommonSignUpPage() {
           {/* Role selection */}
           <div className="mb-5 space-y-2">
             <Label className="text-sm font-medium text-slate-700">
-              I am a
+              {t('signup.iAmA')}
             </Label>
             <div className="flex gap-3">
               <button
@@ -128,7 +130,7 @@ export default function CommonSignUpPage() {
                     : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
                 }`}
               >
-                Landowner
+                {t('signup.landowner')}
               </button>
               <button
                 type="button"
@@ -139,7 +141,7 @@ export default function CommonSignUpPage() {
                     : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
                 }`}
               >
-                Distributor
+                {t('signup.distributor')}
               </button>
               <button
                 type="button"
@@ -150,7 +152,7 @@ export default function CommonSignUpPage() {
                     : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
                 }`}
               >
-                Laboratory
+                {t('signup.laboratory')}
               </button>
             </div>
           </div>
@@ -160,14 +162,14 @@ export default function CommonSignUpPage() {
             {isEmailRole ? (
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-slate-700">
-                  Email Address
+                  {t('login.emailLabel')}
                 </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="lab@example.com"
+                    placeholder={t('login.emailPlaceholder')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10 h-11 border-slate-300 focus:border-blue-500 focus:ring-blue-500"
@@ -179,7 +181,7 @@ export default function CommonSignUpPage() {
             ) : (
               <div className="space-y-2">
                 <Label htmlFor="phone" className="text-sm font-medium text-slate-700">
-                  Phone Number
+                  {t('login.phoneLabel')}
                 </Label>
                 <div className="relative flex">
                   <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-slate-300 bg-slate-50 text-sm text-slate-600">
@@ -190,7 +192,7 @@ export default function CommonSignUpPage() {
                     <Input
                       id="phone"
                       type="tel"
-                      placeholder="7X XXX XXXX"
+                      placeholder={t('login.phonePlaceholder')}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       className="pl-10 h-11 rounded-l-none border-slate-300 focus:border-blue-500 focus:ring-blue-500"
@@ -206,7 +208,7 @@ export default function CommonSignUpPage() {
               disabled={isLoading}
               className="h-12 w-full bg-emerald-600 hover:bg-emerald-500 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Sending OTP...' : 'Send OTP'}
+              {isLoading ? t('login.sendingOtp') : t('login.sendOtp')}
             </Button>
           </form>
         </>
@@ -222,10 +224,10 @@ export default function CommonSignUpPage() {
           </button>
           <div className="space-y-2">
             <Label className="text-sm font-medium text-slate-700">
-              Enter OTP
+              {t('otp.enterOtp')}
             </Label>
             <p className="text-xs text-slate-500">
-              We sent a 6-digit code to {otpTarget}
+              {t('otp.otpSentTo', { target: otpTarget })}
             </p>
             <div className="flex justify-center pt-2">
               <InputOTP maxLength={6} value={otp} onChange={setOtp}>
@@ -245,18 +247,18 @@ export default function CommonSignUpPage() {
             disabled={isLoading || otp.length !== 6}
             className="h-12 w-full bg-emerald-600 hover:bg-emerald-500 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Verifying...' : 'Verify OTP'}
+            {isLoading ? t('otp.verifying') : t('otp.verifyOtp')}
           </Button>
         </form>
       )}
 
       <div className="mt-6 text-center text-sm text-slate-500">
-        Already have an account?{' '}
+        {t('signup.alreadyHaveAccount')}{' '}
         <Link
           href="/auth/login"
           className="text-blue-600 hover:underline font-medium"
         >
-          Sign in
+          {t('signup.signIn')}
         </Link>
       </div>
     </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ type LoginMethod = 'phone' | 'email';
 type EmailMode = 'otp' | 'password';
 
 export default function CommonLoginPage() {
+  const t = useTranslations('auth');
   const { signIn, verifyOtp, login, error, isLoading } = useAuth();
   const [step, setStep] = useState<'input' | 'otp'>('input');
   const [method, setMethod] = useState<LoginMethod>('phone');
@@ -36,11 +38,11 @@ export default function CommonLoginPage() {
     setLocalError(null);
 
     if (method === 'phone' && !phone.trim()) {
-      setLocalError('Please enter your phone number.');
+      setLocalError(t('validation.enterPhone'));
       return;
     }
     if (method === 'email' && !email.trim()) {
-      setLocalError('Please enter your email address.');
+      setLocalError(t('validation.enterEmail'));
       return;
     }
 
@@ -61,7 +63,7 @@ export default function CommonLoginPage() {
     setLocalError(null);
 
     if (otp.length !== 6) {
-      setLocalError('Please enter the 6-digit OTP.');
+      setLocalError(t('validation.enterOtp'));
       return;
     }
 
@@ -81,11 +83,11 @@ export default function CommonLoginPage() {
     setLocalError(null);
 
     if (!email.trim()) {
-      setLocalError('Please enter your email address.');
+      setLocalError(t('validation.enterEmail'));
       return;
     }
     if (!password.trim()) {
-      setLocalError('Please enter your password.');
+      setLocalError(t('validation.enterPassword'));
       return;
     }
 
@@ -115,10 +117,10 @@ export default function CommonLoginPage() {
           height={40}
         />
         <h2 className="text-2xl font-semibold text-slate-900 mt-4 tracking-tighter">
-          Sign In
+          {t('login.title')}
         </h2>
         <p className="mt-1 text-sm text-slate-600">
-          Sign in to your Brinex account
+          {t('login.subtitle')}
         </p>
       </div>
 
@@ -139,21 +141,21 @@ export default function CommonLoginPage() {
         >
           <TabsList className="w-full">
             <TabsTrigger value="phone" className="flex-1">
-              Phone
+              {t('login.phoneTab')}
             </TabsTrigger>
             <TabsTrigger value="email" className="flex-1">
-              Email
+              {t('login.emailTab')}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="phone">
             <form onSubmit={handleSendOtp} className="mt-4 space-y-5">
               <p className="text-xs text-slate-500">
-                For Landowner &amp; Distributor accounts
+                {t('login.phoneHint')}
               </p>
               <div className="space-y-2">
                 <Label htmlFor="phone" className="text-sm font-medium text-slate-700">
-                  Phone Number
+                  {t('login.phoneLabel')}
                 </Label>
                 <div className="relative flex">
                   <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-slate-300 bg-slate-50 text-sm text-slate-600">
@@ -164,7 +166,7 @@ export default function CommonLoginPage() {
                     <Input
                       id="phone"
                       type="tel"
-                      placeholder="7X XXX XXXX"
+                      placeholder={t('login.phonePlaceholder')}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       className="pl-10 h-11 rounded-l-none border-slate-300 focus:border-blue-500 focus:ring-blue-500"
@@ -179,7 +181,7 @@ export default function CommonLoginPage() {
                 disabled={isLoading}
                 className="h-12 w-full bg-emerald-600 hover:bg-emerald-500 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Sending OTP...' : 'Send OTP'}
+                {isLoading ? t('login.sendingOtp') : t('login.sendOtp')}
               </Button>
             </form>
           </TabsContent>
@@ -188,18 +190,18 @@ export default function CommonLoginPage() {
             {emailMode === 'otp' ? (
               <form onSubmit={handleSendOtp} className="mt-4 space-y-5">
                 <p className="text-xs text-slate-500">
-                  For Laboratory accounts
+                  {t('login.emailOtpHint')}
                 </p>
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium text-slate-700">
-                    Email Address
+                    {t('login.emailLabel')}
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
                     <Input
                       id="email"
                       type="email"
-                      placeholder="lab@example.com"
+                      placeholder={t('login.emailPlaceholder')}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="pl-10 h-11 border-slate-300 focus:border-blue-500 focus:ring-blue-500"
@@ -213,34 +215,34 @@ export default function CommonLoginPage() {
                   disabled={isLoading}
                   className="h-12 w-full bg-emerald-600 hover:bg-emerald-500 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Sending OTP...' : 'Send OTP'}
+                  {isLoading ? t('login.sendingOtp') : t('login.sendOtp')}
                 </Button>
                 <p className="text-center text-xs text-slate-500">
-                  Salt Society member?{' '}
+                  {t('login.saltSocietyMember')}{' '}
                   <button
                     type="button"
                     onClick={() => { setEmailMode('password'); setLocalError(null); }}
                     className="text-blue-600 hover:underline font-medium"
                   >
-                    Login with password
+                    {t('login.loginWithPassword')}
                   </button>
                 </p>
               </form>
             ) : (
               <form onSubmit={handlePasswordLogin} className="mt-4 space-y-5">
                 <p className="text-xs text-slate-500">
-                  For Salt Society accounts
+                  {t('login.emailPwHint')}
                 </p>
                 <div className="space-y-2">
                   <Label htmlFor="email-pw" className="text-sm font-medium text-slate-700">
-                    Email Address
+                    {t('login.emailLabel')}
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
                     <Input
                       id="email-pw"
                       type="email"
-                      placeholder="you@example.com"
+                      placeholder={t('login.emailPwPlaceholder')}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="pl-10 h-11 border-slate-300 focus:border-blue-500 focus:ring-blue-500"
@@ -251,14 +253,14 @@ export default function CommonLoginPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-sm font-medium text-slate-700">
-                    Password
+                    {t('login.passwordLabel')}
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
                     <Input
                       id="password"
                       type="password"
-                      placeholder="Enter your password"
+                      placeholder={t('login.passwordPlaceholder')}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pl-10 h-11 border-slate-300 focus:border-blue-500 focus:ring-blue-500"
@@ -272,7 +274,7 @@ export default function CommonLoginPage() {
                   disabled={isLoading}
                   className="h-12 w-full bg-emerald-600 hover:bg-emerald-500 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Signing in...' : 'Sign In'}
+                  {isLoading ? t('login.signingIn') : t('login.signIn')}
                 </Button>
                 <p className="text-center text-xs text-slate-500">
                   <button
@@ -280,7 +282,7 @@ export default function CommonLoginPage() {
                     onClick={() => { setEmailMode('otp'); setLocalError(null); }}
                     className="text-blue-600 hover:underline font-medium"
                   >
-                    Login with OTP instead
+                    {t('login.loginWithOtp')}
                   </button>
                 </p>
               </form>
@@ -299,10 +301,10 @@ export default function CommonLoginPage() {
           </button>
           <div className="space-y-2">
             <Label className="text-sm font-medium text-slate-700">
-              Enter OTP
+              {t('otp.enterOtp')}
             </Label>
             <p className="text-xs text-slate-500">
-              We sent a 6-digit code to {otpTarget}
+              {t('otp.otpSentTo', { target: otpTarget })}
             </p>
             <div className="flex justify-center pt-2">
               <InputOTP maxLength={6} value={otp} onChange={setOtp}>
@@ -322,18 +324,18 @@ export default function CommonLoginPage() {
             disabled={isLoading || otp.length !== 6}
             className="h-12 w-full bg-emerald-600 hover:bg-emerald-500 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Verifying...' : 'Verify OTP'}
+            {isLoading ? t('otp.verifying') : t('otp.verifyOtp')}
           </Button>
         </form>
       )}
 
       <div className="mt-6 text-center text-sm text-slate-500">
-        Don&apos;t have an account?{' '}
+        {t('login.noAccount')}{' '}
         <Link
           href="/auth/signup"
           className="text-blue-600 hover:underline font-medium"
         >
-          Sign up
+          {t('login.signUp')}
         </Link>
       </div>
     </div>

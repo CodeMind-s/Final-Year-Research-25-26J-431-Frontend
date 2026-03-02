@@ -6,43 +6,47 @@ import { AlertTriangle, Info, CheckCircle, X } from "lucide-react"
 import { Badge } from "@/components/crystal/ui/badge"
 import { Button } from "@/components/crystal/ui/button"
 import { useState } from "react"
+import { useTranslations } from 'next-intl'
 
 export default function AlertsPage() {
-  const [alerts, setAlerts] = useState([
+  const t = useTranslations('crystal')
+
+  const initialAlerts = [
     {
       id: 1,
       type: "warning",
-      title: "High Humidity Alert",
-      message: "Humidity levels above 75% may reduce crystal growth in pans A2-A5",
-      time: "2 hours ago",
+      title: t('alerts.highHumidityTitle'),
+      message: t('alerts.highHumidityMessage'),
+      time: t('alerts.hoursAgo', { count: 2 }),
       read: false,
     },
     {
       id: 2,
       type: "info",
-      title: "Optimal Salinity Detected",
-      message: "Brine salinity in optimal range for pans B1-B3. Continue evaporation.",
-      time: "4 hours ago",
+      title: t('alerts.optimalSalinityTitle'),
+      message: t('alerts.optimalSalinityMessage'),
+      time: t('alerts.hoursAgo', { count: 4 }),
       read: true,
     },
     {
       id: 3,
       type: "success",
-      title: "Harvest Ready",
-      message: "Pan C4 has reached maturity. Ready for collection.",
-      time: "6 hours ago",
+      title: t('alerts.harvestReadyTitle'),
+      message: t('alerts.harvestReadyMessage'),
+      time: t('alerts.hoursAgo', { count: 6 }),
       read: true,
     },
     {
       id: 4,
       type: "warning",
-      title: "Temperature Fluctuation",
-      message: "Unusual temperature variations detected in sector D",
-      time: "1 day ago",
+      title: t('alerts.tempFluctuationTitle'),
+      message: t('alerts.tempFluctuationMessage'),
+      time: t('alerts.dayAgo'),
       read: true,
     },
-  ])
+  ]
 
+  const [alerts, setAlerts] = useState(initialAlerts)
   const [expandedAlert, setExpandedAlert] = useState<number | null>(null)
 
   const dismissAlert = (id: number) => {
@@ -62,8 +66,8 @@ export default function AlertsPage() {
     // <DashboardLayout>
       <div className="p-6 space-y-6">
         <div>
-          <h1 className="text-3xl font-semibold text-foreground">System Alerts</h1>
-          <p className="text-muted-foreground mt-1">Monitor critical notifications and system warnings</p>
+          <h1 className="text-3xl font-semibold text-foreground">{t('alerts.title')}</h1>
+          <p className="text-muted-foreground mt-1">{t('alerts.subtitle')}</p>
         </div>
 
         <div className="space-y-3">
@@ -85,24 +89,23 @@ export default function AlertsPage() {
                         alert.type === "warning" ? "destructive" : alert.type === "success" ? "default" : "secondary"
                       }
                     >
-                      {alert.type}
+                      {alert.type === "warning" ? t('alerts.warning') : alert.type === "success" ? t('alerts.success') : t('alerts.info')}
                     </Badge>
                     {!alert.read && (
                       <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                        New
+                        {t('alerts.new')}
                       </Badge>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">{alert.message}</p>
-                  
+
                   {expandedAlert === alert.id && (
                     <div className="mt-3 p-3 bg-muted/50 rounded-lg text-sm">
-                      <p className="font-medium text-foreground mb-2">Detailed Information:</p>
+                      <p className="font-medium text-foreground mb-2">{t('alerts.detailedInfo')}</p>
                       <p className="text-muted-foreground mb-2">
-                        This alert was generated based on real-time monitoring of field conditions.
-                        Field supervisors have been notified and should take appropriate action.
+                        {t('alerts.detailedDescription')}
                       </p>
-                      <p className="text-xs text-muted-foreground">Alert ID: #{alert.id} • Generated: {alert.time}</p>
+                      <p className="text-xs text-muted-foreground">{t('alerts.alertIdLabel', { id: String(alert.id) })} • {t('alerts.generatedLabel', { time: alert.time })}</p>
                     </div>
                   )}
 
@@ -114,7 +117,7 @@ export default function AlertsPage() {
                       className="h-6 px-2 text-xs"
                       onClick={() => setExpandedAlert(expandedAlert === alert.id ? null : alert.id)}
                     >
-                      {expandedAlert === alert.id ? "Hide details" : "View details"}
+                      {expandedAlert === alert.id ? t('alerts.hideDetails') : t('alerts.viewDetails')}
                     </Button>
                     <Button
                       variant="ghost"
@@ -122,7 +125,7 @@ export default function AlertsPage() {
                       className="h-6 px-2 text-xs"
                       onClick={() => toggleAlertRead(alert.id)}
                     >
-                      {alert.read ? "Mark unread" : "Mark read"}
+                      {alert.read ? t('alerts.markUnread') : t('alerts.markRead')}
                     </Button>
                     <Button
                       variant="ghost"
@@ -130,7 +133,7 @@ export default function AlertsPage() {
                       className="h-6 px-2 text-xs text-destructive"
                       onClick={() => dismissAlert(alert.id)}
                     >
-                      Dismiss
+                      {t('alerts.dismiss')}
                     </Button>
                   </div>
                 </div>

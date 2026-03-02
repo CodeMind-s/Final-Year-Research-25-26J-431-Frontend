@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 import {
   Home,
   Tag,
@@ -67,25 +69,6 @@ interface DistributorDeal {
 const DISTRIBUTOR_NAME = "Lanka Salt Limited";
 const DISTRIBUTOR_LOCATION = "Colombo";
 
-const REQ_CFG: Record<RequestStatus, { label: string; color: string; icon: React.ReactNode }> = {
-  PENDING:  { label: "Waiting",  color: "bg-amber-100 text-amber-700",     icon: <Clock size={11} /> },
-  ACCEPTED: { label: "Accepted", color: "bg-emerald-100 text-emerald-700", icon: <CheckCircle2 size={11} /> },
-  DECLINED: { label: "Declined", color: "bg-red-100 text-red-500",         icon: <XCircle size={11} /> },
-};
-
-const DEAL_CFG: Record<DealStatus, { label: string; color: string }> = {
-  PENDING:  { label: "Pending",  color: "bg-amber-100 text-amber-700" },
-  ACCEPTED: { label: "Active",   color: "bg-emerald-100 text-emerald-700" },
-  CLOSED:   { label: "Closed",   color: "bg-blue-100 text-blue-700" },
-  CANCELED: { label: "Cancelled",color: "bg-red-100 text-red-500" },
-};
-
-const REQ_BADGE: Record<OfferRequirement, { label: string; color: string }> = {
-  HIGH:   { label: "Urgent",  color: "bg-red-100 text-red-600" },
-  MEDIUM: { label: "Normal",  color: "bg-amber-100 text-amber-700" },
-  LOW:    { label: "Relaxed", color: "bg-slate-100 text-slate-500" },
-};
-
 // ─── Seed data ────────────────────────────────────────────────────
 
 const SEED_OFFERS: DistributorOffer[] = [
@@ -106,11 +89,12 @@ const SEED_DEALS: DistributorDeal[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
-function timeAgo(ts: number) {
+function timeAgo(ts: number, t: ReturnType<typeof useTranslations>) {
   const d = Date.now() - ts;
-  if (d < 3600000)  return `${Math.floor(d / 60000)} min ago`;
-  if (d < 86400000) return `${Math.floor(d / 3600000)} hr ago`;
-  return `${Math.floor(d / 86400000)} day${Math.floor(d / 86400000) > 1 ? "s" : ""} ago`;
+  if (d < 3600000)  return t('time.minAgo', { count: Math.floor(d / 60000) });
+  if (d < 86400000) return t('time.hrAgo', { count: Math.floor(d / 3600000) });
+  const days = Math.floor(d / 86400000);
+  return days > 1 ? t('time.daysAgo', { count: days }) : t('time.dayAgo', { count: days });
 }
 
 // ─── Confirmation Dialog ──────────────────────────────────────────
@@ -119,10 +103,11 @@ const ConfirmDialog: React.FC<{
   title: string;
   message: string;
   confirmLabel: string;
+  cancelLabel: string;
   confirmColor?: string;
   onConfirm: () => void;
   onCancel: () => void;
-}> = ({ title, message, confirmLabel, confirmColor = "bg-emerald-600", onConfirm, onCancel }) => (
+}> = ({ title, message, confirmLabel, cancelLabel, confirmColor = "bg-emerald-600", onConfirm, onCancel }) => (
   <>
     <div className="fixed inset-0 bg-black/40 z-50" onClick={onCancel} />
     <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-none">
@@ -139,7 +124,7 @@ const ConfirmDialog: React.FC<{
         </div>
         <div className="flex gap-3">
           <button onClick={onCancel} className="flex-1 py-3.5 rounded-2xl text-sm font-bold bg-slate-100 text-slate-600 active:scale-95 transition-all">
-            Go Back
+            {cancelLabel}
           </button>
           <button onClick={onConfirm} className={`flex-1 py-3.5 rounded-2xl text-sm font-bold text-white active:scale-95 transition-all ${confirmColor}`}>
             {confirmLabel}
@@ -159,7 +144,9 @@ const PublishOfferForm: React.FC<{
   onPublish: (price: number, bags: number, req: OfferRequirement) => void;
   onCancel?: () => void;
   isEdit?: boolean;
-}> = ({ initialPrice = 1950, initialBags = 200, initialReq = "MEDIUM", onPublish, onCancel, isEdit }) => {
+  t: ReturnType<typeof useTranslations>;
+  tc: (key: string) => string;
+}> = ({ initialPrice = 1950, initialBags = 200, initialReq = "MEDIUM", onPublish, onCancel, isEdit, t, tc }) => {
   const [price, setPrice] = useState(initialPrice);
   const [bags, setBags] = useState(initialBags);
   const [req, setReq] = useState<OfferRequirement>(initialReq);
@@ -167,23 +154,23 @@ const PublishOfferForm: React.FC<{
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
       <div className="flex items-center justify-between mb-4">
-        <p className="text-base font-bold text-slate-900">{isEdit ? " Edit Your Offer" : "📢 Publish a New Offer"}</p>
+        <p className="text-base font-bold text-slate-900">{isEdit ? ` ${t('offer.editOffer')}` : `📢 ${t('offer.publishNew')}`}</p>
         {onCancel && (
-          <button onClick={onCancel} className="text-xs text-slate-400 hover:text-slate-600">Cancel</button>
+          <button onClick={onCancel} className="text-xs text-slate-400 hover:text-slate-600">{tc('cancel')}</button>
         )}
       </div>
 
       <p className="text-sm text-slate-500 mb-5 leading-relaxed">
         {isEdit
-          ? "Update your offer details. Landowners will see the new price and quantity."
-          : "Set your buying price and how many bags you need. All landowners will see your offer."}
+          ? t('offer.editDesc')
+          : t('offer.publishDesc')}
       </p>
 
       <div className="space-y-5 mb-6">
         {/* Price input */}
         <div className="bg-slate-50 rounded-2xl p-4">
           <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">
-            You will pay (per bag)
+            {t('offer.youWillPay')}
           </label>
           <div className="flex items-center gap-4">
             <button
@@ -192,7 +179,7 @@ const PublishOfferForm: React.FC<{
             >−</button>
             <div className="flex-1 text-center">
               <span className="text-4xl font-extrabold text-slate-900">Rs.{price.toLocaleString()}</span>
-              <span className="block text-xs text-slate-400 mt-0.5 font-medium">per bag</span>
+              <span className="block text-xs text-slate-400 mt-0.5 font-medium">{t('offer.perBag')}</span>
             </div>
             <button
               onClick={() => setPrice(p => p + 50)}
@@ -204,7 +191,7 @@ const PublishOfferForm: React.FC<{
         {/* Bags input */}
         <div className="bg-slate-50 rounded-2xl p-4">
           <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">
-            Bags you need to buy
+            {t('offer.bagsNeedToBuy')}
           </label>
           <div className="flex items-center gap-4">
             <button
@@ -213,7 +200,7 @@ const PublishOfferForm: React.FC<{
             >−</button>
             <div className="flex-1 text-center">
               <span className="text-4xl font-extrabold text-slate-900">{bags}</span>
-              <span className="block text-xs text-slate-400 mt-0.5 font-medium">bags</span>
+              <span className="block text-xs text-slate-400 mt-0.5 font-medium">{t('offer.bagsLabel')}</span>
             </div>
             <button
               onClick={() => setBags(b => b + 10)}
@@ -224,7 +211,7 @@ const PublishOfferForm: React.FC<{
 
         {/* Urgency */}
         <div>
-          <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">How urgently do you need this?</label>
+          <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">{t('offer.howUrgent')}</label>
           <div className="flex gap-2">
             {(["HIGH", "MEDIUM", "LOW"] as OfferRequirement[]).map(r => (
               <button
@@ -232,7 +219,7 @@ const PublishOfferForm: React.FC<{
                 onClick={() => setReq(r)}
                 className={`flex-1 py-3 rounded-xl text-sm font-bold border-2 transition-all ${req === r ? "border-compass-500 bg-compass-50 text-compass-700" : "border-slate-100 bg-white text-slate-400"}`}
               >
-                {r === "HIGH" ? "🔴 Urgent" : r === "MEDIUM" ? "🟡 Normal" : "🟢 Relaxed"}
+                {r === "HIGH" ? `🔴 ${t('offer.urgent')}` : r === "MEDIUM" ? `🟡 ${t('offer.normal')}` : `🟢 ${t('offer.relaxed')}`}
               </button>
             ))}
           </div>
@@ -242,8 +229,8 @@ const PublishOfferForm: React.FC<{
       {/* Total */}
       <div className="bg-compass-50 rounded-2xl px-4 py-3 mb-5 flex justify-between items-center border border-compass-100">
         <div>
-          <p className="text-xs text-compass-700 font-medium">Total you will spend</p>
-          <p className="text-xs text-compass-500 mt-0.5">if all bags are filled</p>
+          <p className="text-xs text-compass-700 font-medium">{t('offer.totalSpend')}</p>
+          <p className="text-xs text-compass-500 mt-0.5">{t('offer.ifAllFilled')}</p>
         </div>
         <p className="text-xl font-extrabold text-compass-800">Rs. {(price * bags).toLocaleString()}</p>
       </div>
@@ -253,10 +240,10 @@ const PublishOfferForm: React.FC<{
         className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-compass-600 text-white text-base font-bold shadow-lg shadow-compass-600/20 active:scale-[0.98] transition-all"
       >
         <Send size={18} />
-        {isEdit ? "Update Offer" : "Publish Offer to All Landowners"}
+        {isEdit ? t('offer.updateOffer') : t('offer.publishToAll')}
       </button>
       <p className="text-xs text-slate-400 text-center mt-2">
-        Landowners near your area will see this offer immediately
+        {t('offer.landownersNearby')}
       </p>
     </div>
   );
@@ -268,10 +255,12 @@ const ActiveOfferCard: React.FC<{
   offer: DistributorOffer;
   hasRequests: boolean;
   onClose: () => void;
-}> = ({ offer, hasRequests, onClose }) => {
+  t: ReturnType<typeof useTranslations>;
+  reqBadge: Record<OfferRequirement, { label: string; color: string }>;
+}> = ({ offer, hasRequests, onClose, t, reqBadge }) => {
   const pct = offer.bagsNeeded > 0 ? Math.min(100, (offer.bagsSecured / offer.bagsNeeded) * 100) : 0;
   const remaining = Math.max(0, offer.bagsNeeded - offer.bagsSecured);
-  const rb = REQ_BADGE[offer.requirement];
+  const rb = reqBadge[offer.requirement];
 
   return (
     <div className="bg-compass-600 rounded-3xl p-5 text-white shadow-xl shadow-compass-600/30 relative overflow-hidden">
@@ -282,14 +271,14 @@ const ActiveOfferCard: React.FC<{
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="bg-white/20 rounded-xl px-3 py-1.5">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-white">Active Offer</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-white">{t('offer.activeOffer')}</p>
             </div>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${rb.color}`}>{rb.label}</span>
           </div>
           <div className="flex gap-1.5">
             {/* Close button — only shown when no requests exist for this offer */}
             {!hasRequests && (
-              <button onClick={onClose} className="p-2 rounded-xl bg-white/20 hover:bg-white/30 transition-all" title="End this offer">
+              <button onClick={onClose} className="p-2 rounded-xl bg-white/20 hover:bg-white/30 transition-all" title={t('offer.endThisOffer')}>
                 <EyeOff size={14} />
               </button>
             )}
@@ -299,34 +288,34 @@ const ActiveOfferCard: React.FC<{
         <div className="flex gap-6 mb-5">
           <div>
             <p className="text-3xl font-extrabold">Rs. {offer.pricePerBag.toLocaleString()}</p>
-            <p className="text-xs text-white/60 mt-0.5">you pay per bag</p>
+            <p className="text-xs text-white/60 mt-0.5">{t('offer.youPayPerBag')}</p>
           </div>
           <div className="w-px bg-white/20" />
           <div>
             <p className="text-3xl font-extrabold">{offer.bagsNeeded}</p>
-            <p className="text-xs text-white/60 mt-0.5">bags needed</p>
+            <p className="text-xs text-white/60 mt-0.5">{t('offer.bagsNeeded')}</p>
           </div>
         </div>
 
         {/* Progress */}
         <div className="bg-white/15 rounded-2xl p-4">
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-white/70 font-medium">Bags filled so far</span>
+            <span className="text-white/70 font-medium">{t('offer.bagsFilled')}</span>
             <span className="font-bold">{pct.toFixed(0)}%</span>
           </div>
           <div className="w-full h-3 bg-white/20 rounded-full overflow-hidden mb-2">
             <div className="h-full bg-white rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
           </div>
           <div className="flex justify-between text-xs text-white/60">
-            <span>{offer.bagsSecured} bags secured</span>
-            <span>{remaining} bags still needed</span>
+            <span>{t('offer.bagsSecured', { count: offer.bagsSecured })}</span>
+            <span>{t('offer.bagsStillNeeded', { count: remaining })}</span>
           </div>
         </div>
         {/* Readonly note */}
         <p className="text-[10px] text-white/50 text-center mt-3">
           {hasRequests
-            ? "Cannot end offer — accept or decline all requests first."
-            : "To change your offer, end this one and post a new one."}
+            ? t('offer.cannotEndOffer')
+            : t('offer.endOfferHint')}
         </p>
       </div>
     </div>
@@ -339,8 +328,10 @@ const RequestCard: React.FC<{
   req: IncomingRequest;
   onAccept: () => void;
   onDecline: () => void;
-}> = ({ req, onAccept, onDecline }) => {
-  const sc = REQ_CFG[req.status];
+  t: ReturnType<typeof useTranslations>;
+  reqCfg: Record<RequestStatus, { label: string; color: string; icon: React.ReactNode }>;
+}> = ({ req, onAccept, onDecline, t, reqCfg }) => {
+  const sc = reqCfg[req.status];
   const total = req.offeredBags * req.offeredPricePerBag;
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
@@ -354,15 +345,15 @@ const RequestCard: React.FC<{
         </div>
         <div className="text-right">
           <span className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full ${sc.color}`}>{sc.icon} {sc.label}</span>
-          <p className="text-[10px] text-slate-400 mt-0.5">{timeAgo(req.createdAt)}</p>
+          <p className="text-[10px] text-slate-400 mt-0.5">{timeAgo(req.createdAt, t)}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2 mb-4">
         {[
-          { label: "Bags offered", value: `${req.offeredBags} bags` },
-          { label: "Price / bag",  value: `Rs. ${req.offeredPricePerBag.toLocaleString()}` },
-          { label: "Total value",  value: `Rs. ${total.toLocaleString()}` },
+          { label: t('requests.bagsOffered'), value: `${req.offeredBags} ${t('offer.bagsLabel')}` },
+          { label: t('requests.pricePerBag'),  value: `Rs. ${req.offeredPricePerBag.toLocaleString()}` },
+          { label: t('requests.totalValue'),  value: `Rs. ${total.toLocaleString()}` },
         ].map(r => (
           <div key={r.label} className="bg-slate-50 rounded-xl px-2 py-2.5 text-center">
             <p className="text-[9px] text-slate-400 uppercase tracking-wide">{r.label}</p>
@@ -374,10 +365,10 @@ const RequestCard: React.FC<{
       {req.status === "PENDING" && (
         <div className="flex gap-2">
           <button onClick={onDecline} className="flex-1 py-3 rounded-xl text-sm font-bold text-red-500 bg-red-50 border border-red-100 active:scale-95 transition-all">
-            ✕  Decline
+            ✕  {t('requests.decline')}
           </button>
           <button onClick={onAccept} className="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-emerald-600 shadow-md shadow-emerald-600/20 active:scale-95 transition-all">
-            ✓  Accept Deal
+            ✓  {t('requests.acceptDeal')}
           </button>
         </div>
       )}
@@ -387,22 +378,26 @@ const RequestCard: React.FC<{
 
 // ─── Deal Card ────────────────────────────────────────────────────
 
-const DealCard: React.FC<{ deal: DistributorDeal }> = ({ deal }) => {
-  const sc = DEAL_CFG[deal.status];
+const DealCard: React.FC<{
+  deal: DistributorDeal;
+  t: ReturnType<typeof useTranslations>;
+  dealCfg: Record<DealStatus, { label: string; color: string }>;
+}> = ({ deal, t, dealCfg }) => {
+  const sc = dealCfg[deal.status];
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
       <div className="flex items-center justify-between mb-3">
         <div>
           <p className="text-base font-bold text-slate-900">{deal.landownerName}</p>
-          <p className="text-xs text-slate-400">{timeAgo(deal.createdAt)}</p>
+          <p className="text-xs text-slate-400">{timeAgo(deal.createdAt, t)}</p>
         </div>
         <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${sc.color}`}>{sc.label}</span>
       </div>
       <div className="grid grid-cols-3 gap-2">
         {[
-          { label: "Bags", value: `${deal.bags}` },
-          { label: "Price / bag", value: `Rs. ${deal.pricePerBag.toLocaleString()}` },
-          { label: "Total", value: `Rs. ${(deal.bags * deal.pricePerBag).toLocaleString()}` },
+          { label: t('deals.bagsLabel'), value: `${deal.bags}` },
+          { label: t('deals.pricePerBag'), value: `Rs. ${deal.pricePerBag.toLocaleString()}` },
+          { label: t('deals.total'), value: `Rs. ${(deal.bags * deal.pricePerBag).toLocaleString()}` },
         ].map(r => (
           <div key={r.label} className="bg-slate-50 rounded-xl px-2 py-2.5 text-center">
             <p className="text-[9px] text-slate-400 uppercase tracking-wide">{r.label}</p>
@@ -417,6 +412,10 @@ const DealCard: React.FC<{ deal: DistributorDeal }> = ({ deal }) => {
 // ─── Main Component ───────────────────────────────────────────────
 
 export default function DistributorDashboard() {
+  const t = useTranslations('seller');
+  const tc = useTranslations('common');
+  const tn = useTranslations('nav');
+
   const [tab, setTab] = useState<Tab>("home");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [offers, setOffers] = useState<DistributorOffer[]>(SEED_OFFERS);
@@ -431,6 +430,26 @@ export default function DistributorDashboard() {
   const [confirm, setConfirm] = useState<{
     title: string; message: string; confirmLabel: string; confirmColor?: string; onConfirm: () => void;
   } | null>(null);
+
+  // ── Translated config maps (must be inside component for hooks) ──
+  const reqBadge: Record<OfferRequirement, { label: string; color: string }> = {
+    HIGH:   { label: t('offer.urgent'),  color: "bg-red-500/20 text-red-200" },
+    MEDIUM: { label: t('offer.normal'),  color: "bg-yellow-500/20 text-yellow-200" },
+    LOW:    { label: t('offer.relaxed'), color: "bg-green-500/20 text-green-200" },
+  };
+
+  const reqCfg: Record<RequestStatus, { label: string; color: string; icon: React.ReactNode }> = {
+    PENDING:  { label: t('requests.waitingStatus'),  color: "bg-amber-50 text-amber-600",   icon: <Clock size={10} /> },
+    ACCEPTED: { label: t('requests.acceptedStatus'), color: "bg-emerald-50 text-emerald-600", icon: <CheckCircle2 size={10} /> },
+    DECLINED: { label: t('requests.declinedStatus'), color: "bg-red-50 text-red-500",        icon: <XCircle size={10} /> },
+  };
+
+  const dealCfg: Record<DealStatus, { label: string; color: string }> = {
+    PENDING:  { label: t('deals.pendingStatus'),   color: "bg-amber-50 text-amber-600" },
+    ACCEPTED: { label: t('deals.activeStatus'),    color: "bg-emerald-50 text-emerald-600" },
+    CLOSED:   { label: t('deals.closedStatus'),    color: "bg-slate-100 text-slate-500" },
+    CANCELED: { label: t('deals.cancelledStatus'), color: "bg-red-50 text-red-500" },
+  };
 
   const activeOffer = useMemo(() => offers.find(o => o.status === "PUBLISH") ?? null, [offers]);
   const pendingRequests = useMemo(() => requests.filter(r => r.status === "PENDING"), [requests]);
@@ -452,9 +471,9 @@ export default function DistributorDashboard() {
 
   const handleCloseOffer = () => {
     setConfirm({
-      title: "Remove this offer?",
-      message: "Your offer will no longer be visible to landowners. You can always publish a new one.",
-      confirmLabel: "Yes, Remove",
+      title: t('confirm.removeOffer'),
+      message: t('confirm.removeOfferMsg'),
+      confirmLabel: t('confirm.yesRemove'),
       confirmColor: "bg-red-500",
       onConfirm: () => {
         setOffers(prev => prev.map(o => o.status === "PUBLISH" ? { ...o, status: "CLOSED" } : o));
@@ -467,9 +486,9 @@ export default function DistributorDashboard() {
     const r = requests.find(x => x.id === reqId);
     if (!r) return;
     setConfirm({
-      title: "Accept this deal?",
-      message: `You are agreeing to buy ${r.offeredBags} bags from ${r.landownerName} at Rs. ${r.offeredPricePerBag.toLocaleString()} each.`,
-      confirmLabel: "✓ Yes, Accept",
+      title: t('confirm.acceptDeal'),
+      message: t('confirm.acceptDealMsg', { bags: r.offeredBags, name: r.landownerName, price: r.offeredPricePerBag.toLocaleString() }),
+      confirmLabel: `✓ ${t('confirm.yesAccept')}`,
       confirmColor: "bg-emerald-600",
       onConfirm: () => {
         setRequests(prev => prev.map(x => x.id === reqId ? { ...x, status: "ACCEPTED" } : x));
@@ -484,9 +503,9 @@ export default function DistributorDashboard() {
     const r = requests.find(x => x.id === reqId);
     if (!r) return;
     setConfirm({
-      title: "Decline this request?",
-      message: `${r.landownerName}'s offer of ${r.offeredBags} bags will be declined. They will be notified.`,
-      confirmLabel: "Decline",
+      title: t('confirm.declineRequest'),
+      message: t('confirm.declineRequestMsg', { name: r.landownerName, bags: r.offeredBags }),
+      confirmLabel: t('requests.decline'),
       confirmColor: "bg-red-500",
       onConfirm: () => {
         setRequests(prev => prev.map(x => x.id === reqId ? { ...x, status: "DECLINED" } : x));
@@ -499,11 +518,11 @@ export default function DistributorDashboard() {
 
   type DrawerTab = Tab;
   const drawerItems: { id: DrawerTab; label: string; icon: React.ElementType; badge?: number }[] = [
-    { id: "home",     label: "Home",             icon: Home },
-    { id: "offers",   label: "My Offers",        icon: Tag },
-    { id: "requests", label: "Requests",         icon: Bell, badge: unreadCount },
-    { id: "deals",    label: "My Deals",         icon: Handshake },
-    { id: "account",  label: "My Account",       icon: CircleUserRound },
+    { id: "home",     label: tn('seller.home'),       icon: Home },
+    { id: "offers",   label: tn('seller.myOffers'),   icon: Tag },
+    { id: "requests", label: tn('seller.requests'),   icon: Bell, badge: unreadCount },
+    { id: "deals",    label: tn('seller.myDeals'),    icon: Handshake },
+    { id: "account",  label: tn('seller.myAccount'),  icon: CircleUserRound },
   ];
 
   // ── Tab pages ──────────────────────────────────────────────────
@@ -515,14 +534,14 @@ export default function DistributorDashboard() {
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-compass-600 rounded-2xl p-4 text-white relative overflow-hidden">
           <div className="absolute -top-4 -right-4 w-16 h-16 bg-white/10 rounded-full" />
-          <p className="text-xs text-white/60 font-medium">Active Deals</p>
+          <p className="text-xs text-white/60 font-medium">{t('activeDeals')}</p>
           <p className="text-3xl font-extrabold mt-1">{activeDeals.length}</p>
-          <p className="text-[10px] text-white/50 mt-0.5">deals in progress</p>
+          <p className="text-[10px] text-white/50 mt-0.5">{t('dealsInProgress')}</p>
         </div>
         <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-          <p className="text-xs text-slate-400 font-medium">Pending Requests</p>
+          <p className="text-xs text-slate-400 font-medium">{t('pendingRequests')}</p>
           <p className="text-3xl font-extrabold text-slate-900 mt-1">{unreadCount}</p>
-          <p className="text-[10px] text-slate-400 mt-0.5">waiting for your reply</p>
+          <p className="text-[10px] text-slate-400 mt-0.5">{t('waitingForReply')}</p>
         </div>
       </div>
 
@@ -532,6 +551,8 @@ export default function DistributorDashboard() {
           offer={activeOffer}
           hasRequests={requests.some(r => r.offerId === activeOffer.id && (r.status === "PENDING" || r.status === "ACCEPTED"))}
           onClose={handleCloseOffer}
+          t={t}
+          reqBadge={reqBadge}
         />
       ) : (
         <PublishOfferForm
@@ -541,6 +562,8 @@ export default function DistributorDashboard() {
           isEdit={editingOffer}
           onPublish={handlePublish}
           onCancel={editingOffer ? () => setEditingOffer(false) : undefined}
+          t={t}
+          tc={tc}
         />
       )}
 
@@ -550,32 +573,32 @@ export default function DistributorDashboard() {
           onClick={() => setShowReplaceConfirm(true)}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-slate-200 text-sm font-semibold text-slate-400 hover:bg-slate-50 transition-all"
         >
-          <Plus size={16} /> Replace with a new offer
+          <Plus size={16} /> {t('offer.replaceWithNew')}
         </button>
       )}
 
       {/* Recent requests */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-base font-bold text-slate-900">Recent Requests</p>
+          <p className="text-base font-bold text-slate-900">{t('requests.recentRequests')}</p>
           <button onClick={() => setTab("requests")} className="text-sm font-semibold text-compass-600 flex items-center gap-0.5">
-            See all <ChevronRight size={14} />
+            {t('requests.seeAll')} <ChevronRight size={14} />
           </button>
         </div>
         {pendingRequests.length === 0 ? (
           <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-8 text-center">
             <Bell size={24} className="text-slate-300 mx-auto mb-2" />
-            <p className="text-sm font-medium text-slate-400">No new requests yet</p>
-            <p className="text-xs text-slate-300 mt-1">Landowners who see your offer can send a request</p>
+            <p className="text-sm font-medium text-slate-400">{t('requests.noNewRequests')}</p>
+            <p className="text-xs text-slate-300 mt-1">{t('requests.landowersCanSend')}</p>
           </div>
         ) : (
           <div className="space-y-3">
             {pendingRequests.slice(0, 2).map(r => (
-              <RequestCard key={r.id} req={r} onAccept={() => handleAccept(r.id)} onDecline={() => handleDecline(r.id)} />
+              <RequestCard key={r.id} req={r} onAccept={() => handleAccept(r.id)} onDecline={() => handleDecline(r.id)} t={t} reqCfg={reqCfg} />
             ))}
             {pendingRequests.length > 2 && (
               <button onClick={() => setTab("requests")} className="w-full text-sm font-semibold text-compass-600 py-2">
-                +{pendingRequests.length - 2} more waiting for reply →
+                {t('requests.moreWaiting', { count: pendingRequests.length - 2 })}
               </button>
             )}
           </div>
@@ -586,7 +609,7 @@ export default function DistributorDashboard() {
 
   const OffersTab = (
     <div className="px-4 pt-5 pb-6 space-y-5">
-      <h2 className="text-xl font-bold text-slate-900">My Offers</h2>
+      <h2 className="text-xl font-bold text-slate-900">{tn('seller.myOffers')}</h2>
 
       {activeOffer && !editingOffer ? (
         <>
@@ -594,9 +617,11 @@ export default function DistributorDashboard() {
             offer={activeOffer}
             hasRequests={requests.some(r => r.offerId === activeOffer.id && (r.status === "PENDING" || r.status === "ACCEPTED"))}
             onClose={handleCloseOffer}
+            t={t}
+            reqBadge={reqBadge}
           />
           <button onClick={() => setShowReplaceConfirm(true)} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-slate-200 text-sm font-semibold text-slate-400 hover:bg-slate-50 transition-all">
-            <Plus size={16} /> Replace with a new offer
+            <Plus size={16} /> {t('offer.replaceWithNew')}
           </button>
         </>
       ) : (
@@ -607,21 +632,23 @@ export default function DistributorDashboard() {
           isEdit={editingOffer}
           onPublish={handlePublish}
           onCancel={editingOffer ? () => setEditingOffer(false) : undefined}
+          t={t}
+          tc={tc}
         />
       )}
 
       {/* Past offers */}
       {offers.filter(o => o.status !== "PUBLISH").length > 0 && (
         <div>
-          <p className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wide">Past Offers</p>
+          <p className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wide">{t('offer.pastOffers')}</p>
           <div className="space-y-2">
             {offers.filter(o => o.status !== "PUBLISH").map(o => (
               <div key={o.id} className="bg-white rounded-2xl border border-slate-100 p-4 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-bold text-slate-900">Rs. {o.pricePerBag.toLocaleString()} / bag</p>
-                  <p className="text-xs text-slate-400">{o.bagsNeeded} bags · {timeAgo(o.createdAt)}</p>
+                  <p className="text-sm font-bold text-slate-900">{t('offer.pricePerBagValue', { price: o.pricePerBag.toLocaleString() })}</p>
+                  <p className="text-xs text-slate-400">{t('offer.bagsAndTime', { bags: o.bagsNeeded, time: timeAgo(o.createdAt, t) })}</p>
                 </div>
-                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">Closed</span>
+                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">{t('offer.closedStatus')}</span>
               </div>
             ))}
           </div>
@@ -633,9 +660,9 @@ export default function DistributorDashboard() {
   const RequestsTab = (
     <div className="px-4 pt-5 pb-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-slate-900">Requests Received</h2>
+        <h2 className="text-xl font-bold text-slate-900">{t('requests.title')}</h2>
         {unreadCount > 0 && (
-          <span className="text-xs font-bold bg-red-500 text-white px-2.5 py-1 rounded-full">{unreadCount} new</span>
+          <span className="text-xs font-bold bg-red-500 text-white px-2.5 py-1 rounded-full">{t('requests.newBadge', { count: unreadCount })}</span>
         )}
       </div>
 
@@ -643,7 +670,7 @@ export default function DistributorDashboard() {
         {(["ALL", "PENDING", "ACCEPTED", "DECLINED"] as const).map(f => (
           <button key={f} onClick={() => setReqFilter(f)}
             className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${reqFilter === f ? "bg-compass-600 text-white" : "bg-white border border-slate-200 text-slate-500"}`}>
-            {f === "ALL" ? `All (${requests.length})` : f === "PENDING" ? `Waiting (${requests.filter(r => r.status === "PENDING").length})` : f === "ACCEPTED" ? `Accepted (${requests.filter(r => r.status === "ACCEPTED").length})` : `Declined (${requests.filter(r => r.status === "DECLINED").length})`}
+            {f === "ALL" ? t('requests.all', { count: requests.length }) : f === "PENDING" ? t('requests.waiting', { count: requests.filter(r => r.status === "PENDING").length }) : f === "ACCEPTED" ? t('requests.accepted', { count: requests.filter(r => r.status === "ACCEPTED").length }) : t('requests.declined', { count: requests.filter(r => r.status === "DECLINED").length })}
           </button>
         ))}
       </div>
@@ -651,12 +678,12 @@ export default function DistributorDashboard() {
       {filteredRequests.length === 0 ? (
         <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-10 text-center mt-4">
           <Bell size={28} className="text-slate-300 mx-auto mb-2" />
-          <p className="text-sm font-medium text-slate-400">No requests here yet</p>
+          <p className="text-sm font-medium text-slate-400">{t('requests.noRequests')}</p>
         </div>
       ) : (
         <div className="space-y-3">
           {filteredRequests.map(r => (
-            <RequestCard key={r.id} req={r} onAccept={() => handleAccept(r.id)} onDecline={() => handleDecline(r.id)} />
+            <RequestCard key={r.id} req={r} onAccept={() => handleAccept(r.id)} onDecline={() => handleDecline(r.id)} t={t} reqCfg={reqCfg} />
           ))}
         </div>
       )}
@@ -666,12 +693,12 @@ export default function DistributorDashboard() {
   const DealsTab = (
     <div className="px-4 pt-5 pb-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-slate-900">My Deals</h2>
+        <h2 className="text-xl font-bold text-slate-900">{t('deals.title')}</h2>
         <div className="flex bg-slate-100 rounded-xl p-0.5">
-          {(["active", "done"] as const).map(t => (
-            <button key={t} onClick={() => setDealsTab(t)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${dealsTab === t ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}>
-              {t === "active" ? `Active (${activeDeals.length})` : `Done (${doneDeals.length})`}
+          {(["active", "done"] as const).map(dt => (
+            <button key={dt} onClick={() => setDealsTab(dt)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${dealsTab === dt ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}>
+              {dt === "active" ? t('deals.activeTab', { count: activeDeals.length }) : t('deals.doneTab', { count: doneDeals.length })}
             </button>
           ))}
         </div>
@@ -680,12 +707,12 @@ export default function DistributorDashboard() {
       {(dealsTab === "active" ? activeDeals : doneDeals).length === 0 ? (
         <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-10 text-center">
           <Package size={28} className="text-slate-300 mx-auto mb-2" />
-          <p className="text-sm font-medium text-slate-400">No {dealsTab} deals yet</p>
-          {dealsTab === "active" && <p className="text-xs text-slate-300 mt-1">Accept a request to create a deal</p>}
+          <p className="text-sm font-medium text-slate-400">{t('deals.noDeals', { tab: dealsTab })}</p>
+          {dealsTab === "active" && <p className="text-xs text-slate-300 mt-1">{t('deals.acceptToCreate')}</p>}
         </div>
       ) : (
         <div className="space-y-3">
-          {(dealsTab === "active" ? activeDeals : doneDeals).map(d => <DealCard key={d.id} deal={d} />)}
+          {(dealsTab === "active" ? activeDeals : doneDeals).map(d => <DealCard key={d.id} deal={d} t={t} dealCfg={dealCfg} />)}
         </div>
       )}
     </div>
@@ -696,18 +723,18 @@ export default function DistributorDashboard() {
       <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
         <CircleUserRound size={28} className="text-slate-400" />
       </div>
-      <h2 className="text-lg font-bold text-slate-900 mb-1">My Account</h2>
-      <p className="text-sm text-slate-500">Coming soon</p>
+      <h2 className="text-lg font-bold text-slate-900 mb-1">{t('account.title')}</h2>
+      <p className="text-sm text-slate-500">{tc('comingSoon')}</p>
     </div>
   );
 
   // ── Bottom nav items (no account — that's in the hamburger) ────
 
   const bottomNav: { key: Tab; label: string; icon: React.ElementType; badge?: number }[] = [
-    { key: "home",     label: "Home",     icon: Home },
-    { key: "offers",   label: "Offers",   icon: Tag },
-    { key: "requests", label: "Requests", icon: Bell,      badge: unreadCount },
-    { key: "deals",    label: "Deals",    icon: Handshake },
+    { key: "home",     label: tn('seller.home'),     icon: Home },
+    { key: "offers",   label: tn('seller.offers'),   icon: Tag },
+    { key: "requests", label: tn('seller.requests'), icon: Bell,      badge: unreadCount },
+    { key: "deals",    label: tn('seller.deals'),    icon: Handshake },
   ];
 
   return (
@@ -737,7 +764,7 @@ export default function DistributorDashboard() {
 
       {/* ── Page subtitle strip ── */}
       <div className="bg-white border-b border-slate-100 px-4 py-2.5 max-w-lg mx-auto">
-        <p className="text-xs text-slate-400">Salt Distributor Portal · {DISTRIBUTOR_NAME}</p>
+        <p className="text-xs text-slate-400">{t('portalSubtitle', { name: DISTRIBUTOR_NAME })}</p>
       </div>
 
       {/* ── Tab Content ── */}
@@ -785,8 +812,8 @@ export default function DistributorDashboard() {
                   <Compass size={20} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-slate-900">BrineX Compass</p>
-                  <p className="text-[11px] text-slate-500">Salt Distributor Portal</p>
+                  <p className="text-sm font-bold text-slate-900">{tn('compass.brineXCompass')}</p>
+                  <p className="text-[11px] text-slate-500">{tn('compass.distributorPortal')}</p>
                 </div>
               </div>
               <button onClick={() => setDrawerOpen(false)} className="p-2 rounded-lg hover:bg-slate-100">
@@ -796,7 +823,7 @@ export default function DistributorDashboard() {
 
             {/* Nav items */}
             <div className="flex-1 overflow-y-auto py-3 px-3">
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">Navigation</p>
+              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">{tn('compass.navigation')}</p>
               <nav className="space-y-1">
                 {drawerItems.map(({ id, label, icon: Icon, badge }) => {
                   const active = tab === id;
@@ -820,19 +847,20 @@ export default function DistributorDashboard() {
               </nav>
 
               <div className="my-4 border-t border-slate-100" />
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">More</p>
+              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">{tn('compass.more')}</p>
               <nav className="space-y-1">
-                {[{ label: "Sign Out", danger: true }].map(item => (
-                  <button key={item.label} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 active:scale-[0.98] transition-all">
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-red-50 text-red-500"><LogOut size={18} /></div>
-                    <span>{item.label}</span>
-                  </button>
-                ))}
+                <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 active:scale-[0.98] transition-all">
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-red-50 text-red-500"><LogOut size={18} /></div>
+                  <span>{tc('signOut')}</span>
+                </button>
               </nav>
             </div>
 
-            <div className="p-4 pt-3 border-t border-slate-100">
-              <p className="text-[11px] text-slate-400 text-center">BrineX Compass v2.0 · Salt Saltern Management</p>
+            <div className="p-4 pt-3 border-t border-slate-100 space-y-3">
+              <div className="flex justify-center">
+                <LanguageSwitcher />
+              </div>
+              <p className="text-[11px] text-slate-400 text-center">{tn('compass.footerVersion')}</p>
             </div>
           </div>
         </div>
@@ -841,9 +869,10 @@ export default function DistributorDashboard() {
       {/* ── Replace offer confirmation ── */}
       {showReplaceConfirm && (
         <ConfirmDialog
-          title="Replace your current offer?"
-          message="Your current offer will be removed and you can publish a new one with different details."
-          confirmLabel="Yes, Replace"
+          title={t('confirm.replaceOffer')}
+          message={t('confirm.replaceOfferMsg')}
+          confirmLabel={t('confirm.yesReplace')}
+          cancelLabel={tc('cancel')}
           confirmColor="bg-compass-600"
           onConfirm={() => {
             setOffers(prev => prev.map(o => o.status === "PUBLISH" ? { ...o, status: "CLOSED" } : o));
@@ -860,6 +889,7 @@ export default function DistributorDashboard() {
           title={confirm.title}
           message={confirm.message}
           confirmLabel={confirm.confirmLabel}
+          cancelLabel={tc('cancel')}
           confirmColor={confirm.confirmColor}
           onConfirm={confirm.onConfirm}
           onCancel={() => setConfirm(null)}

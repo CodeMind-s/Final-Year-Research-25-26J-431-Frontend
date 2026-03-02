@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useTranslations } from 'next-intl';
 import { AppProvider } from "@/context/compass/AppContext";
 import { TopNavBar } from "@/components/compass/TopNavBar";
 import { BottomNavBar, NavTab } from "@/components/compass/BottomNavBar";
@@ -19,6 +20,7 @@ export default function LandownerDashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations('compass');
   const [activeTab, setActiveTab] = useState<NavTab>("home");
   const [plannerView, setPlannerView] = useState<PlannerView>("landing");
 
@@ -133,8 +135,8 @@ export default function LandownerDashboardLayout({
             <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
               <CircleUserRound size={28} className="text-slate-400" />
             </div>
-            <h2 className="text-lg font-bold text-slate-900 mb-1">Profile</h2>
-            <p className="text-sm text-slate-500">Coming soon</p>
+            <h2 className="text-lg font-bold text-slate-900 mb-1">{t('layout.profile')}</h2>
+            <p className="text-sm text-slate-500">{t('layout.comingSoon')}</p>
           </div>
         );
 
