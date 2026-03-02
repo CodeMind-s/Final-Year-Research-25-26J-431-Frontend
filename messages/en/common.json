@@ -1,0 +1,23 @@
+{
+  "loading": "Loading...",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "submit": "Submit",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "back": "Back",
+  "next": "Next",
+  "continue": "Continue",
+  "close": "Close",
+  "search": "Search",
+  "comingSoon": "Coming soon",
+  "goBack": "Go Back",
+  "yes": "Yes",
+  "no": "No",
+  "error": "Error",
+  "success": "Success",
+  "profile": "Profile",
+  "logout": "Logout",
+  "signOut": "Sign Out"
+}

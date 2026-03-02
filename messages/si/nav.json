@@ -1,0 +1,60 @@
+{
+  "compass": {
+    "home": "මුල් පිටුව",
+    "planner": "සැලසුම්කරු",
+    "marketAnalysis": "වෙළඳපොළ විශ්ලේෂණය",
+    "market": "වෙළඳපොළ",
+    "profile": "පැතිකඩ",
+    "settings": "සැකසීම්",
+    "helpSupport": "උපකාර සහ සහාය",
+    "logout": "පිටවීම",
+    "navigation": "සංචාලනය",
+    "more": "තවත්",
+    "brineXCompass": "BrineX Compass",
+    "landownerPortal": "ඉඩම් හිමි පෝර්ටලය",
+    "distributorPortal": "ලුණු බෙදාහරින්නා පෝර්ටලය",
+    "footerVersion": "BrineX Compass v2.0 · ලුණු තටාක කළමනාකරණය"
+  },
+  "crystal": {
+    "productionPrediction": "නිෂ්පාදන අනාවැකි",
+    "parameterRecording": "පරාමිති වාර්තාකරණය",
+    "saltProductionRecording": "ලුණු නිෂ්පාදන වාර්තාකරණය",
+    "reports": "වාර්තා",
+    "systemAlerts": "පද්ධති ඇඟවීම්",
+    "settings": "සැකසීම්",
+    "syncData": "දත්ත සමමුහුර්ත කරන්න"
+  },
+  "admin": {
+    "overview": "දළ විසමත",
+    "users": "පරිශීලකයන්",
+    "plans": "සැලැස්ම්",
+    "payments": "ගෙවීම්",
+    "subscriptions": "දායකත්ව",
+    "auditLogs": "විගණන ලොග",
+    "dashboard": "උපකරණ පුවරුව",
+    "saltProduction": "ලුණු නිෂ්පාදනය",
+    "recording": "වාර්තාකරණය",
+    "reports": "වාර්තා",
+    "alerts": "ඇඟවීම්",
+    "settings": "සැකසීම්",
+    "batches": "කාණ්ඩ",
+    "statistics": "සංඛ්‍යා ලේඛන",
+    "saltSocietyPanel": "ලුණු සංගම පැනලය",
+    "saltSocietySubtitle": "BrineX ලුණු සංගම කළමනාකරණය",
+    "labPanel": "රසායනාගාර පැනලය",
+    "labSubtitle": "BrineX AI බලසම්පන්න ගුණාත්මක පරීක්ෂාව",
+    "adminPanel": "පරිපාලන පැනලය",
+    "adminSubtitle": "BrineX වේදිකා කළමනාකරණය",
+    "confirmLogout": "පිටවීම තහවුරු කරන්න",
+    "logoutMessage": "ඔබට පිටවීමට අවශ්‍ය බව විශ්වාසද? ඔබ පුරනය පිටුවට හරවා යවනු ලැබේ."
+  },
+  "seller": {
+    "home": "මුල් පිටුව",
+    "myOffers": "මගේ දීමනා",
+    "offers": "දීමනා",
+    "requests": "ඉල්ලීම්",
+    "myDeals": "මගේ ගනුදෙනු",
+    "deals": "ගනුදෙනු",
+    "myAccount": "මගේ ගිණුම"
+  }
+}
