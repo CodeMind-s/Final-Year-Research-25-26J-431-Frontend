@@ -14,6 +14,7 @@ import {
   Compass,
 } from "lucide-react";
 import type { NavTab } from "./BottomNavBar";
+import Image from "next/image";
 
 interface TopNavBarProps {
   activeTab: NavTab;
@@ -99,12 +100,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
 
           {/* Center: App logo / title */}
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-compass-600 rounded-lg flex items-center justify-center">
-              <Compass size={18} className="text-white" />
-            </div>
-            <span className="text-base font-bold text-slate-900 tracking-tight">
-              BrineX
-            </span>
+            <Image src={'/assets/images/logo.svg'} alt='brinex logo' width={100} height={50} />
           </div>
 
           {/* Right: Desktop nav items (hidden on mobile) */}

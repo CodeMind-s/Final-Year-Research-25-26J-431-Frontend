@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────
-type PlanType = "fresher" | "mid-season";
+type PlanType = "FRESHER" | "MIDLEVEL";
 type Duration = 30 | 45;
 
 interface PlanData {
@@ -362,8 +362,8 @@ const MultiMonthCalendar: React.FC<{ startDate: Date; endDate: Date; onDateClick
 // ─── Step 1: Plan Type ────────────────────────────────────────────
 const StepPlanType: React.FC<{ value: PlanType | null; onChange: (v: PlanType) => void; onNext: () => void; }> = ({ value, onChange, onNext }) => {
   const options = [
-    { id: "fresher" as PlanType, icon: Sprout, title: "Starting Fresh", description: "I'm preparing my beds from the very beginning of the season. I want a full plan from day one.", tag: "Fresher", tagColor: "bg-emerald-100 text-emerald-700" },
-    { id: "mid-season" as PlanType, icon: CalendarDays, title: "Mid-Season Planning", description: "My beds are already set up and I'm planning a harvest mid-way through the season.", tag: "Mid-Season", tagColor: "bg-sky-100 text-sky-700" },
+    { id: "FRESHER" as PlanType, icon: Sprout, title: "Starting Fresh", description: "I'm preparing my beds from the very beginning of the season. I want a full plan from day one.", tag: "Fresher", tagColor: "bg-emerald-100 text-emerald-700" },
+    { id: "MIDLEVEL" as PlanType, icon: CalendarDays, title: "Mid-Season Planning", description: "My beds are already set up and I'm planning a harvest mid-way through the season.", tag: "Mid-Season", tagColor: "bg-sky-100 text-sky-700" },
   ];
   return (
     <div className="flex flex-col items-center text-center">
@@ -428,7 +428,7 @@ const StepDurationCalendar: React.FC<{
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const suggestedStart = useMemo(() => {
     const d = new Date(today);
-    if (planType === "mid-season") d.setDate(d.getDate() + 3);
+    if (planType === "MIDLEVEL") d.setDate(d.getDate() + 3);
     return d;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planType]);
@@ -720,7 +720,7 @@ const StepPlanSummary: React.FC<{
       <p className="text-xs font-bold text-slate-700 mb-2">Your Inputs</p>
       <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 mb-6 space-y-2.5">
         {[
-          { icon: <Sprout size={14} className="text-emerald-600" />, label: "Plan Type", value: plan.planType === "fresher" ? "Starting Fresh" : "Mid-Season" },
+          { icon: <Sprout size={14} className="text-emerald-600" />, label: "Plan Type", value: plan.planType === "FRESHER" ? "Starting Fresh" : "MIDLEVEL" },
           { icon: <Grid3X3 size={14} className="text-amber-600" />, label: "Number of Beds", value: `${plan.bedCount} beds` },
           { icon: <CalendarDays size={14} className="text-sky-600" />, label: "Start Date", value: fmtShort(startDate) },
           { icon: <CalendarDays size={14} className="text-sky-600" />, label: "End Date", value: fmtShort(endDate) },
