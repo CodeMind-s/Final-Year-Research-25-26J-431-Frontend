@@ -81,6 +81,10 @@ class UserController extends BaseController {
   async deleteUser(id: string): Promise<void> {
     return this.delete<void>(`${API_CONFIG.ENDPOINTS.USER.DELETE}/${id}`);
   }
+
+  async personalDetails(): Promise<UserResponse> {
+    return this.get<UserResponse>(API_CONFIG.ENDPOINTS.AUTH.PERSONAL_DETAILS);
+  }
 }
 
 /**

@@ -10,8 +10,10 @@ import {
   GetMyHarvestPlansResponse,
   HarvestPlanRequest,
   HarvestPlanResponse,
+  UpdateHarvestPlanRequest,
 } from "@/types/harvest-plan.types";
 import { BaseController } from "./base-controller";
+import { DeleteDealResponse } from "@/types/deals.types";
 
 /**
  * Harvest Plan controller class
@@ -42,9 +44,31 @@ class HarvestPlanController extends BaseController {
   async getHarvestPlans(
     request: GetMyHarvestPlansRequest,
   ): Promise<GetMyHarvestPlansResponse> {
-    return this.get<GetMyHarvestPlansResponse>(
-      `/my-plans?page=${request.page}&limit=${request.limit}&startDate=${request.startDate}&endDate=${request.endDate}&status=${request.status}`,
-    );
+    const params = new URLSearchParams();
+    if (request.page) params.append("page", request.page.toString());
+    if (request.limit) params.append("limit", request.limit.toString());
+    if (request.startDate) params.append("startDate", request.startDate);
+    if (request.endDate) params.append("endDate", request.endDate);
+    if (request.status) params.append("status", request.status);
+
+    const queryString = params.toString();
+    const endpoint = queryString ? `/my-plans?${queryString}` : "/my-plans";
+
+    return this.get<GetMyHarvestPlansResponse>(endpoint);
+  }
+  
+  async deleteHarvestPlans(
+    planId: string,
+  ): Promise<DeleteDealResponse> {
+    return this.delete<DeleteDealResponse>(`/${planId}`);
+  }
+
+  async getHarvestPlanById(planId: string): Promise<HarvestPlanResponse> {
+    return this.get<HarvestPlanResponse>(`/${planId}`);
+  }
+
+  async updateHarvestPlan(planId: string, request: UpdateHarvestPlanRequest): Promise<HarvestPlanResponse> {
+    return this.patch<HarvestPlanResponse, UpdateHarvestPlanRequest>(`/${planId}`, request);
   }
 }
 

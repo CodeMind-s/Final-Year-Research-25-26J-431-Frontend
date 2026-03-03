@@ -71,14 +71,6 @@ export default function HomeSection() {
                                     Create Account
                                 </Link>
                             </div>
-                            <div className="mt-1">
-                                <Link
-                                    href="/auth/admin"
-                                    className="text-xs text-gray-400 hover:text-gray-600 underline"
-                                >
-                                    Admin Login
-                                </Link>
-                            </div>
                         </div>
                     </div>
 

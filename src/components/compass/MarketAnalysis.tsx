@@ -157,7 +157,8 @@ const RequestSheet: React.FC<{
   onClose: () => void;
   onSend: (bags: number, price: number, onClose: () => void) => void;
   isSending?: boolean;
-}> = ({ distributor, onClose, onSend, isSending = false }) => {
+  t: ReturnType<typeof useTranslations>;
+}> = ({ distributor, onClose, onSend, isSending = false, t }) => {
   const [bags, setBags] = useState(distributor.targetQuantity);
   const [price, setPrice] = useState(distributor.pricePerKilo);
   const totalValue = bags * price;
@@ -288,7 +289,8 @@ const DealCard: React.FC<{
   onDelete: () => void;
   onClose: () => void;
   onCancel: () => void;
-}> = ({ deal, onDelete, onClose, onCancel }) => {
+  t: ReturnType<typeof useTranslations>;
+}> = ({ deal, onDelete, onClose, onCancel, t }) => {
   const sc = STATUS_CFG[deal.status];
   const totalValue = deal.quantity * deal.pricePerKilo;
 
@@ -300,8 +302,8 @@ const DealCard: React.FC<{
     distributorInfo?.distributorDetails?.address || "Unknown Location";
 
   const dealRows = [
-    { label: t('market.bags'), value: deal.requestedBags.toString() },
-    { label: t('market.pricePerBag'), value: `Rs. ${deal.requestedPricePerBag.toLocaleString()}` },
+    { label: t('market.bags'), value: deal.quantity.toString() },
+    { label: t('market.pricePerBag'), value: `Rs. ${deal.pricePerKilo.toLocaleString()}` },
     { label: t('market.total'), value: `Rs. ${totalValue.toLocaleString()}` },
   ];
 
@@ -772,6 +774,7 @@ export const MarketAnalysis: React.FC = () => {
                   onDelete={() => handleDeleteDeal(deal._id)}
                   onClose={() => updateDealStatus(deal._id, "CLOSED")}
                   onCancel={() => updateDealStatus(deal._id, "CANCELED")}
+                  t={t}
                 />
               ),
             )}
@@ -973,6 +976,7 @@ export const MarketAnalysis: React.FC = () => {
           onClose={() => setSelectedDist(null)}
           onSend={handleSendRequest}
           isSending={isSendingRequest}
+          t={t}
         />
       )}
     </div>

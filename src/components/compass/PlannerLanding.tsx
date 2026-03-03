@@ -37,6 +37,7 @@ export interface PlanRecord {
   status: "active" | "completed" | "cancelled";
   actualBags?: number;
   actualDate?: string;
+  updatedAt?: string;
 }
 
 interface PlannerLandingProps {
@@ -352,10 +353,10 @@ const PlanDetailSheet: React.FC<{ record: PlanRecord; onClose: () => void }> = (
                 <span className="text-sm text-slate-600">{t('planner.bagsProduced')}</span>
                 <span className="text-xl font-extrabold text-emerald-700">{record.actualBags}</span>
               </div>
-              {record.actualDate && (
+              {record.updatedAt && (
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-slate-600">{t('planner.harvestDate')}</span>
-                  <span className="text-sm font-bold text-slate-900">{fmtDate(new Date(record.actualDate + "T00:00:00"))}</span>
+                  <span className="text-sm font-bold text-slate-900">{fmtDate(new Date(record.updatedAt + "T00:00:00"))}</span>
                 </div>
               )}
               {bagDiff !== null && (
@@ -480,7 +481,7 @@ export const PlannerLanding: React.FC<PlannerLandingProps> = ({
             </button>
           )}
           {!activePlan && (
-            <PulseRing active={!activePlan && planHistory.length === 0}>
+            // <PulseRing active={!activePlan && planHistory.length === 0}>
               <button
                 onClick={onCreatePlan}
                 className="flex items-center gap-1.5 bg-compass-600 text-white text-sm font-bold px-4 py-2.5 rounded-xl shadow-md shadow-compass-600/25 active:scale-95 transition-all"
@@ -488,7 +489,7 @@ export const PlannerLanding: React.FC<PlannerLandingProps> = ({
                 <Plus size={16} />
                 {t('planner.newPlan')}
               </button>
-            </PulseRing>
+            // </PulseRing>
           )}
         </div>
       </div>

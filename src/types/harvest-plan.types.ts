@@ -2,7 +2,7 @@ export interface HarvestPlan {
   _id: string;
   userId: string;
   saltBeds: number;
-  harvestStatus: number;
+  harvestStatus: number | string; // Can be number or "FRESHER" | "MATURE" string
   planPeriod: number;
   startDate: string;
   endDate: string;
@@ -20,7 +20,7 @@ export interface HarvestPlan {
 
 export interface HarvestPlanRequest {
   saltBeds: number;
-  harvestStatus: "FRESHER" | "MATURE";
+  harvestStatus: "FRESHER" | "MIDLEVEL";
   planPeriod: number;
   startDate: string;
   predictedProduction: number;
@@ -51,4 +51,30 @@ export interface GetMyHarvestPlansResponse {
   success: boolean;
   message: string;
   data: HarvestPlan[];
+}
+
+export interface UpdateHarvestPlanRequest {
+  saltBeds?: number;
+  harvestStatus?: "FRESHER" | "MIDLEVEL" | "HARVESTED" | "DISPOSED";
+  planPeriod?: number;
+  startDate?: string;
+  predictedProduction?: number;
+  actualProduction?: number;
+  workerCount?: number;
+  predictedProfit?: number;
+  actualProfit?: number;
+  expenses?: number;
+  earnings?: number;
+  avgSellingPrice?: number;
+}
+
+export interface UpdateHarvestPlanResponse {
+  success: boolean;
+  message: string;
+  data: HarvestPlan;
+}
+
+export interface DeleteHarvestPlanResponse {
+  success: boolean;
+  message: string;
 }

@@ -165,7 +165,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
         <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
              <SalternMap
                 ponds={MOCK_POND_GRID}
-                currentOwnerId="" // Visual only
+                currentOwnerId="landowner_001" // Use actual owner ID to show owned ponds
              />
         </div>
       </div>

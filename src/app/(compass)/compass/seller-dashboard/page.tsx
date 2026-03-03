@@ -153,6 +153,8 @@ const PublishOfferForm: React.FC<{
   onPublish: (price: number, bags: number, req: OfferRequirement) => Promise<void>;
   onCancel?: () => void;
   isEdit?: boolean;
+  t: ReturnType<typeof useTranslations>;
+  tc: ReturnType<typeof useTranslations>;
 }> = ({
   offerId,
   initialPrice = 1950,
@@ -161,6 +163,8 @@ const PublishOfferForm: React.FC<{
   onPublish,
   onCancel,
   isEdit,
+  t,
+  tc,
 }) => {
   const [price, setPrice] = useState(initialPrice);
   const [bags, setBags] = useState(initialBags);
@@ -382,7 +386,8 @@ const ActiveOfferCard: React.FC<{
   onClose: () => void;
   onEdit: () => void;
   onPublish: () => void;
-}> = ({ offer, hasRequests, onClose, onEdit, onPublish }) => {
+  t: ReturnType<typeof useTranslations>;
+}> = ({ offer, hasRequests, onClose, onEdit, onPublish, t }) => {
   const pct =
     offer.targetQuantity > 0
       ? Math.min(100, (offer.collectedQuantity / offer.targetQuantity) * 100)
@@ -491,7 +496,8 @@ const RequestCard: React.FC<{
   req: DealObject;
   onAccept: () => void;
   onDecline: () => void;
-}> = ({ req, onAccept, onDecline }) => {
+  t: ReturnType<typeof useTranslations>;
+}> = ({ req, onAccept, onDecline, t }) => {
   const sc = REQ_CFG[req.status as RequestStatus];
 
   // Safeguard in case status is not mapped
@@ -523,7 +529,7 @@ const RequestCard: React.FC<{
             {sc.icon} {sc.label}
           </span>
           <p className="text-[10px] text-slate-400 mt-0.5">
-            {timeAgo(createdAtTimestamp)}
+            {timeAgo(createdAtTimestamp, t)}
           </p>
         </div>
       </div>
@@ -571,7 +577,10 @@ const RequestCard: React.FC<{
 
 // ─── Deal Card ────────────────────────────────────────────────────
 
-const DealCard: React.FC<{ deal: DealObject }> = ({ deal }) => {
+const DealCard: React.FC<{ 
+  deal: DealObject;
+  t: ReturnType<typeof useTranslations>;
+}> = ({ deal, t }) => {
   const sc = DEAL_CFG[deal.status as DealStatus];
   const landownerName =
     deal.landowner?.user?.email?.split("@")[0] || "Unknown Landowner";
@@ -583,7 +592,7 @@ const DealCard: React.FC<{ deal: DealObject }> = ({ deal }) => {
         <div>
           <p className="text-base font-bold text-slate-900">{landownerName}</p>
           <p className="text-xs text-slate-400">
-            {timeAgo(createdAtTimestamp)}
+            {timeAgo(createdAtTimestamp, t)}
           </p>
         </div>
         <span
@@ -929,6 +938,7 @@ export default function DistributorDashboard() {
           onClose={handleCloseOffer}
           onEdit={handleEdit}
           onPublish={handlePublishOffer}
+          t={t}
         />
       ) : (
         <PublishOfferForm
@@ -983,6 +993,7 @@ export default function DistributorDashboard() {
                 req={r}
                 onAccept={() => handleAccept(r._id)}
                 onDecline={() => handleDecline(r._id)}
+                t={t}
               />
             ))}
             {pendingRequests.length > 2 && (
@@ -1015,6 +1026,7 @@ export default function DistributorDashboard() {
             onClose={handleCloseOffer}
             onEdit={handleEdit}
             onPublish={handlePublishOffer}
+            t={t}
           />
           <button
             onClick={() => setShowReplaceConfirm(true)}
@@ -1058,7 +1070,7 @@ export default function DistributorDashboard() {
                     </p>
                     <p className="text-xs text-slate-400">
                       {o.targetQuantity} bags · {o.collectedQuantity} bags collected ·{" "}
-                      {timeAgo(new Date(o.createdAt).getTime())}
+                      {timeAgo(new Date(o.createdAt).getTime(), t)}
                     </p>
                   </div>
                   <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-200 text-slate-600">
@@ -1123,6 +1135,7 @@ export default function DistributorDashboard() {
               req={r}
               onAccept={() => handleAccept(r._id)}
               onDecline={() => handleDecline(r._id)}
+              t={t}
             />
           ))}
         </div>
@@ -1164,7 +1177,7 @@ export default function DistributorDashboard() {
       ) : (
         <div className="space-y-3">
           {(dealsTab === "active" ? activeDeals : doneDeals).map((d) => (
-            <DealCard key={d._id} deal={d} />
+            <DealCard key={d._id} deal={d} t={t} />
           ))}
         </div>
       )}

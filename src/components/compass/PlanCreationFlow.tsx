@@ -29,7 +29,10 @@ import {
   BarChart2,
   ClipboardList,
   Banknote,
+  Loader2,
 } from "lucide-react";
+import { harvestPlanController } from "@/services/plan.controller";
+import { useToast } from "@/hooks/use-toast";
 
 // ─── Types ───────────────────────────────────────────────────────
 type PlanType = "FRESHER" | "MIDLEVEL";
@@ -618,8 +621,8 @@ const StepWorkerCount: React.FC<{
 
 // ─── Step 5: Plan Summary ─────────────────────────────────────────
 const StepPlanSummary: React.FC<{
-  plan: PlanData; onConfirm: () => void;
-}> = ({ plan, onConfirm }) => {
+  plan: PlanData; onConfirm: () => void; isCreating: boolean;
+}> = ({ plan, onConfirm, isCreating }) => {
   const t = useTranslations('compass');
   const duration = plan.duration ?? 45;
   const workers = plan.workerCount || 3;
@@ -747,10 +750,24 @@ const StepPlanSummary: React.FC<{
       {/* Confirm button */}
       <button
         onClick={onConfirm}
-        className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-base font-bold bg-compass-600 text-white shadow-xl shadow-compass-600/30 active:scale-[0.98] transition-all"
+        disabled={isCreating}
+        className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-base font-bold shadow-xl transition-all ${
+          isCreating
+            ? "bg-slate-400 cursor-not-allowed"
+            : "bg-compass-600 shadow-compass-600/30 active:scale-[0.98]"
+        } text-white`}
       >
-        <CheckCircle2 size={20} />
-        {t('creation.confirmAndCreate')}
+        {isCreating ? (
+          <>
+            <Loader2 size={20} className="animate-spin" />
+            {t('creation.creating')}
+          </>
+        ) : (
+          <>
+            <CheckCircle2 size={20} />
+            {t('creation.confirmAndCreate')}
+          </>
+        )}
       </button>
       <p className="text-[10px] text-slate-400 text-center mt-2">
         {t('creation.estimateDisclaimer')}
@@ -765,8 +782,10 @@ export const PlanCreationFlow: React.FC<PlanCreationFlowProps> = ({
   onBack,
 }) => {
   const t = useTranslations('compass');
+  const { toast } = useToast();
   const TOTAL_STEPS = 5;
   const [step, setStep] = useState(0);
+  const [isCreating, setIsCreating] = useState(false);
   const [plan, setPlan] = useState<PlanData>({
     bedCount: 0,
     planType: null,
@@ -778,6 +797,59 @@ export const PlanCreationFlow: React.FC<PlanCreationFlowProps> = ({
   const handleBack = () => {
     if (step === 0) onBack();
     else setStep(s => s - 1);
+  };
+
+  const handleCreatePlan = async () => {
+    if (!plan.planType || !plan.duration) return;
+
+    setIsCreating(true);
+    try {
+      const duration = plan.duration;
+      const workers = plan.workerCount;
+      const computed = computeProfit(plan.bedCount, duration, workers);
+
+      const startDate = new Date(plan.date + "T00:00:00");
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + duration - 1);
+
+      const requestData = {
+        saltBeds: plan.bedCount,
+        harvestStatus: plan.planType === "FRESHER" ? "FRESHER" as const : "MIDLEVEL" as const,
+        planPeriod: duration,
+        startDate: startDate.toISOString(),
+        predictedProduction: computed.totalBags,
+        actualProduction: 0,
+        workerCount: workers,
+        predictedProfit: computed.profit,
+        actualProfit: 0,
+        expenses: computed.totalExpenses,
+        earnings: 0,
+        avgSellingPrice: PRICE_PER_BAG,
+      };
+
+      const response = await harvestPlanController.createHarvestPlan(requestData);
+
+      // HTTP client unwraps the response, so we get the HarvestPlan directly
+      // If the API call succeeds, response will contain the plan data
+      if (response) {
+        toast({
+          title: t('creation.planCreated'),
+          description: t('creation.planCreatedDesc'),
+        });
+        onComplete(plan);
+      } else {
+        throw new Error("Failed to create plan");
+      }
+    } catch (error) {
+      console.error("Failed to create harvest plan:", error);
+      toast({
+        title: t('creation.planFailed'),
+        description: error instanceof Error ? error.message : t('creation.planFailedDesc'),
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -839,7 +911,8 @@ export const PlanCreationFlow: React.FC<PlanCreationFlowProps> = ({
         {step === 4 && (
           <StepPlanSummary
             plan={plan}
-            onConfirm={() => onComplete(plan)}
+            onConfirm={handleCreatePlan}
+            isCreating={isCreating}
           />
         )}
       </div>
