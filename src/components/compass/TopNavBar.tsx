@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import {
   Menu,
   X,
@@ -13,6 +14,7 @@ import {
   LogOut,
   Compass,
 } from "lucide-react";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 import type { NavTab } from "./BottomNavBar";
 import Image from "next/image";
 
@@ -37,6 +39,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   onTabChange,
   onLogout,
 }) => {
+  const t = useTranslations('nav');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
 
@@ -56,18 +59,18 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   }, [isDrawerOpen]);
 
   const mainNavItems: DrawerNavItem[] = [
-    { id: "home", label: "Home", icon: Home, type: "nav", tab: "home" },
-    { id: "planner", label: "Planner", icon: CalendarDays, type: "nav", tab: "planner" },
-    { id: "market", label: "Market Analysis", icon: BarChart3, type: "nav", tab: "market" },
-    { id: "profile", label: "Profile", icon: CircleUserRound, type: "nav", tab: "profile" },
+    { id: "home", label: t('compass.home'), icon: Home, type: "nav", tab: "home" },
+    { id: "planner", label: t('compass.planner'), icon: CalendarDays, type: "nav", tab: "planner" },
+    { id: "market", label: t('compass.marketAnalysis'), icon: BarChart3, type: "nav", tab: "market" },
+    { id: "profile", label: t('compass.profile'), icon: CircleUserRound, type: "nav", tab: "profile" },
   ];
 
   const secondaryItems: DrawerNavItem[] = [
-    { id: "settings", label: "Settings", icon: Settings, type: "action" },
-    { id: "help", label: "Help & Support", icon: HelpCircle, type: "action" },
+    { id: "settings", label: t('compass.settings'), icon: Settings, type: "action" },
+    { id: "help", label: t('compass.helpSupport'), icon: HelpCircle, type: "action" },
     {
       id: "logout",
-      label: "Logout",
+      label: t('compass.logout'),
       icon: LogOut,
       type: "action",
       danger: true,
@@ -127,6 +130,11 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             })}
           </div>
 
+          {/* Right: Language switcher (desktop) */}
+          <div className="hidden lg:block">
+            <LanguageSwitcher />
+          </div>
+
           {/* Mobile: spacer to keep logo centered */}
           <div className="w-10 lg:hidden" />
         </div>
@@ -153,8 +161,8 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
                   <Compass size={20} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-slate-900">BrineX Compass</p>
-                  <p className="text-[11px] text-slate-500">Landowner Portal</p>
+                  <p className="text-sm font-bold text-slate-900">{t('compass.brineXCompass')}</p>
+                  <p className="text-[11px] text-slate-500">{t('compass.landownerPortal')}</p>
                 </div>
               </div>
               <button
@@ -169,7 +177,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             {/* Main Nav Items */}
             <div className="flex-1 overflow-y-auto py-3 px-3">
               <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">
-                Navigation
+                {t('compass.navigation')}
               </p>
               <nav className="space-y-1">
                 {mainNavItems.map((item) => {
@@ -213,7 +221,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
 
               {/* Secondary Items */}
               <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">
-                More
+                {t('compass.more')}
               </p>
               <nav className="space-y-1">
                 {secondaryItems.map((item) => {
@@ -250,9 +258,12 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             </div>
 
             {/* Drawer Footer */}
-            <div className="p-4 pt-3 border-t border-slate-100">
+            <div className="p-4 pt-3 border-t border-slate-100 space-y-3">
+              <div className="flex justify-center">
+                <LanguageSwitcher />
+              </div>
               <p className="text-[11px] text-slate-400 text-center">
-                BrineX Compass v2.0 • Salt Saltern Management
+                {t('compass.footerVersion')}
               </p>
             </div>
           </div>

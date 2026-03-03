@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useTranslations } from 'next-intl';
 import {
   Plus,
   Scissors,
@@ -57,52 +58,13 @@ interface TourStep {
   cta: string;
 }
 
-const NO_PLAN_STEPS: TourStep[] = [
-  {
-    icon: <Plus size={22} className="text-compass-600" />,
-    title: "Create your first plan",
-    body: "Tap New Plan to set up your harvest. We ask a few simple questions and do the rest.",
-    cta: "Next tip →",
-  },
-  {
-    icon: <Sun size={22} className="text-amber-500" />,
-    title: "Check the weather",
-    body: "Scroll down to see the weather forecast for the next 60 days before you decide when to start.",
-    cta: "Next tip →",
-  },
-  {
-    icon: <CalendarDays size={22} className="text-sky-500" />,
-    title: "Your past plans",
-    body: "Once you finish or discard a plan it appears in Past Plans below. Tap any card to see what happened.",
-    cta: "Got it! 👍",
-  },
-];
-
-const WITH_PLAN_STEPS: TourStep[] = [
-  {
-    icon: <Scissors size={22} className="text-amber-600" />,
-    title: "Harvest when ready",
-    body: "Tap Harvest Now when you finish collecting. We'll ask for the date and bag count to save your record.",
-    cta: "Next tip →",
-  },
-  {
-    icon: <Trash2 size={22} className="text-red-500" />,
-    title: "Changed your mind?",
-    body: "Tap Discard if you no longer want this plan. You can start a fresh one afterwards.",
-    cta: "Next tip →",
-  },
-  {
-    icon: <CalendarDays size={22} className="text-compass-600" />,
-    title: "Your plan on the calendar",
-    body: "Scroll down to see your plan laid out day by day. Each colour shows a different growing phase.",
-    cta: "Got it! 👍",
-  },
-];
+// NO_PLAN_STEPS and WITH_PLAN_STEPS moved inside PlannerLanding component for i18n
 
 const CoachOverlay: React.FC<{
   steps: TourStep[];
+  guideLabel: string;
   onDone: () => void;
-}> = ({ steps, onDone }) => {
+}> = ({ steps, guideLabel, onDone }) => {
   const [idx, setIdx] = useState(0);
   const step = steps[idx];
   const isLast = idx === steps.length - 1;
@@ -133,7 +95,7 @@ const CoachOverlay: React.FC<{
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <Lightbulb size={12} className="text-amber-500" />
                   <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide">
-                    Guide · {idx + 1} of {steps.length}
+                    {guideLabel}
                   </p>
                 </div>
                 <p className="text-base font-bold text-slate-900">{step.title}</p>
@@ -283,6 +245,7 @@ const ForecastMonthGrid: React.FC<{
 };
 
 const WeatherForecastCalendar: React.FC = () => {
+  const t = useTranslations('compass');
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const FORECAST_DAYS = 60;
@@ -297,8 +260,8 @@ const WeatherForecastCalendar: React.FC = () => {
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-bold text-slate-900">Weather — next 60 days ☀️</p>
-        <span className="text-[10px] font-semibold text-sky-500 uppercase tracking-wide">Forecast</span>
+        <p className="text-sm font-bold text-slate-900">{t('weather.next60Days')} ☀️</p>
+        <span className="text-[10px] font-semibold text-sky-500 uppercase tracking-wide">{t('weather.forecast')}</span>
       </div>
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3">
         <div className="max-h-[460px] overflow-y-auto pr-1" style={{ scrollbarWidth: "thin" }}>
@@ -308,16 +271,16 @@ const WeatherForecastCalendar: React.FC = () => {
         </div>
         <div className="flex items-center gap-3 flex-wrap pt-2 border-t border-slate-100 mt-1">
           {[
-            { icon: <Sun size={12} className="text-amber-400" />, label: "Sunny" },
-            { icon: <Cloud size={12} className="text-slate-400" />, label: "Cloudy" },
-            { icon: <CloudRain size={12} className="text-sky-500" />, label: "Rain" },
-            { icon: <Wind size={12} className="text-slate-400" />, label: "Windy" },
+            { icon: <Sun size={12} className="text-amber-400" />, label: t('weather.sunny') },
+            { icon: <Cloud size={12} className="text-slate-400" />, label: t('weather.cloudy') },
+            { icon: <CloudRain size={12} className="text-sky-500" />, label: t('weather.rain') },
+            { icon: <Wind size={12} className="text-slate-400" />, label: t('weather.windy') },
           ].map(l => (
             <div key={l.label} className="flex items-center gap-1.5">{l.icon}<span className="text-[10px] text-slate-500 font-medium">{l.label}</span></div>
           ))}
           <div className="flex items-center gap-1.5 ml-auto">
             <div className="w-3 h-3 rounded-sm bg-compass-600" />
-            <span className="text-[10px] text-slate-500 font-medium">Today</span>
+            <span className="text-[10px] text-slate-500 font-medium">{t('weather.today')}</span>
           </div>
         </div>
       </div>
@@ -328,6 +291,7 @@ const WeatherForecastCalendar: React.FC = () => {
 // ─── Plan History Detail Sheet ────────────────────────────────────
 
 const PlanDetailSheet: React.FC<{ record: PlanRecord; onClose: () => void }> = ({ record, onClose }) => {
+  const t = useTranslations('compass');
   const start = new Date(record.date + "T00:00:00");
   const end = new Date(start.getTime() + (record.duration - 1) * 86_400_000);
   const fmtDate = (d: Date) => d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
@@ -344,9 +308,9 @@ const PlanDetailSheet: React.FC<{ record: PlanRecord; onClose: () => void }> = (
           <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-4" />
           <div className="flex items-start justify-between mb-4">
             <div>
-              <p className="text-xs text-slate-400 font-medium mb-0.5">Plan Summary</p>
+              <p className="text-xs text-slate-400 font-medium mb-0.5">{t('planner.planSummary')}</p>
               <h3 className="text-lg font-bold text-slate-900">
-                {record.planType === "fresher" ? "Fresh Start Plan" : "Mid-Season Plan"}
+                {record.planType === "fresher" ? t('planner.freshStartPlan') : t('planner.midSeasonPlan')}
               </h3>
             </div>
             <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100">
@@ -362,17 +326,17 @@ const PlanDetailSheet: React.FC<{ record: PlanRecord; onClose: () => void }> = (
             {isCompleted && <CheckCircle2 size={18} className="text-emerald-600" />}
             {isCancelled && <XCircle size={18} className="text-red-500" />}
             <p className={`text-sm font-bold ${isCompleted ? "text-emerald-700" : isCancelled ? "text-red-600" : "text-compass-700"}`}>
-              {isCompleted ? "Harvest completed successfully" : isCancelled ? "Plan was discarded" : "Active"}
+              {isCompleted ? t('planner.harvestCompletedSuccess') : isCancelled ? t('planner.planDiscarded') : t('planner.active')}
             </p>
           </div>
 
           <div className="space-y-2.5 mb-5">
             {[
-              { icon: <CalendarDays size={16} className="text-sky-500" />, label: "Start date", value: fmtDate(start) },
-              { icon: <CalendarDays size={16} className="text-sky-500" />, label: "End date", value: fmtDate(end) },
-              { icon: <Grid3X3 size={16} className="text-amber-500" />, label: "Number of beds", value: `${record.bedCount} beds` },
-              { icon: <Clock size={16} className="text-slate-400" />, label: "Plan duration", value: `${record.duration} days` },
-              ...(record.workerCount ? [{ icon: <Package size={16} className="text-violet-500" />, label: "Workers hired", value: `${record.workerCount} workers` }] : []),
+              { icon: <CalendarDays size={16} className="text-sky-500" />, label: t('planner.startDate'), value: fmtDate(start) },
+              { icon: <CalendarDays size={16} className="text-sky-500" />, label: t('planner.endDate'), value: fmtDate(end) },
+              { icon: <Grid3X3 size={16} className="text-amber-500" />, label: t('planner.numberOfBeds'), value: t('planner.beds', { count: record.bedCount }) },
+              { icon: <Clock size={16} className="text-slate-400" />, label: t('planner.planDuration'), value: t('planner.days', { count: record.duration }) },
+              ...(record.workerCount ? [{ icon: <Package size={16} className="text-violet-500" />, label: t('planner.workersHired'), value: t('planner.workers', { count: record.workerCount }) }] : []),
             ].map(row => (
               <div key={row.label} className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3">
                 <div className="flex items-center gap-2">{row.icon}<span className="text-sm text-slate-500">{row.label}</span></div>
@@ -383,22 +347,22 @@ const PlanDetailSheet: React.FC<{ record: PlanRecord; onClose: () => void }> = (
 
           {isCompleted && record.actualBags !== undefined && (
             <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
-              <p className="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-3">What actually happened</p>
+              <p className="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-3">{t('planner.whatActuallyHappened')}</p>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-slate-600">Bags produced</span>
+                <span className="text-sm text-slate-600">{t('planner.bagsProduced')}</span>
                 <span className="text-xl font-extrabold text-emerald-700">{record.actualBags}</span>
               </div>
               {record.actualDate && (
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-slate-600">Harvest date</span>
+                  <span className="text-sm text-slate-600">{t('planner.harvestDate')}</span>
                   <span className="text-sm font-bold text-slate-900">{fmtDate(new Date(record.actualDate + "T00:00:00"))}</span>
                 </div>
               )}
               {bagDiff !== null && (
                 <div className={`mt-2 rounded-xl px-3 py-2 text-sm font-semibold ${bagDiff >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
-                  {bagDiff > 0 && `🎉 ${bagDiff} more bags than we predicted — great work!`}
-                  {bagDiff === 0 && "🎯 Exactly as predicted — perfect!"}
-                  {bagDiff < 0 && `📉 ${Math.abs(bagDiff)} fewer bags than predicted.`}
+                  {bagDiff > 0 && `🎉 ${t('planner.moreBagsThanPredicted', { count: bagDiff })}`}
+                  {bagDiff === 0 && `🎯 ${t('planner.exactlyAsPredicted')}`}
+                  {bagDiff < 0 && `📉 ${t('planner.fewerBagsThanPredicted', { count: Math.abs(bagDiff) })}`}
                 </div>
               )}
             </div>
@@ -411,13 +375,13 @@ const PlanDetailSheet: React.FC<{ record: PlanRecord; onClose: () => void }> = (
 
 // ─── Plan History Card ────────────────────────────────────────────
 
-const PlanHistoryCard: React.FC<{ record: PlanRecord; onTap: () => void }> = ({ record, onTap }) => {
+const PlanHistoryCard: React.FC<{ record: PlanRecord; onTap: () => void; t: ReturnType<typeof useTranslations> }> = ({ record, onTap, t }) => {
   const start = new Date(record.date + "T00:00:00");
   const fmtDate = start.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   const statusConfig = {
-    active: { label: "Active", color: "bg-emerald-100 text-emerald-700" },
-    completed: { label: "Done", color: "bg-slate-100 text-slate-600" },
-    cancelled: { label: "Discarded", color: "bg-red-100 text-red-500" },
+    active: { label: t('planner.active'), color: "bg-emerald-100 text-emerald-700" },
+    completed: { label: t('planner.done'), color: "bg-slate-100 text-slate-600" },
+    cancelled: { label: t('planner.discarded'), color: "bg-red-100 text-red-500" },
   };
   const sc = statusConfig[record.status];
 
@@ -432,13 +396,13 @@ const PlanHistoryCard: React.FC<{ record: PlanRecord; onTap: () => void }> = ({ 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
           <p className="text-sm font-semibold text-slate-900 truncate">
-            {record.planType === "fresher" ? "Fresh Start" : "Mid-Season"} · {record.duration} days
+            {record.planType === "fresher" ? t('planner.freshStart') : t('planner.midSeason')} · {t('planner.days', { count: record.duration })}
           </p>
           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase flex-shrink-0 ${sc.color}`}>{sc.label}</span>
         </div>
-        <p className="text-xs text-slate-400">{fmtDate} · {record.bedCount} beds</p>
+        <p className="text-xs text-slate-400">{fmtDate} · {t('planner.beds', { count: record.bedCount })}</p>
         {record.actualBags !== undefined && (
-          <p className="text-[11px] text-emerald-600 font-semibold mt-0.5">✓ {record.actualBags} bags harvested</p>
+          <p className="text-[11px] text-emerald-600 font-semibold mt-0.5">✓ {t('planner.bagsHarvested', { count: record.actualBags })}</p>
         )}
       </div>
       <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
@@ -455,9 +419,23 @@ export const PlannerLanding: React.FC<PlannerLandingProps> = ({
   onHarvestNow,
   onDiscardPlan,
 }) => {
+  const t = useTranslations('compass');
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [selectedHistory, setSelectedHistory] = useState<PlanRecord | null>(null);
   const [showTour, setShowTour] = useState(false);
+
+  // Tour steps defined inside component for i18n access
+  const NO_PLAN_STEPS: TourStep[] = [
+    { icon: <Plus size={20} className="text-compass-600" />, title: t('tour.createFirstPlan'), body: t('tour.createFirstPlanBody'), cta: t('tour.nextTip') },
+    { icon: <Sun size={20} className="text-amber-500" />, title: t('tour.checkWeather'), body: t('tour.checkWeatherBody'), cta: t('tour.nextTip') },
+    { icon: <CalendarDays size={20} className="text-slate-500" />, title: t('tour.yourPastPlans'), body: t('tour.yourPastPlansBody'), cta: t('tour.gotIt') },
+  ];
+
+  const WITH_PLAN_STEPS: TourStep[] = [
+    { icon: <Scissors size={20} className="text-amber-600" />, title: t('tour.harvestWhenReady'), body: t('tour.harvestWhenReadyBody'), cta: t('tour.nextTip') },
+    { icon: <Trash2 size={20} className="text-red-400" />, title: t('tour.changedMind'), body: t('tour.changedMindBody'), cta: t('tour.nextTip') },
+    { icon: <CalendarDays size={20} className="text-compass-600" />, title: t('tour.planOnCalendar'), body: t('tour.planOnCalendarBody'), cta: t('tour.gotIt') },
+  ];
 
   // Show tour only on first visit (localStorage flag)
   useEffect(() => {
@@ -485,9 +463,9 @@ export const PlannerLanding: React.FC<PlannerLandingProps> = ({
       {/* ── Header ── */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">My Plans</h1>
+          <h1 className="text-xl font-bold text-slate-900">{t('planner.myPlans')}</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            {activePlan ? "You have an active plan" : "No active plan right now"}
+            {activePlan ? t('planner.youHaveActivePlan') : t('planner.noActivePlanNow')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -496,7 +474,7 @@ export const PlannerLanding: React.FC<PlannerLandingProps> = ({
             <button
               onClick={() => setShowTour(true)}
               className="p-2 rounded-xl bg-amber-50 border border-amber-100 hover:bg-amber-100 transition-colors"
-              title="Show guide"
+              title={t('tour.guide', { current: 1, total: tourSteps.length })}
             >
               <Lightbulb size={16} className="text-amber-500" />
             </button>
@@ -508,7 +486,7 @@ export const PlannerLanding: React.FC<PlannerLandingProps> = ({
                 className="flex items-center gap-1.5 bg-compass-600 text-white text-sm font-bold px-4 py-2.5 rounded-xl shadow-md shadow-compass-600/25 active:scale-95 transition-all"
               >
                 <Plus size={16} />
-                New Plan
+                {t('planner.newPlan')}
               </button>
             </PulseRing>
           )}
@@ -519,14 +497,14 @@ export const PlannerLanding: React.FC<PlannerLandingProps> = ({
       {activePlan ? (
         <>
           <div className="bg-compass-600 rounded-2xl p-4 mb-4 shadow-lg shadow-compass-600/20">
-            <p className="text-xs text-white/60 mb-1">Your current plan</p>
+            <p className="text-xs text-white/60 mb-1">{t('planner.yourCurrentPlan')}</p>
             <h2 className="text-base font-bold text-white mb-3">
-              {activePlan.planType === "fresher" ? "Fresh Start" : "Mid-Season"} · {activePlan.duration} days
+              {activePlan.planType === "fresher" ? t('planner.freshStart') : t('planner.midSeason')} · {t('planner.days', { count: activePlan.duration })}
             </h2>
             <div className="flex flex-wrap gap-x-4 gap-y-1">
-              <div className="flex items-center gap-1.5"><Grid3X3 size={13} className="text-white/60" /><span className="text-xs text-white/80">{activePlan.bedCount} beds</span></div>
-              {startDate && <div className="flex items-center gap-1.5"><Clock size={13} className="text-white/60" /><span className="text-xs text-white/80">From {fmtShort(startDate)}</span></div>}
-              {endDate && <div className="flex items-center gap-1.5"><CalendarDays size={13} className="text-white/60" /><span className="text-xs text-white/80">To {fmtShort(endDate)}</span></div>}
+              <div className="flex items-center gap-1.5"><Grid3X3 size={13} className="text-white/60" /><span className="text-xs text-white/80">{t('planner.beds', { count: activePlan.bedCount })}</span></div>
+              {startDate && <div className="flex items-center gap-1.5"><Clock size={13} className="text-white/60" /><span className="text-xs text-white/80">{t('planner.from', { date: fmtShort(startDate) })}</span></div>}
+              {endDate && <div className="flex items-center gap-1.5"><CalendarDays size={13} className="text-white/60" /><span className="text-xs text-white/80">{t('planner.to', { date: fmtShort(endDate) })}</span></div>}
             </div>
           </div>
 
@@ -539,8 +517,8 @@ export const PlannerLanding: React.FC<PlannerLandingProps> = ({
                 <Scissors size={20} className="text-amber-600" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-bold text-slate-900">Harvest Now</p>
-                <p className="text-xs text-slate-500">Record your results</p>
+                <p className="text-sm font-bold text-slate-900">{t('planner.harvestNow')}</p>
+                <p className="text-xs text-slate-500">{t('planner.recordResults')}</p>
               </div>
             </button>
             <button
@@ -548,7 +526,7 @@ export const PlannerLanding: React.FC<PlannerLandingProps> = ({
               className="flex flex-col items-center justify-center gap-1.5 bg-red-50 border-2 border-red-100 hover:border-red-300 rounded-2xl px-5 active:scale-[0.98] transition-all"
             >
               <Trash2 size={20} className="text-red-400" />
-              <span className="text-xs font-bold text-red-400">Discard</span>
+              <span className="text-xs font-bold text-red-400">{t('planner.discard')}</span>
             </button>
           </div>
 
@@ -557,13 +535,13 @@ export const PlannerLanding: React.FC<PlannerLandingProps> = ({
               <div className="flex items-start gap-3 mb-3">
                 <AlertTriangle size={18} className="text-red-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-bold text-red-800">Remove this plan?</p>
-                  <p className="text-xs text-red-500 mt-0.5">This cannot be undone.</p>
+                  <p className="text-sm font-bold text-red-800">{t('planner.removePlan')}</p>
+                  <p className="text-xs text-red-500 mt-0.5">{t('planner.cannotBeUndone')}</p>
                 </div>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => setConfirmDiscard(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-white border border-slate-200 text-slate-700 active:scale-95 transition-all">Keep it</button>
-                <button onClick={() => { setConfirmDiscard(false); onDiscardPlan(); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-red-600 text-white active:scale-95 transition-all">Yes, Remove</button>
+                <button onClick={() => setConfirmDiscard(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-white border border-slate-200 text-slate-700 active:scale-95 transition-all">{t('planner.keepIt')}</button>
+                <button onClick={() => { setConfirmDiscard(false); onDiscardPlan(); }} className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-red-600 text-white active:scale-95 transition-all">{t('planner.yesRemove')}</button>
               </div>
             </div>
           )}
@@ -581,8 +559,8 @@ export const PlannerLanding: React.FC<PlannerLandingProps> = ({
               <Plus size={26} className="text-compass-600" />
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-900">Start a new harvest plan</p>
-              <p className="text-xs text-slate-400 mt-0.5">We'll guide you through it step by step</p>
+              <p className="text-sm font-bold text-slate-900">{t('planner.startNewPlan')}</p>
+              <p className="text-xs text-slate-400 mt-0.5">{t('planner.guideYou')}</p>
             </div>
           </button>
 
@@ -592,16 +570,16 @@ export const PlannerLanding: React.FC<PlannerLandingProps> = ({
 
       {/* ── Past Plans ── */}
       <div>
-        <p className="text-sm font-bold text-slate-900 mb-3">Past Plans</p>
+        <p className="text-sm font-bold text-slate-900 mb-3">{t('planner.pastPlans')}</p>
         {planHistory.length === 0 ? (
           <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-6 text-center">
             <CalendarDays size={24} className="text-slate-300 mx-auto mb-2" />
-            <p className="text-sm text-slate-400">No past plans yet</p>
+            <p className="text-sm text-slate-400">{t('planner.noPastPlans')}</p>
           </div>
         ) : (
           <div className="space-y-2">
             {planHistory.map(r => (
-              <PlanHistoryCard key={r.id} record={r} onTap={() => setSelectedHistory(r)} />
+              <PlanHistoryCard key={r.id} record={r} onTap={() => setSelectedHistory(r)} t={t} />
             ))}
           </div>
         )}
@@ -613,7 +591,7 @@ export const PlannerLanding: React.FC<PlannerLandingProps> = ({
       )}
 
       {/* ── Onboarding coach marks ── */}
-      {showTour && <CoachOverlay steps={tourSteps} onDone={dismissTour} />}
+      {showTour && <CoachOverlay steps={tourSteps} guideLabel={t('tour.guide', { current: 1, total: tourSteps.length })} onDone={dismissTour} />}
     </div>
   );
 };

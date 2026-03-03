@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { usePayhere } from '@/hooks/usePayhere';
@@ -25,6 +26,7 @@ function getDashboardPath(role: UserRole): string {
 }
 
 export default function PlansPage() {
+  const t = useTranslations('auth');
   const { user, isAuthenticated, isLoading, refreshUser } = useAuth();
   const router = useRouter();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
@@ -44,9 +46,9 @@ export default function PlansPage() {
   }, []);
 
   const onPaymentError = useCallback((err: string) => {
-    setError(`Payment failed: ${err}`);
+    setError(t('plans.paymentFailed', { error: err }));
     setCheckoutLoading(false);
-  }, []);
+  }, [t]);
 
   const { startPayment } = usePayhere({
     sandbox: true,
@@ -120,12 +122,12 @@ export default function PlansPage() {
           className="mx-auto"
         />
         <h2 className="text-2xl font-semibold text-slate-900 mt-4 tracking-tighter">
-          Choose Your Plan
+          {t('plans.title')}
         </h2>
         <p className="mt-1 text-sm text-slate-600">
           {isLab
-            ? 'Subscribe to access the laboratory system'
-            : 'Upgrade to unlock premium features'}
+            ? t('plans.labSubtitle')
+            : t('plans.upgradeSubtitle')}
         </p>
       </div>
 
@@ -140,7 +142,7 @@ export default function PlansPage() {
       {!isLab && user.isTrialActive && (
         <div className="mb-6 rounded-lg bg-emerald-50 border border-emerald-200 p-4 text-center">
           <p className="text-sm font-medium text-emerald-800">
-            14-Day Trial Active — {trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''} remaining
+            {t('plans.trialActive', { days: trialDaysLeft })}
           </p>
         </div>
       )}
@@ -148,7 +150,7 @@ export default function PlansPage() {
       {!isLab && !user.isTrialActive && !user.isSubscribed && (
         <div className="mb-6 rounded-lg bg-amber-50 border border-amber-200 p-4 text-center">
           <p className="text-sm font-medium text-amber-800">
-            Your trial period is over. Subscribe to continue using premium features.
+            {t('plans.trialOver')}
           </p>
         </div>
       )}
@@ -162,7 +164,7 @@ export default function PlansPage() {
             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
         >
-          Monthly
+          {t('plans.monthly')}
         </button>
         <button
           onClick={() => setBillingCycle('annual')}
@@ -171,8 +173,8 @@ export default function PlansPage() {
             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
         >
-          Annual
-          <span className="ml-1 text-xs text-emerald-600 font-semibold">Save 17%</span>
+          {t('plans.annual')}
+          <span className="ml-1 text-xs text-emerald-600 font-semibold">{t('plans.save17')}</span>
         </button>
       </div>
 
@@ -181,7 +183,7 @@ export default function PlansPage() {
         <div className="border-2 border-blue-500 rounded-xl p-6">
           <div className="flex items-center gap-2 mb-2">
             <Crown className="h-5 w-5 text-blue-500" />
-            <h3 className="text-lg font-semibold text-slate-900">Lab Plan</h3>
+            <h3 className="text-lg font-semibold text-slate-900">{t('plans.labPlan')}</h3>
           </div>
           <p className="text-3xl font-bold text-slate-900 mb-1">
             LKR {billingCycle === 'monthly' ? '2,500' : '25,000'}
@@ -190,17 +192,17 @@ export default function PlansPage() {
             </span>
           </p>
           <ul className="mt-4 space-y-2 text-sm text-slate-600">
-            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-blue-500" /> AI-powered quality inspection</li>
-            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-blue-500" /> Real-time camera monitoring</li>
-            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-blue-500" /> Batch purity reports</li>
-            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-blue-500" /> Detection history & analytics</li>
+            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-blue-500" /> {t('plans.aiInspection')}</li>
+            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-blue-500" /> {t('plans.cameraMonitoring')}</li>
+            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-blue-500" /> {t('plans.batchReports')}</li>
+            <li className="flex items-center gap-2"><Check className="h-4 w-4 text-blue-500" /> {t('plans.detectionAnalytics')}</li>
           </ul>
           <Button
             onClick={() => handleSubscribe('lab')}
             disabled={checkoutLoading}
             className="mt-6 h-12 w-full bg-blue-600 hover:bg-blue-500 font-semibold text-white"
           >
-            {checkoutLoading ? 'Processing...' : 'Subscribe Now'}
+            {checkoutLoading ? t('plans.processing') : t('plans.subscribeNow')}
           </Button>
         </div>
       ) : (
@@ -208,15 +210,15 @@ export default function PlansPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Free Plan */}
           <div className="border border-slate-200 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Free</h3>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">{t('plans.free')}</h3>
             <p className="text-3xl font-bold text-slate-900 mb-1">
               LKR 0
               <span className="text-sm font-normal text-slate-500">/mo</span>
             </p>
             <ul className="mt-4 space-y-2 text-sm text-slate-600">
-              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Basic dashboard access</li>
-              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Market overview</li>
-              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Limited analytics</li>
+              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> {t('plans.basicDashboard')}</li>
+              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> {t('plans.marketOverview')}</li>
+              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> {t('plans.limitedAnalytics')}</li>
             </ul>
             {(user.isTrialActive || user.isSubscribed) && (
               <Button
@@ -224,7 +226,7 @@ export default function PlansPage() {
                 variant="outline"
                 className="mt-6 h-12 w-full font-semibold"
               >
-                Continue with Free
+                {t('plans.continueWithFree')}
               </Button>
             )}
           </div>
@@ -232,11 +234,11 @@ export default function PlansPage() {
           {/* Pro Plan */}
           <div className="border-2 border-emerald-500 rounded-xl p-6 relative">
             <div className="absolute -top-3 left-4 bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
-              Recommended
+              {t('plans.recommended')}
             </div>
             <div className="flex items-center gap-2 mb-2">
               <Crown className="h-5 w-5 text-emerald-500" />
-              <h3 className="text-lg font-semibold text-slate-900">Pro</h3>
+              <h3 className="text-lg font-semibold text-slate-900">{t('plans.pro')}</h3>
             </div>
             <p className="text-3xl font-bold text-slate-900 mb-1">
               LKR {billingCycle === 'monthly' ? '1,500' : '15,000'}
@@ -245,17 +247,17 @@ export default function PlansPage() {
               </span>
             </p>
             <ul className="mt-4 space-y-2 text-sm text-slate-600">
-              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Everything in Free</li>
-              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Advanced analytics</li>
-              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Seasonal planning tools</li>
-              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Priority support</li>
+              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> {t('plans.everythingInFree')}</li>
+              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> {t('plans.advancedAnalytics')}</li>
+              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> {t('plans.seasonalPlanning')}</li>
+              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> {t('plans.prioritySupport')}</li>
             </ul>
             <Button
               onClick={() => handleSubscribe('pro')}
               disabled={checkoutLoading}
               className="mt-6 h-12 w-full bg-emerald-600 hover:bg-emerald-500 font-semibold text-white"
             >
-              {checkoutLoading ? 'Processing...' : 'Subscribe to Pro'}
+              {checkoutLoading ? t('plans.processing') : t('plans.subscribeToPro')}
             </Button>
           </div>
         </div>
@@ -268,7 +270,7 @@ export default function PlansPage() {
             onClick={handleContinue}
             className="text-sm text-slate-500 hover:text-slate-700 underline"
           >
-            Continue with current plan
+            {t('plans.continueWithCurrentPlan')}
           </button>
         </div>
       )}

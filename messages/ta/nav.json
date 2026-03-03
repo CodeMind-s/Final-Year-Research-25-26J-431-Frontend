@@ -1,0 +1,60 @@
+{
+  "compass": {
+    "home": "முகப்பு",
+    "planner": "திட்டமிடல்",
+    "marketAnalysis": "சந்தை பகுப்பாய்வு",
+    "market": "சந்தை",
+    "profile": "சுயவிவரம்",
+    "settings": "அமைப்புகள்",
+    "helpSupport": "உதவி & ஆதரவு",
+    "logout": "வெளியேறு",
+    "navigation": "வழிசெலுத்தல்",
+    "more": "மேலும்",
+    "brineXCompass": "BrineX திசைகாட்டி",
+    "landownerPortal": "நில உரிமையாளர் போர்ட்டல்",
+    "distributorPortal": "உப்பு விநியோகஸ்தர் போர்ட்டல்",
+    "footerVersion": "BrineX திசைகாட்டி v2.0 · உப்பளம் மேலாண்மை"
+  },
+  "crystal": {
+    "productionPrediction": "உற்பத்தி கணிப்பு",
+    "parameterRecording": "அளவுரு பதிவு",
+    "saltProductionRecording": "உப்பு உற்பத்தி பதிவு",
+    "reports": "அறிக்கைகள்",
+    "systemAlerts": "அமைப்பு எச்சரிக்கைகள்",
+    "settings": "அமைப்புகள்",
+    "syncData": "தரவை ஒத்திசை"
+  },
+  "admin": {
+    "overview": "மேலோட்டம்",
+    "users": "பயனர்கள்",
+    "plans": "திட்டங்கள்",
+    "payments": "கட்டணங்கள்",
+    "subscriptions": "சந்தாக்கள்",
+    "auditLogs": "தணிக்கைப் பதிவுகள்",
+    "dashboard": "டாஷ்போர்டு",
+    "saltProduction": "உப்பு உற்பத்தி",
+    "recording": "பதிவு",
+    "reports": "அறிக்கைகள்",
+    "alerts": "எச்சரிக்கைகள்",
+    "settings": "அமைப்புகள்",
+    "batches": "தொகுதிகள்",
+    "statistics": "புள்ளிவிவரங்கள்",
+    "saltSocietyPanel": "உப்பு சங்கப் பலகை",
+    "saltSocietySubtitle": "BrineX உப்பு சங்க மேலாண்மை",
+    "labPanel": "ஆய்வகப் பலகை",
+    "labSubtitle": "BrineX AI மூலம் தர ஆய்வு",
+    "adminPanel": "நிர்வாகப் பலகை",
+    "adminSubtitle": "BrineX தளம் மேலாண்மை",
+    "confirmLogout": "வெளியேற்றத்தை உறுதிசெய்",
+    "logoutMessage": "நீங்கள் நிச்சயமாக வெளியேற விரும்புகிறீர்களா? உள்நுழைவுப் பக்கத்திற்கு திருப்பிவிடப்படுவீர்கள்."
+  },
+  "seller": {
+    "home": "முகப்பு",
+    "myOffers": "எனது சலுகைகள்",
+    "offers": "சலுகைகள்",
+    "requests": "கோரிக்கைகள்",
+    "myDeals": "எனது ஒப்பந்தங்கள்",
+    "deals": "ஒப்பந்தங்கள்",
+    "myAccount": "எனது கணக்கு"
+  }
+}

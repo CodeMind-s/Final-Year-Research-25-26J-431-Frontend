@@ -1,0 +1,60 @@
+{
+  "compass": {
+    "home": "Home",
+    "planner": "Planner",
+    "marketAnalysis": "Market Analysis",
+    "market": "Market",
+    "profile": "Profile",
+    "settings": "Settings",
+    "helpSupport": "Help & Support",
+    "logout": "Logout",
+    "navigation": "Navigation",
+    "more": "More",
+    "brineXCompass": "BrineX Compass",
+    "landownerPortal": "Landowner Portal",
+    "distributorPortal": "Salt Distributor Portal",
+    "footerVersion": "BrineX Compass v2.0 · Salt Saltern Management"
+  },
+  "crystal": {
+    "productionPrediction": "Production Prediction",
+    "parameterRecording": "Parameter Recording",
+    "saltProductionRecording": "Salt Production Recording",
+    "reports": "Reports",
+    "systemAlerts": "System Alerts",
+    "settings": "Settings",
+    "syncData": "Sync Data"
+  },
+  "admin": {
+    "overview": "Overview",
+    "users": "Users",
+    "plans": "Plans",
+    "payments": "Payments",
+    "subscriptions": "Subscriptions",
+    "auditLogs": "Audit Logs",
+    "dashboard": "Dashboard",
+    "saltProduction": "Salt Production",
+    "recording": "Recording",
+    "reports": "Reports",
+    "alerts": "Alerts",
+    "settings": "Settings",
+    "batches": "Batches",
+    "statistics": "Statistics",
+    "saltSocietyPanel": "Salt Society Panel",
+    "saltSocietySubtitle": "BrineX Salt Society Management",
+    "labPanel": "Laboratory Panel",
+    "labSubtitle": "BrineX AI-Powered Quality Inspection",
+    "adminPanel": "Administration Panel",
+    "adminSubtitle": "BrineX Platform Management",
+    "confirmLogout": "Confirm Logout",
+    "logoutMessage": "Are you sure you want to log out? You will be redirected to the login page."
+  },
+  "seller": {
+    "home": "Home",
+    "myOffers": "My Offers",
+    "offers": "Offers",
+    "requests": "Requests",
+    "myDeals": "My Deals",
+    "deals": "Deals",
+    "myAccount": "My Account"
+  }
+}

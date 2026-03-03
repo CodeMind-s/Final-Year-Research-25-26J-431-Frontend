@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { X, Package, CheckCircle2, Clock } from 'lucide-react';
 import { Deal, DealStatus } from '@/dtos/compass/types';
 import { DealsSection } from './DealsSection';
@@ -16,12 +17,13 @@ export const DealsDialog: React.FC<DealsDialogProps> = ({
   onClose,
   onGenerateInvoice
 }) => {
+  const t = useTranslations('compass');
   const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
 
-  const activeDeals = deals.filter(d => 
+  const activeDeals = deals.filter(d =>
     d.status === DealStatus.ACCEPTED || d.status === DealStatus.NEGOTIATING
   );
-  const completedDeals = deals.filter(d => 
+  const completedDeals = deals.filter(d =>
     d.status === DealStatus.COMPLETED
   );
 
@@ -35,9 +37,9 @@ export const DealsDialog: React.FC<DealsDialogProps> = ({
               <Package size={24} />
             </div>
             <div>
-              <h2 className="text-xl font-bold">My Deals</h2>
+              <h2 className="text-xl font-bold">{t('deals.myDeals')}</h2>
               <p className="text-sm text-emerald-100">
-                {activeDeals.length} active • {completedDeals.length} completed
+                {t('deals.activeCount', { active: activeDeals.length, completed: completedDeals.length })}
               </p>
             </div>
           </div>
@@ -63,7 +65,7 @@ export const DealsDialog: React.FC<DealsDialogProps> = ({
             >
               <div className="flex items-center gap-2">
                 <Clock size={16} />
-                Active Deals
+                {t('deals.activeDeals')}
                 {activeDeals.length > 0 && (
                   <span className="bg-emerald-600 text-white text-xs px-2 py-0.5 rounded-full">
                     {activeDeals.length}
@@ -74,7 +76,7 @@ export const DealsDialog: React.FC<DealsDialogProps> = ({
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600" />
               )}
             </button>
-            
+
             <button
               onClick={() => setActiveTab('completed')}
               className={`px-4 py-3 font-semibold text-sm relative transition-colors ${
@@ -85,7 +87,7 @@ export const DealsDialog: React.FC<DealsDialogProps> = ({
             >
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={16} />
-                Completed
+                {t('deals.completed')}
                 {completedDeals.length > 0 && (
                   <span className="bg-slate-400 text-white text-xs px-2 py-0.5 rounded-full">
                     {completedDeals.length}
@@ -111,9 +113,9 @@ export const DealsDialog: React.FC<DealsDialogProps> = ({
             ) : (
               <div className="text-center py-12">
                 <Clock size={48} className="text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-600 font-semibold">No Active Deals</p>
+                <p className="text-slate-600 font-semibold">{t('deals.noActiveDeals')}</p>
                 <p className="text-sm text-slate-500 mt-1">
-                  Start negotiating with sellers to create deals
+                  {t('deals.startNegotiating')}
                 </p>
               </div>
             )
@@ -127,9 +129,9 @@ export const DealsDialog: React.FC<DealsDialogProps> = ({
             ) : (
               <div className="text-center py-12">
                 <CheckCircle2 size={48} className="text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-600 font-semibold">No Completed Deals</p>
+                <p className="text-slate-600 font-semibold">{t('deals.noCompletedDeals')}</p>
                 <p className="text-sm text-slate-500 mt-1">
-                  Completed deals will appear here
+                  {t('deals.completedWillAppear')}
                 </p>
               </div>
             )

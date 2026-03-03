@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -46,71 +47,10 @@ interface NavItem {
   icon: React.ElementType;
 }
 
-const superadminNavItems: NavItem[] = [
-  { name: "Overview", href: "/superadmin/dashboard", icon: LayoutDashboard },
-  { name: "Users", href: "/superadmin/users", icon: Users },
-  { name: "Plans", href: "/superadmin/plans", icon: CreditCard },
-  { name: "Payments", href: "/superadmin/payments", icon: FileText },
-  { name: "Subscriptions", href: "/superadmin/subscriptions", icon: Receipt },
-  { name: "Audit Logs", href: "/superadmin/audit-logs", icon: Logs },
-];
-
-const adminNavItems: NavItem[] = [
-  { name: "Overview", href: "/superadmin/dashboard", icon: LayoutDashboard },
-  { name: "Users", href: "/superadmin/users", icon: Users },
-  { name: "Plans", href: "/superadmin/plans", icon: CreditCard },
-  { name: "Payments", href: "/superadmin/payments", icon: FileText },
-  { name: "Subscriptions", href: "/superadmin/subscriptions", icon: Receipt },
-];
-
-const saltSocietyNavItems: NavItem[] = [
-  { name: "Dashboard", href: "/salt-society/dashboard", icon: LayoutDashboard },
-  { name: "Salt Production", href: "/salt-society/salt-production", icon: FlaskConical },
-  { name: "Recording", href: "/salt-society/recording", icon: Video },
-  { name: "Reports", href: "/salt-society/reports", icon: BarChart2 },
-  { name: "Alerts", href: "/salt-society/alerts", icon: Bell },
-  { name: "Settings", href: "/salt-society/settings", icon: Settings },
-];
-
-const laboratoryNavItems: NavItem[] = [
-  { name: "Dashboard", href: "/laboratory/dashboard", icon: LayoutDashboard },
-  { name: "Batches", href: "/laboratory/batch", icon: FlaskConical },
-  { name: "Statistics", href: "/laboratory/statistics", icon: BarChart2 },
-  { name: "Reports", href: "/laboratory/reports", icon: FileText },
-  { name: "Settings", href: "/laboratory/settings", icon: Settings },
-];
-
-function getNavItems(role?: UserRole): NavItem[] {
-  switch (role) {
-    case UserRole.SUPERADMIN:
-      return superadminNavItems;
-    case UserRole.ADMIN:
-      return adminNavItems;
-    case UserRole.SALTSOCIETY:
-      return saltSocietyNavItems;
-    case UserRole.LABORATORY:
-      return laboratoryNavItems;
-    default:
-      return [];
-  }
-}
-
-function getPanelTitle(role?: UserRole): { title: string; subtitle: string } {
-  switch (role) {
-    case UserRole.SALTSOCIETY:
-      return { title: "Salt Society Panel", subtitle: "BrineX Salt Society Management" };
-    case UserRole.LABORATORY:
-      return { title: "Laboratory Panel", subtitle: "BrineX AI-Powered Quality Inspection" };
-    case UserRole.ADMIN:
-    case UserRole.SUPERADMIN:
-    default:
-      return { title: "Administration Panel", subtitle: "BrineX Platform Management" };
-  }
-}
-
 export function AdminDashboardLayout({
   children,
 }: AdminDashboardLayoutProps) {
+  const t = useTranslations('nav');
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
@@ -120,6 +60,68 @@ export function AdminDashboardLayout({
     localStorage.clear();
     logout();
   };
+
+  const superadminNavItems: NavItem[] = [
+    { name: t('admin.overview'), href: "/superadmin/dashboard", icon: LayoutDashboard },
+    { name: t('admin.users'), href: "/superadmin/users", icon: Users },
+    { name: t('admin.plans'), href: "/superadmin/plans", icon: CreditCard },
+    { name: t('admin.payments'), href: "/superadmin/payments", icon: FileText },
+    { name: t('admin.subscriptions'), href: "/superadmin/subscriptions", icon: Receipt },
+    { name: t('admin.auditLogs'), href: "/superadmin/audit-logs", icon: Logs },
+  ];
+
+  const adminNavItems: NavItem[] = [
+    { name: t('admin.overview'), href: "/superadmin/dashboard", icon: LayoutDashboard },
+    { name: t('admin.users'), href: "/superadmin/users", icon: Users },
+    { name: t('admin.plans'), href: "/superadmin/plans", icon: CreditCard },
+    { name: t('admin.payments'), href: "/superadmin/payments", icon: FileText },
+    { name: t('admin.subscriptions'), href: "/superadmin/subscriptions", icon: Receipt },
+  ];
+
+  const saltSocietyNavItems: NavItem[] = [
+    { name: t('admin.dashboard'), href: "/salt-society/dashboard", icon: LayoutDashboard },
+    { name: t('admin.saltProduction'), href: "/salt-society/salt-production", icon: FlaskConical },
+    { name: t('admin.recording'), href: "/salt-society/recording", icon: Video },
+    { name: t('admin.reports'), href: "/salt-society/reports", icon: BarChart2 },
+    { name: t('admin.alerts'), href: "/salt-society/alerts", icon: Bell },
+    { name: t('admin.settings'), href: "/salt-society/settings", icon: Settings },
+  ];
+
+  const laboratoryNavItems: NavItem[] = [
+    { name: t('admin.dashboard'), href: "/laboratory/dashboard", icon: LayoutDashboard },
+    { name: t('admin.batches'), href: "/laboratory/batch", icon: FlaskConical },
+    { name: t('admin.statistics'), href: "/laboratory/statistics", icon: BarChart2 },
+    { name: t('admin.reports'), href: "/laboratory/reports", icon: FileText },
+    { name: t('admin.settings'), href: "/laboratory/settings", icon: Settings },
+  ];
+
+  function getNavItems(role?: UserRole): NavItem[] {
+    switch (role) {
+      case UserRole.SUPERADMIN:
+        return superadminNavItems;
+      case UserRole.ADMIN:
+        return adminNavItems;
+      case UserRole.SALTSOCIETY:
+        return saltSocietyNavItems;
+      case UserRole.LABORATORY:
+        return laboratoryNavItems;
+      default:
+        return [];
+    }
+  }
+
+  function getPanelTitle(role?: UserRole): { title: string; subtitle: string } {
+    switch (role) {
+      case UserRole.SALTSOCIETY:
+        return { title: t('admin.saltSocietyPanel'), subtitle: t('admin.saltSocietySubtitle') };
+      case UserRole.LABORATORY:
+        return { title: t('admin.labPanel'), subtitle: t('admin.labSubtitle') };
+      case UserRole.ADMIN:
+      case UserRole.SUPERADMIN:
+      default:
+        return { title: t('admin.adminPanel'), subtitle: t('admin.adminSubtitle') };
+    }
+  }
 
   const navItems = getNavItems(user?.role);
   const { title, subtitle } = getPanelTitle(user?.role);
@@ -234,10 +236,9 @@ export function AdminDashboardLayout({
       <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.confirmLogout')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to log out? You will be redirected to the
-              login page.
+              {t('admin.logoutMessage')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

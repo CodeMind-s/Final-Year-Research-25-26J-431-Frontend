@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect} from "react";
+import { useTranslations } from "next-intl";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 import {
   Home,
   Tag,
@@ -81,7 +83,7 @@ const REQ_BADGE: Record<OfferRequirement, { label: string; color: string }> = {
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
-function timeAgo(ts: number) {
+function timeAgo(ts: number, t: ReturnType<typeof useTranslations>) {
   const d = Date.now() - ts;
   if (d < 3600000) return `${Math.floor(d / 60000)} min ago`;
   if (d < 86400000) return `${Math.floor(d / 3600000)} hr ago`;
@@ -94,6 +96,7 @@ const ConfirmDialog: React.FC<{
   title: string;
   message: string;
   confirmLabel: string;
+  cancelLabel: string;
   confirmColor?: string;
   onConfirm: () => void;
   onCancel: () => void;
@@ -206,29 +209,29 @@ const PublishOfferForm: React.FC<{
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
         <div className="flex items-center justify-between mb-4">
         <p className="text-base font-bold text-slate-900">
-          {isEdit ? " Edit Your Offer" : "📢 Publish a New Offer"}
+          {isEdit ? ` ${t('offer.editOffer')}` : `📢 ${t('offer.publishNew')}`}
         </p>
         {onCancel && (
           <button
             onClick={onCancel}
             className="text-xs text-slate-400 hover:text-slate-600"
           >
-            Cancel
+            {tc('cancel')}
           </button>
         )}
       </div>
 
       <p className="text-sm text-slate-500 mb-5 leading-relaxed">
         {isEdit
-          ? "Update your offer details. Landowners will see the new price and quantity."
-          : "Set your buying price and how many bags you need. All landowners will see your offer."}
+          ? t('offer.editDesc')
+          : t('offer.publishDesc')}
       </p>
 
       <div className="space-y-5 mb-6">
         {/* Price input */}
         <div className="bg-slate-50 rounded-2xl p-4">
           <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">
-            You will pay (per bag)
+            {t('offer.youWillPay')}
           </label>
           <div className="flex items-center gap-4">
             <button
@@ -253,7 +256,7 @@ const PublishOfferForm: React.FC<{
                 />
               </div>
               <span className="block text-xs text-slate-400 mt-0.5 font-medium">
-                per bag
+                {t('offer.perBag')}
               </span>
             </div>
             <button
@@ -268,7 +271,7 @@ const PublishOfferForm: React.FC<{
         {/* Bags input */}
         <div className="bg-slate-50 rounded-2xl p-4">
           <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">
-            Bags you need to buy
+            {t('offer.bagsNeedToBuy')}
           </label>
           <div className="flex items-center gap-4">
             <button
@@ -288,7 +291,7 @@ const PublishOfferForm: React.FC<{
                 className="number-input w-full text-4xl font-extrabold text-slate-900 bg-transparent text-center border-none outline-none focus:ring-2 focus:ring-compass-200 rounded-lg px-2 py-1"
               />
               <span className="block text-xs text-slate-400 mt-0.5 font-medium">
-                bags
+                {t('offer.bagsLabel')}
               </span>
             </div>
             <button
@@ -303,7 +306,7 @@ const PublishOfferForm: React.FC<{
         {/* Urgency */}
         <div>
           <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">
-            How urgently do you need this?
+            {t('offer.howUrgent')}
           </label>
           <div className="flex gap-2">
             {(["HIGH", "MEDIUM", "LOW"] as OfferRequirement[]).map((r) => (
@@ -313,10 +316,10 @@ const PublishOfferForm: React.FC<{
                 className={`flex-1 py-3 rounded-xl text-sm font-bold border-2 transition-all ${req === r ? "border-compass-500 bg-compass-50 text-compass-700" : "border-slate-100 bg-white text-slate-400"}`}
               >
                 {r === "HIGH"
-                  ? "🔴 Urgent"
+                  ? `🔴 ${t('offer.urgent')}`
                   : r === "MEDIUM"
-                    ? "🟡 Normal"
-                    : "🟢 Relaxed"}
+                    ? `🟡 ${t('offer.normal')}`
+                    : `🟢 ${t('offer.relaxed')}`}
               </button>
             ))}
           </div>
@@ -327,10 +330,10 @@ const PublishOfferForm: React.FC<{
       <div className="bg-compass-50 rounded-2xl px-4 py-3 mb-5 flex justify-between items-center border border-compass-100">
         <div>
           <p className="text-xs text-compass-700 font-medium">
-            Total you will spend
+            {t('offer.totalSpend')}
           </p>
           <p className="text-xs text-compass-500 mt-0.5">
-            if all bags are filled
+            {t('offer.ifAllFilled')}
           </p>
         </div>
         <p className="text-xl font-extrabold text-compass-800">
@@ -352,7 +355,7 @@ const PublishOfferForm: React.FC<{
         {isLoading ? (
           <>
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            {isEdit ? "Updating..." : "Saving..."}
+            {isEdit ? t('offer.updateOffer') : t('offer.publishToAll')}
           </>
         ) : (
           <>
@@ -431,12 +434,12 @@ const ActiveOfferCard: React.FC<{
             <p className="text-3xl font-extrabold">
               Rs. {offer?.pricePerKilo?.toLocaleString()}
             </p>
-            <p className="text-xs text-white/60 mt-0.5">you pay per bag</p>
+            <p className="text-xs text-white/60 mt-0.5">{t('offer.youPayPerBag')}</p>
           </div>
           <div className="w-px bg-white/20" />
           <div>
             <p className="text-3xl font-extrabold">{offer.targetQuantity}</p>
-            <p className="text-xs text-white/60 mt-0.5">bags needed</p>
+            <p className="text-xs text-white/60 mt-0.5">{t('offer.bagsNeeded')}</p>
           </div>
         </div>
 
@@ -444,7 +447,7 @@ const ActiveOfferCard: React.FC<{
         <div className="bg-white/15 rounded-2xl p-4 mb-4">
           <div className="flex justify-between text-sm mb-2">
             <span className="text-white/70 font-medium">
-              Bags filled so far
+              {t('offer.bagsFilled')}
             </span>
             <span className="font-bold">{pct.toFixed(0)}%</span>
           </div>
@@ -552,13 +555,13 @@ const RequestCard: React.FC<{
             onClick={onDecline}
             className="flex-1 py-3 rounded-xl text-sm font-bold text-red-500 bg-red-50 border border-red-100 active:scale-95 transition-all"
           >
-            ✕ Decline
+            ✕ {t('requests.decline')}
           </button>
           <button
             onClick={onAccept}
             className="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-emerald-600 shadow-md shadow-emerald-600/20 active:scale-95 transition-all"
           >
-            ✓ Accept Deal
+            ✓ {t('requests.acceptDeal')}
           </button>
         </div>
       )}
@@ -619,6 +622,10 @@ const DealCard: React.FC<{ deal: DealObject }> = ({ deal }) => {
 // ─── Main Component ───────────────────────────────────────────────
 
 export default function DistributorDashboard() {
+  const t = useTranslations('seller');
+  const tc = useTranslations('common');
+  const tn = useTranslations('nav');
+
   const [tab, setTab] = useState<Tab>("home");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [offers, setOffers] = useState<DistributorOfferObject[]>([]);
@@ -895,17 +902,17 @@ export default function DistributorDashboard() {
       {/* Summary chips */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-compass-600 rounded-2xl p-4 text-white relative overflow-hidden">
-          <p className="text-xs text-white/60 font-medium">Active Deals</p>
+          <p className="text-xs text-white/60 font-medium">{t('activeDeals')}</p>
           <p className="text-3xl font-extrabold mt-1">{activeDeals.length}</p>
-          <p className="text-[10px] text-white/50 mt-0.5">deals in progress</p>
+          <p className="text-[10px] text-white/50 mt-0.5">{t('dealsInProgress')}</p>
         </div>
         <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-          <p className="text-xs text-slate-400 font-medium">Pending Requests</p>
+          <p className="text-xs text-slate-400 font-medium">{t('pendingRequests')}</p>
           <p className="text-3xl font-extrabold text-slate-900 mt-1">
             {unreadCount}
           </p>
           <p className="text-[10px] text-slate-400 mt-0.5">
-            waiting for your reply
+            {t('waitingForReply')}
           </p>
         </div>
       </div>
@@ -932,6 +939,8 @@ export default function DistributorDashboard() {
           isEdit={editingOffer}
           onPublish={handlePublish}
           onCancel={editingOffer ? () => setEditingOffer(false) : undefined}
+          t={t}
+          tc={tc}
         />
       )}
 
@@ -941,29 +950,29 @@ export default function DistributorDashboard() {
           onClick={() => setShowReplaceConfirm(true)}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-slate-200 text-sm font-semibold text-slate-400 hover:bg-slate-50 transition-all"
         >
-          <Plus size={16} /> Replace with a new offer
+          <Plus size={16} /> {t('offer.replaceWithNew')}
         </button>
       )}
 
       {/* Recent requests */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-base font-bold text-slate-900">Recent Requests</p>
+          <p className="text-base font-bold text-slate-900">{t('requests.recentRequests')}</p>
           <button
             onClick={() => setTab("requests")}
             className="text-sm font-semibold text-compass-600 flex items-center gap-0.5"
           >
-            See all <ChevronRight size={14} />
+            {t('requests.seeAll')} <ChevronRight size={14} />
           </button>
         </div>
         {pendingRequests.length === 0 ? (
           <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-8 text-center">
             <Bell size={24} className="text-slate-300 mx-auto mb-2" />
             <p className="text-sm font-medium text-slate-400">
-              No new requests yet
+              {t('requests.noNewRequests')}
             </p>
             <p className="text-xs text-slate-300 mt-1">
-              Landowners who see your offer can send a request
+              {t('requests.landowersCanSend')}
             </p>
           </div>
         ) : (
@@ -992,7 +1001,7 @@ export default function DistributorDashboard() {
 
   const OffersTab = (
     <div className="px-4 pt-5 pb-6 space-y-5">
-      <h2 className="text-xl font-bold text-slate-900">My Offers</h2>
+      <h2 className="text-xl font-bold text-slate-900">{tn('seller.myOffers')}</h2>
 
       {activeOffer && !editingOffer ? (
         <>
@@ -1011,7 +1020,7 @@ export default function DistributorDashboard() {
             onClick={() => setShowReplaceConfirm(true)}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-slate-200 text-sm font-semibold text-slate-400 hover:bg-slate-50 transition-all"
           >
-            <Plus size={16} /> Replace with a new offer
+            <Plus size={16} /> {t('offer.replaceWithNew')}
           </button>
         </>
       ) : (
@@ -1023,13 +1032,15 @@ export default function DistributorDashboard() {
           isEdit={editingOffer}
           onPublish={handlePublish}
           onCancel={editingOffer ? () => setEditingOffer(false) : undefined}
+          t={t}
+          tc={tc}
         />
       )}
 
       {/* Recent offers (readonly) */}
       <div>
         <p className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wide">
-          Recent Offers (History)
+          {t('offer.pastOffers')}
         </p>
         {offers.filter((o) => o._id !== activeOffer?._id).length > 0 ? (
           <div className="space-y-2">
@@ -1071,7 +1082,7 @@ export default function DistributorDashboard() {
   const RequestsTab = (
     <div className="px-4 pt-5 pb-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-slate-900">Requests Received</h2>
+        <h2 className="text-xl font-bold text-slate-900">{t('requests.title')}</h2>
         {unreadCount > 0 && (
           <span className="text-xs font-bold bg-red-500 text-white px-2.5 py-1 rounded-full">
             {unreadCount} new
@@ -1101,7 +1112,7 @@ export default function DistributorDashboard() {
         <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-10 text-center mt-4">
           <Bell size={28} className="text-slate-300 mx-auto mb-2" />
           <p className="text-sm font-medium text-slate-400">
-            No requests here yet
+            {t('requests.noRequests')}
           </p>
         </div>
       ) : (
@@ -1122,7 +1133,7 @@ export default function DistributorDashboard() {
   const DealsTab = (
     <div className="px-4 pt-5 pb-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-slate-900">My Deals</h2>
+        <h2 className="text-xl font-bold text-slate-900">{t('deals.title')}</h2>
         <div className="flex bg-slate-100 rounded-xl p-0.5">
           {(["active", "done"] as const).map((t) => (
             <button
@@ -1146,7 +1157,7 @@ export default function DistributorDashboard() {
           </p>
           {dealsTab === "active" && (
             <p className="text-xs text-slate-300 mt-1">
-              Accept a request to create a deal
+              {t('deals.acceptToCreate')}
             </p>
           )}
         </div>
@@ -1165,8 +1176,8 @@ export default function DistributorDashboard() {
       <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
         <CircleUserRound size={28} className="text-slate-400" />
       </div>
-      <h2 className="text-lg font-bold text-slate-900 mb-1">My Account</h2>
-      <p className="text-sm text-slate-500">Coming soon</p>
+      <h2 className="text-lg font-bold text-slate-900 mb-1">{t('account.title')}</h2>
+      <p className="text-sm text-slate-500">{tc('comingSoon')}</p>
     </div>
   );
 
@@ -1284,10 +1295,10 @@ export default function DistributorDashboard() {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-slate-900">
-                    BrineX Compass
+                    {tn('compass.brineXCompass')}
                   </p>
                   <p className="text-[11px] text-slate-500">
-                    Salt Distributor Portal
+                    {tn('compass.distributorPortal')}
                   </p>
                 </div>
               </div>
@@ -1302,7 +1313,7 @@ export default function DistributorDashboard() {
             {/* Nav items */}
             <div className="flex-1 overflow-y-auto py-3 px-3">
               <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">
-                Navigation
+                {tn('compass.navigation')}
               </p>
               <nav className="space-y-1">
                 {drawerItems.map(({ id, label, icon: Icon, badge }) => {
@@ -1337,7 +1348,7 @@ export default function DistributorDashboard() {
 
               <div className="my-4 border-t border-slate-100" />
               <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">
-                More
+                {tn('compass.more')}
               </p>
               <nav className="space-y-1">
                 {[{ label: "Sign Out", danger: true }].map((item) => (
@@ -1356,7 +1367,7 @@ export default function DistributorDashboard() {
 
             <div className="p-4 pt-3 border-t border-slate-100">
               <p className="text-[11px] text-slate-400 text-center">
-                BrineX Compass v2.0 · Salt Saltern Management
+                {tn('compass.footerVersion')}
               </p>
             </div>
           </div>
@@ -1366,9 +1377,10 @@ export default function DistributorDashboard() {
       {/* ── Replace offer confirmation ── */}
       {showReplaceConfirm && (
         <ConfirmDialog
-          title="Replace your current offer?"
-          message="Your current offer will be removed and you can publish a new one with different details."
-          confirmLabel="Yes, Replace"
+          title={t('confirm.replaceOffer')}
+          message={t('confirm.replaceOfferMsg')}
+          confirmLabel={t('confirm.yesReplace')}
+          cancelLabel={tc('cancel')}
           confirmColor="bg-compass-600"
           onConfirm={() => {
             setOffers((prev) =>
@@ -1389,6 +1401,7 @@ export default function DistributorDashboard() {
           title={confirm.title}
           message={confirm.message}
           confirmLabel={confirm.confirmLabel}
+          cancelLabel={tc('cancel')}
           confirmColor={confirm.confirmColor}
           onConfirm={confirm.onConfirm}
           onCancel={() => setConfirm(null)}
