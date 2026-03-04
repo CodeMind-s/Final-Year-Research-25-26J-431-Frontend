@@ -21,6 +21,7 @@ import {
   Bell,
   Settings,
   File,
+  RecycleIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -83,6 +84,7 @@ export function AdminDashboardLayout({
     { name: t('admin.dashboard'), href: "/salt-society/dashboard", icon: LayoutDashboard },
     { name: t('admin.recording'), href: "/salt-society/recording", icon: File },
     { name: t('admin.saltProduction'), href: "/salt-society/salt-production", icon: FlaskConical },
+    { name: t('admin.wasteManagement'), href: "/salt-society/waste-management", icon: RecycleIcon },
     { name: t('admin.reports'), href: "/salt-society/reports", icon: BarChart2 },
     { name: t('admin.alerts'), href: "/salt-society/alerts", icon: Bell },
     { name: t('admin.settings'), href: "/salt-society/settings", icon: Settings },
