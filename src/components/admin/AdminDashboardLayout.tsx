@@ -20,6 +20,7 @@ import {
   BarChart2,
   Bell,
   Settings,
+  File,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -80,8 +81,8 @@ export function AdminDashboardLayout({
 
   const saltSocietyNavItems: NavItem[] = [
     { name: t('admin.dashboard'), href: "/salt-society/dashboard", icon: LayoutDashboard },
+    { name: t('admin.recording'), href: "/salt-society/recording", icon: File },
     { name: t('admin.saltProduction'), href: "/salt-society/salt-production", icon: FlaskConical },
-    { name: t('admin.recording'), href: "/salt-society/recording", icon: Video },
     { name: t('admin.reports'), href: "/salt-society/reports", icon: BarChart2 },
     { name: t('admin.alerts'), href: "/salt-society/alerts", icon: Bell },
     { name: t('admin.settings'), href: "/salt-society/settings", icon: Settings },
@@ -131,7 +132,7 @@ export function AdminDashboardLayout({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 transform bg-card border-r border-border transition-transform duration-300 lg:relative lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-64 sm:w-72 transform bg-card border-r border-border transition-transform duration-300 lg:relative lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -184,44 +185,56 @@ export function AdminDashboardLayout({
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header */}
-        <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4 lg:px-6">
-          <div className="flex items-center gap-4">
+        <header className="flex h-14 md:h-16 items-center justify-between border-b border-border bg-card px-3 md:px-4 lg:px-6">
+          <div className="flex items-center gap-2 md:gap-4">
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden"
+              className="lg:hidden h-8 w-8 md:h-10 md:w-10"
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
               {sidebarOpen ? (
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4 md:h-5 md:w-5" />
               ) : (
-                <Menu className="h-5 w-5" />
+                <Menu className="h-4 w-4 md:h-5 md:w-5" />
               )}
             </Button>
-            <div>
-              <h2 className="text-lg font-semibold text-foreground tracking-tighter">
+            <div className="hidden sm:block">
+              <h2 className="text-base md:text-lg font-semibold text-foreground tracking-tighter">
                 {title}
               </h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[10px] md:text-xs text-muted-foreground">
                 {subtitle}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="h-6 w-px bg-border"></div>
+                        {/* Logo in the middle */}
+        <div className="flex-shrink-0 lg:hidden">
+          <Image 
+            src="/assets/images/crystal-logo.svg" 
+            alt="Brinex Logo" 
+            width={80} 
+            height={80}
+            className="w-16 h-16 sm:w-20 sm:h-20"
+          />
+        </div>
+
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="h-6 w-px bg-border hidden sm:block"></div>
             <Button
               variant="ghost"
               size="icon"
+              className="h-8 w-8 md:h-10 md:w-10"
               onClick={() => setShowLogoutDialog(true)}
             >
-              <LogOut className="h-5 w-5" />
+              <LogOut className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto p-4 lg:p-6">{children}</main>
+        <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-5 lg:p-6">{children}</main>
       </div>
 
       {/* Mobile Overlay */}
