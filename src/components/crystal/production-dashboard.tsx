@@ -13,6 +13,8 @@ import { currentSeason, historicalProduction, monthlyProduction } from "@/sample
 import { crystallizationController } from "@/services/crystallization.controller"
 import { PredictedMonthlyProduction } from "@/types/crystallization.types"
 import { productionController } from "@/services/production.controller"
+import { WeatherForecastCalendar } from "@/components/crystal/weather-forecast-calendar"
+import Image from "next/image"
 
 // Generate mock historical data (temporary until API is ready)
 const generateMockHistoricalData = (startDate: string, endDate: string): any[] => {
@@ -442,71 +444,76 @@ export function ProductionDashboard() {
   const latestEnv = dailyEnvironmentalData.filter(d => d.type === 'historical').slice(-1)[0] || dailyEnvironmentalData[0]
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-3 sm:p-4 md:p-5 lg:p-6 space-y-3 md:space-y-4">
       {/* Compact Header with Season */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">{t('dashboard.title')}</h1>
-          <p className="text-sm text-muted-foreground">Puttalam Salt Society - Critical Operational Data</p>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="text-center sm:text-left">
+          <h1 className="text-xl sm:text-2xl font-semibold text-foreground">{t('dashboard.title')}</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Puttalam Salt Society - Critical Operational Data</p>
         </div>
-        <div className="text-right">
-          <Badge className="bg-primary text-primary-foreground text-base px-3 py-1">
+        
+        <div className="text-center sm:text-right">
+          <Badge className="bg-primary text-primary-foreground text-sm sm:text-base px-2 sm:px-3 py-1">
             {currentSeason.name} {currentSeason.year}
           </Badge>
-          <p className="text-xs text-muted-foreground mt-1">Oct 2025 - Mar 2026</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Oct 2025 - Mar 2026</p>
         </div>
       </div>
 
       {/* Compact Key Metrics */}
-      <div className="grid gap-3 grid-cols-4">
-        <Card className="p-3">
+      <div className="grid gap-2 sm:gap-3 grid-cols-2 lg:grid-cols-4">
+        <Card className="p-2 sm:p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground">{t('dashboard.seasonForecast')}</span>
-            <TrendingUp className="h-3 w-3 text-success" />
+            <span className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">{t('dashboard.seasonForecast')}</span>
+            <TrendingUp className="h-3 w-3 text-success shrink-0" />
           </div>
-          <div className="text-xl font-bold text-foreground">{totalPrediction.toLocaleString()}</div>
-          <p className="text-xs text-muted-foreground">tons</p>
+          <div className="text-base sm:text-xl font-bold text-foreground">{totalPrediction.toLocaleString()}</div>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">tons</p>
         </Card>
 
-        <Card className="p-3">
+        <Card className="p-2 sm:p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground">{t('dashboard.orBrineLevel')}</span>
-            <Droplets className="h-3 w-3 text-primary" />
+            <span className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">{t('dashboard.orBrineLevel')}</span>
+            <Droplets className="h-3 w-3 text-primary shrink-0" />
           </div>
-          <div className="text-xl font-bold text-foreground">{latestEnv?.OR_brine_level?.toFixed(1) || '--'}</div>
-          <p className="text-xs text-success">°Bé</p>
+          <div className="text-base sm:text-xl font-bold text-foreground">{latestEnv?.OR_brine_level?.toFixed(1) || '--'}</div>
+          <p className="text-[10px] sm:text-xs text-success">°Bé</p>
         </Card>
 
-        <Card className="p-3">
+        <Card className="p-2 sm:p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground">{t('dashboard.temperature')}</span>
-            <Activity className="h-3 w-3 text-destructive" />
+            <span className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">{t('dashboard.temperature')}</span>
+            <Activity className="h-3 w-3 text-destructive shrink-0" />
           </div>
-          <div className="text-xl font-bold text-foreground">{latestEnv?.temperature?.toFixed(1) || '--'}</div>
-          <p className="text-xs text-muted-foreground">°C</p>
+          <div className="text-base sm:text-xl font-bold text-foreground">{latestEnv?.temperature?.toFixed(1) || '--'}</div>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">°C</p>
         </Card>
 
-        <Card className="p-3">
+        <Card className="p-2 sm:p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground">{t('dashboard.humidity')}</span>
-            <Cloud className="h-3 w-3 text-success" />
+            <span className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">{t('dashboard.humidity')}</span>
+            <Cloud className="h-3 w-3 text-success shrink-0" />
           </div>
-          <div className="text-xl font-bold text-foreground">{latestEnv?.humidity?.toFixed(0) || '--'}</div>
-          <p className="text-xs text-muted-foreground">%</p>
+          <div className="text-base sm:text-xl font-bold text-foreground">{latestEnv?.humidity?.toFixed(0) || '--'}</div>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">%</p>
         </Card>
       </div>
 
+      
+      {/* Weather Forecast Calendar - Next 16 Days */}
+      <WeatherForecastCalendar />
+
       {/* MAIN: Daily Environmental Predictions - MOST IMPORTANT */}
-      <Card className="p-5 border-2 border-primary/30 bg-linear-to-br from-primary/5 to-background">
-        <div className="mb-3">
-          <div className="flex items-center gap-2 mb-1">
+      <Card className="p-3 sm:p-4 md:p-5 border-2 border-primary/30 bg-linear-to-br from-primary/5 to-background">
+        <div className="mb-2 sm:mb-3">
+          <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
             <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
-            <h2 className="text-lg font-bold text-foreground">{t('dashboard.dailyPredictions')}</h2>
-            <Badge className="bg-primary/20 text-primary">Critical for PSS Maintenance</Badge>
+            <h2 className="text-base sm:text-lg font-bold text-foreground">{t('dashboard.dailyPredictions')}</h2>
+            <Badge className="bg-primary/20 text-primary text-[10px] sm:text-xs">Critical for PSS Maintenance</Badge>
           </div>
-          <p className="text-xs text-muted-foreground">Past 6 months (solid) vs Future 6 months (dashed) - All Environmental Parameters</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">Past 6 months (solid) vs Future 6 months (dashed) - All Environmental Parameters</p>
         </div>
-        <div className="h-80">
+        <div className="h-64 sm:h-72 md:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={dailyEnvironmentalData}>
               <defs>
@@ -756,28 +763,28 @@ export function ProductionDashboard() {
             </ComposedChart>
           </ResponsiveContainer>
         </div>
-        <div className="flex items-center gap-6 mt-3 text-xs text-muted-foreground justify-center border-t pt-3">
-          <div className="flex items-center gap-2 px-3 py-1 bg-muted/30 rounded">
-            <div className="h-0.5 w-10 bg-primary"></div>
+        <div className="flex flex-wrap items-center gap-3 sm:gap-6 mt-2 sm:mt-3 text-[10px] sm:text-xs text-muted-foreground justify-center border-t pt-2 sm:pt-3">
+          <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 bg-muted/30 rounded">
+            <div className="h-0.5 w-6 sm:w-10 bg-primary"></div>
             <span className="font-medium">{`← ${t('dashboard.historicalData')}`}</span>
           </div>
-          <div className="h-6 w-px bg-destructive"></div>
-          <div className="flex items-center gap-2 px-3 py-1 bg-primary/5 rounded">
+          <div className="h-4 sm:h-6 w-px bg-destructive"></div>
+          <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 bg-primary/5 rounded">
             <span className="font-medium">{`${t('dashboard.predictedData')} →`}</span>
-            <div className="h-0.5 w-10 bg-primary"></div>
+            <div className="h-0.5 w-6 sm:w-10 bg-primary"></div>
           </div>
         </div>
       </Card>
 
       {/* Secondary: Production Forecasts - Seasonal & Monthly */}
-      <div className="grid gap-4 grid-cols-2">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
         {/* Seasonal Production (Yala/Maha) */}
-        <Card className="p-4">
-          <div className="mb-3">
-            <h2 className="text-base font-semibold text-foreground">{t('dashboard.seasonalProduction')}</h2>
-            <p className="text-xs text-muted-foreground">6-month seasonal totals (historical & predicted)</p>
+        <Card className="p-3 sm:p-4">
+          <div className="mb-2 sm:mb-3">
+            <h2 className="text-sm sm:text-base font-semibold text-foreground">{t('dashboard.seasonalProduction')}</h2>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">6-month seasonal totals (historical & predicted)</p>
           </div>
-          <div className="h-56">
+          <div className="h-48 sm:h-56">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={[
                 { season: "Yala 2023", production: 6350, type: "historical" },
@@ -791,21 +798,21 @@ export function ProductionDashboard() {
                 <XAxis
                   dataKey="season"
                   stroke="rgb(115 115 115)"
-                  tick={{ fontSize: 10 }}
+                  tick={{ fontSize: 7 }}
                   angle={-35}
                   textAnchor="end"
-                  height={70}
+                  height={60}
                 />
-                <YAxis stroke="rgb(115 115 115)" tick={{ fontSize: 11 }} label={{ value: "Production (tons)", angle: -90, position: "insideLeft", style: { fontSize: 10 } }} />
+                <YAxis stroke="rgb(115 115 115)" tick={{ fontSize: 8 }} label={{ value: "Production (tons)", angle: -90, position: "insideLeft", style: { fontSize: 8 } }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "white",
                     border: "1px solid rgb(229 229 229)",
                     borderRadius: "8px",
-                    fontSize: "12px"
+                    fontSize: "10px"
                   }}
                 />
-                <Legend wrapperStyle={{ fontSize: "11px" }} />
+                <Legend wrapperStyle={{ fontSize: "9px" }} />
                 <Bar dataKey="production" fill="rgb(99 102 241)" name="Actual (tons)" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="predicted" fill="rgb(168 85 247)" name="Predicted (tons)" radius={[4, 4, 0, 0]} opacity={0.7} />
               </ComposedChart>
@@ -814,33 +821,33 @@ export function ProductionDashboard() {
         </Card>
 
         {/* Monthly Production Breakdown */}
-        <Card className="p-4">
-          <div className="mb-3">
-            <h2 className="text-base font-semibold text-foreground">{t('dashboard.monthlyBreakdown')}</h2>
-            <p className="text-xs text-muted-foreground">Maha 2024/25 (actual) + Maha 2025/26 (predicted)</p>
+        <Card className="p-3 sm:p-4">
+          <div className="mb-2 sm:mb-3">
+            <h2 className="text-sm sm:text-base font-semibold text-foreground">{t('dashboard.monthlyBreakdown')}</h2>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Maha 2024/25 (actual) + Maha 2025/26 (predicted)</p>
           </div>
-          <div className="h-56">
+          <div className="h-48 sm:h-56">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={monthlyProductionData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgb(229 229 229)" />
                 <XAxis
                   dataKey="month"
                   stroke="rgb(115 115 115)"
-                  tick={{ fontSize: 9 }}
+                  tick={{ fontSize: 7 }}
                   angle={-45}
                   textAnchor="end"
-                  height={60}
+                  height={50}
                 />
-                <YAxis stroke="rgb(115 115 115)" tick={{ fontSize: 11 }} label={{ value: "Production (tons)", angle: -90, position: "insideLeft", style: { fontSize: 10 } }} />
+                <YAxis stroke="rgb(115 115 115)" tick={{ fontSize: 8 }} label={{ value: "Production (tons)", angle: -90, position: "insideLeft", style: { fontSize: 8 } }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "white",
                     border: "1px solid rgb(229 229 229)",
                     borderRadius: "8px",
-                    fontSize: "12px"
+                    fontSize: "10px"
                   }}
                 />
-                <Legend wrapperStyle={{ fontSize: "11px" }} />
+                <Legend wrapperStyle={{ fontSize: "9px" }} />
                 <Bar dataKey="production" fill="rgb(99 102 241)" name="Actual (tons)" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="predicted" fill="rgb(168 85 247)" name="Predicted (tons)" radius={[4, 4, 0, 0]} opacity={0.7} />
               </ComposedChart>
@@ -850,80 +857,80 @@ export function ProductionDashboard() {
       </div>
 
       {/* Operational Summary */}
-      <div className="grid gap-4 grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-3">
         {/* Overall Saltern Status */}
-        <Card className="p-4">
-          <h3 className="text-sm font-semibold text-foreground mb-3">{t('dashboard.salternStatus')}</h3>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center p-2 bg-success/10 rounded">
-              <span className="text-sm text-foreground">Avg Brine Density</span>
-              <span className="text-sm font-bold text-success">24.9°Bé</span>
+        <Card className="p-3 sm:p-4">
+          <h3 className="text-sm font-semibold text-foreground mb-2 sm:mb-3">{t('dashboard.salternStatus')}</h3>
+          <div className="space-y-1.5 sm:space-y-2">
+            <div className="flex justify-between items-center p-1.5 sm:p-2 bg-success/10 rounded">
+              <span className="text-xs sm:text-sm text-foreground">Avg Brine Density</span>
+              <span className="text-xs sm:text-sm font-bold text-success">24.9°Bé</span>
             </div>
-            <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
-              <span className="text-sm text-foreground">Total Area</span>
-              <span className="text-sm font-bold text-foreground">13.9 ha</span>
+            <div className="flex justify-between items-center p-1.5 sm:p-2 bg-muted/50 rounded">
+              <span className="text-xs sm:text-sm text-foreground">Total Area</span>
+              <span className="text-xs sm:text-sm font-bold text-foreground">13.9 ha</span>
             </div>
-            <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
-              <span className="text-sm text-foreground">Active Landowners</span>
-              <span className="text-sm font-bold text-foreground">8</span>
+            <div className="flex justify-between items-center p-1.5 sm:p-2 bg-muted/50 rounded">
+              <span className="text-xs sm:text-sm text-foreground">Active Landowners</span>
+              <span className="text-xs sm:text-sm font-bold text-foreground">8</span>
             </div>
-            <div className="flex justify-between items-center p-2 bg-primary/10 rounded">
-              <span className="text-sm text-foreground">PSS Workmen</span>
-              <span className="text-sm font-bold text-primary">16</span>
+            <div className="flex justify-between items-center p-1.5 sm:p-2 bg-primary/10 rounded">
+              <span className="text-xs sm:text-sm text-foreground">PSS Workmen</span>
+              <span className="text-xs sm:text-sm font-bold text-primary">16</span>
             </div>
           </div>
         </Card>
 
         {/* Current Season Summary */}
-        <Card className="p-4">
-          <h3 className="text-sm font-semibold text-foreground mb-3">{t('dashboard.seasonSummary')}</h3>
-          <div className="space-y-2">
-            <div className="p-2 bg-primary/10 rounded">
-              <p className="text-xs text-muted-foreground">Total Forecast</p>
-              <p className="text-2xl font-bold text-primary">{totalPrediction.toLocaleString()} tons</p>
+        <Card className="p-3 sm:p-4">
+          <h3 className="text-sm font-semibold text-foreground mb-2 sm:mb-3">{t('dashboard.seasonSummary')}</h3>
+          <div className="space-y-1.5 sm:space-y-2">
+            <div className="p-1.5 sm:p-2 bg-primary/10 rounded">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Total Forecast</p>
+              <p className="text-lg sm:text-2xl font-bold text-primary">{totalPrediction.toLocaleString()} tons</p>
             </div>
-            <div className="p-2 bg-success/10 rounded">
-              <p className="text-xs text-muted-foreground">Avg Confidence</p>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 bg-background rounded-full h-2">
-                  <div className="bg-success rounded-full h-2" style={{ width: `${avgConfidence}%` }} />
+            <div className="p-1.5 sm:p-2 bg-success/10 rounded">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Avg Confidence</p>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="flex-1 bg-background rounded-full h-1.5 sm:h-2">
+                  <div className="bg-success rounded-full h-1.5 sm:h-2" style={{ width: `${avgConfidence}%` }} />
                 </div>
-                <span className="text-sm font-bold text-success">{avgConfidence}%</span>
+                <span className="text-xs sm:text-sm font-bold text-success">{avgConfidence}%</span>
               </div>
             </div>
-            <div className="p-2 bg-muted/50 rounded">
-              <p className="text-xs text-muted-foreground">vs Historical Avg</p>
-              <p className="text-lg font-bold text-foreground">+{Math.round((totalPrediction - avgHistorical) / avgHistorical * 100)}% better</p>
+            <div className="p-1.5 sm:p-2 bg-muted/50 rounded">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">vs Historical Avg</p>
+              <p className="text-base sm:text-lg font-bold text-foreground">+{Math.round((totalPrediction - avgHistorical) / avgHistorical * 100)}% better</p>
             </div>
           </div>
         </Card>
 
         {/* PSS Recommendations */}
-        <Card className="p-4">
-          <h3 className="text-sm font-semibold text-foreground mb-3">{t('dashboard.pssActions')}</h3>
-          <div className="space-y-2">
-            <div className="flex items-start gap-2 p-2 bg-success/10 border border-success/20 rounded text-xs">
-              <Activity className="h-4 w-4 text-success mt-0.5 flex shrink-0" />
-              <div>
-                <p className="font-medium text-foreground">Optimal Salinity Trend</p>
-                <p className="text-muted-foreground">Maintain current operations</p>
+        <Card className="p-3 sm:p-4">
+          <h3 className="text-sm font-semibold text-foreground mb-2 sm:mb-3">{t('dashboard.pssActions')}</h3>
+          <div className="space-y-1.5 sm:space-y-2">
+            <div className="flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-success/10 border border-success/20 rounded text-[10px] sm:text-xs">
+              <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-success mt-0.5 flex shrink-0" />
+              <div className="min-w-0">
+                <p className="font-medium text-foreground truncate">Optimal Salinity Trend</p>
+                <p className="text-muted-foreground line-clamp-1">Maintain current operations</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-2 p-2 bg-warning/10 border border-warning/20 rounded text-xs">
-              <AlertCircle className="h-4 w-4 text-warning mt-0.5 flex shrink-0" />
-              <div>
-                <p className="font-medium text-foreground">Rainfall Expected</p>
-                <p className="text-muted-foreground">Monitor daily, adjust workmen</p>
+            <div className="flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-warning/10 border border-warning/20 rounded text-[10px] sm:text-xs">
+              <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-warning mt-0.5 flex shrink-0" />
+              <div className="min-w-0">
+                <p className="font-medium text-foreground truncate">Rainfall Expected</p>
+                <p className="text-muted-foreground line-clamp-1">Monitor daily, adjust workmen</p>
               </div>
             </div>
           </div>
 
-          <div className="flex gap-2 mt-3">
-            <Button size="sm" onClick={() => setForecastDialogOpen(true)} className="flex-1 text-xs h-8">
+          <div className="flex flex-col sm:flex-row gap-2 mt-2 sm:mt-3">
+            <Button size="sm" onClick={() => setForecastDialogOpen(true)} className="flex-1 text-[10px] sm:text-xs h-7 sm:h-8">
               {t('dashboard.forecastReport')}
             </Button>
-            <Button size="sm" variant="outline" onClick={() => setNotifyDialogOpen(true)} className="flex-1 text-xs h-8">
+            <Button size="sm" variant="outline" onClick={() => setNotifyDialogOpen(true)} className="flex-1 text-[10px] sm:text-xs h-7 sm:h-8">
               {t('dashboard.notifications')}
             </Button>
           </div>
