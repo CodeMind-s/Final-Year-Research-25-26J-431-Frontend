@@ -13,6 +13,7 @@ import {
   PredictedDailyMeasurementGetResponse,
   PredictedMonthlyProductionRequest,
   PredictedMonthlyProductionResponse,
+  WeatherForecastResponse,
 } from '@/types/crystallization.types';
 
 /**
@@ -74,6 +75,14 @@ class CrystallizationController extends BaseController {
     return this.get<PredictedDailyMeasurementGetResponse>(
       `/predicted-daily-measurement?startDate=${request.startDate}&endDate=${request.endDate}`
     );
+  }
+
+  /**
+   * Get 16-day weather forecast
+   * @returns Weather forecast data for next 16 days
+   */
+  async getWeatherForecast(): Promise<WeatherForecastResponse> {
+    return this.get<WeatherForecastResponse>('/weather-forecast');
   }
 }
 
