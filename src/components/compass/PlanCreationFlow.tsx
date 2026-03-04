@@ -32,6 +32,9 @@ import {
   Loader2,
 } from "lucide-react";
 import { harvestPlanController } from "@/services/plan.controller";
+import { crystallizationController } from "@/services/crystallization.controller";
+import { WeatherForecastDay } from "@/types/crystallization.types";
+import { tokenStorage } from "@/lib/storage.utils";
 import { useToast } from "@/hooks/use-toast";
 
 // ─── Types ───────────────────────────────────────────────────────
@@ -143,18 +146,31 @@ type WeatherKind = "sunny" | "cloudy" | "rainy" | "windy";
 interface DayWeather { kind: WeatherKind; temp: number; rainfall: number; salinity: number; }
 type Phase = "prep" | "growth" | "harvest-ready";
 
-const WEATHER_SEQ: WeatherKind[] = [
-  "sunny","sunny","cloudy","sunny","rainy","windy","cloudy","sunny","sunny","rainy",
-  "cloudy","sunny","windy","sunny","sunny","rainy","sunny","cloudy","sunny","sunny",
-  "windy","cloudy","sunny","rainy","sunny","sunny","cloudy","sunny","windy","sunny",
-  "sunny","cloudy","sunny","sunny","rainy","windy","sunny","sunny","cloudy","rainy",
-  "sunny","sunny","sunny","cloudy","windy",
-];
-const TEMP_SEQ = [
-  32,33,30,34,27,28,31,35,34,26,29,33,28,35,36,25,33,30,34,35,
-  29,31,34,27,33,35,30,34,29,33,34,31,33,35,26,28,34,33,30,27,
-  35,34,33,29,28,
-];
+// Convert OpenWeather icon code to our weather kind
+function getWeatherKindFromIcon(iconCode: string): WeatherKind {
+  const code = iconCode.replace(/[dn]$/, ""); // Remove day/night suffix
+  switch (code) {
+    case "01": // clear sky
+      return "sunny";
+    case "02": // few clouds
+    case "03": // scattered clouds
+    case "04": // broken clouds
+      return "cloudy";
+    case "09": // shower rain
+    case "10": // rain
+    case "11": // thunderstorm
+      return "rainy";
+    case "50": // mist/fog
+      return "windy";
+    default:
+      return "cloudy";
+  }
+}
+
+// Convert Kelvin to Celsius
+function kelvinToCelsius(kelvin: number): number {
+  return Math.round(kelvin - 273.15);
+}
 
 function rainfallForKind(kind: WeatherKind, seed: number): number {
   if (kind === "rainy") return 12 + (seed % 25);
@@ -168,10 +184,34 @@ function salinityForPhase(phase: Phase | null, seed: number): number {
   return base + (seed % 30);
 }
 
-function mockDayData(dayOffset: number, phase: Phase | null): DayWeather {
-  const idx = Math.abs(dayOffset) % WEATHER_SEQ.length;
-  const kind = WEATHER_SEQ[idx];
-  return { kind, temp: TEMP_SEQ[idx], rainfall: rainfallForKind(kind, dayOffset), salinity: salinityForPhase(phase, dayOffset) };
+// Get weather data for a specific date from API data (only for next 16 days)
+function getDayWeather(
+  date: Date, 
+  phase: Phase | null, 
+  weatherDataMap: Map<string, WeatherForecastDay>
+): DayWeather | null {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dayOffset = Math.floor((date.getTime() - today.getTime()) / 86_400_000);
+  
+  // Only return weather data for next 16 days
+  if (dayOffset < 0 || dayOffset >= 16) {
+    return null;
+  }
+  
+  const dateStr = date.toISOString().split('T')[0];
+  const weatherDay = weatherDataMap.get(dateStr);
+  
+  if (weatherDay) {
+    const kind = getWeatherKindFromIcon(weatherDay.weather[0]?.icon || "01d");
+    const temp = kelvinToCelsius(weatherDay.temp.day);
+    const rainfall = weatherDay.rain || 0;
+    const salinity = salinityForPhase(phase, date.getDate());
+    return { kind, temp, rainfall, salinity };  
+  }
+  
+  // Return null if no weather data available (beyond forecast)
+  return null;
 }
 
 const WeatherIcon: React.FC<{ kind: WeatherKind; size?: number }> = ({ kind, size = 10 }) => {
@@ -265,7 +305,7 @@ const DateDetailSheet: React.FC<{
 };
 
 // ─── Month Grid ───────────────────────────────────────────────────
-const MonthGrid: React.FC<{ year: number; month: number; startDate: Date; endDate: Date; onDateClick: (d: Date) => void; t: ReturnType<typeof useTranslations>; }> = ({ year, month, startDate, endDate, onDateClick, t }) => {
+const MonthGrid: React.FC<{ year: number; month: number; startDate: Date; endDate: Date; onDateClick: (d: Date) => void; t: ReturnType<typeof useTranslations>; weatherData: Map<string, WeatherForecastDay>; }> = ({ year, month, startDate, endDate, onDateClick, t, weatherData }) => {
   const firstOfMonth = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDOW = firstOfMonth.getDay();
@@ -295,7 +335,7 @@ const MonthGrid: React.FC<{ year: number; month: number; startDate: Date; endDat
           const isEnd = isSameDay(date, endDate);
           const isToday = isSameDay(date, today);
           const phase: Phase | null = inRange ? getPhase(diff, duration) : null;
-          const wx = inRange ? mockDayData(diff, phase) : null;
+          const wx = inRange ? getDayWeather(date, phase, weatherData) : null;
           const style = phase ? PHASE_STYLE[phase] : null;
           const roundL = isStart || date.getDay() === 0;
           const roundR = isEnd || date.getDay() === 6;
@@ -320,7 +360,7 @@ const MonthGrid: React.FC<{ year: number; month: number; startDate: Date; endDat
   );
 };
 
-const MultiMonthCalendar: React.FC<{ startDate: Date; endDate: Date; onDateClick: (d: Date) => void; }> = ({ startDate, endDate, onDateClick }) => {
+const MultiMonthCalendar: React.FC<{ startDate: Date; endDate: Date; onDateClick: (d: Date) => void; weatherData: Map<string, WeatherForecastDay>; }> = ({ startDate, endDate, onDateClick, weatherData }) => {
   const t = useTranslations('compass');
   const scrollRef = useRef<HTMLDivElement>(null);
   const today = new Date();
@@ -344,7 +384,7 @@ const MultiMonthCalendar: React.FC<{ startDate: Date; endDate: Date; onDateClick
       <div ref={scrollRef} className="max-h-[400px] overflow-y-auto pr-1" style={{ scrollbarWidth: "thin" }}>
         {months.map(({ year, month, id }) => (
           <div key={id} data-month-id={`month-${id}`}>
-            <MonthGrid year={year} month={month} startDate={startDate} endDate={endDate} onDateClick={onDateClick} t={t} />
+            <MonthGrid year={year} month={month} startDate={startDate} endDate={endDate} onDateClick={onDateClick} t={t} weatherData={weatherData} />
           </div>
         ))}
       </div>
@@ -426,7 +466,8 @@ const StepDurationCalendar: React.FC<{
   bedCount: number; planType: PlanType; duration: Duration;
   onDurationChange: (d: Duration) => void;
   onNext: (startDate: Date, endDate: Date) => void;
-}> = ({ bedCount, planType, duration, onDurationChange, onNext }) => {
+  weatherData: Map<string, WeatherForecastDay>;
+}> = ({ bedCount, planType, duration, onDurationChange, onNext, weatherData }) => {
   const t = useTranslations('compass');
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const suggestedStart = useMemo(() => {
@@ -466,7 +507,7 @@ const StepDurationCalendar: React.FC<{
 
   const selDiff = selectedDate ? dayDiff(activeStart, selectedDate) : 0;
   const selPhase: Phase | null = selectedDate && selDiff >= 0 && selDiff < activeDuration ? getPhase(selDiff, activeDuration) : null;
-  const selWeather = selectedDate ? mockDayData(selDiff, selPhase) : null;
+  const selWeather = selectedDate ? getDayWeather(selectedDate, selPhase, weatherData) : null;
 
   return (
     <div className="flex flex-col">
@@ -503,8 +544,8 @@ const StepDurationCalendar: React.FC<{
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 mb-6">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-3">{t('creation.planCalendar')}</p>
-        <MultiMonthCalendar startDate={activeStart} endDate={activeEnd} onDateClick={setSelectedDate} />
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-3">{t('creation.planCalendar')} — Weather forecast marked for next 16 days</p>
+        <MultiMonthCalendar startDate={activeStart} endDate={activeEnd} onDateClick={setSelectedDate} weatherData={weatherData} />
       </div>
 
       <button onClick={() => onNext(activeStart, activeEnd)} className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-base font-semibold bg-compass-600 text-white shadow-lg shadow-compass-600/25 active:scale-[0.98] transition-all">
@@ -786,6 +827,7 @@ export const PlanCreationFlow: React.FC<PlanCreationFlowProps> = ({
   const TOTAL_STEPS = 5;
   const [step, setStep] = useState(0);
   const [isCreating, setIsCreating] = useState(false);
+  const [weatherData, setWeatherData] = useState<Map<string, WeatherForecastDay>>(new Map());
   const [plan, setPlan] = useState<PlanData>({
     bedCount: 0,
     planType: null,
@@ -793,6 +835,62 @@ export const PlanCreationFlow: React.FC<PlanCreationFlowProps> = ({
     duration: 45,
     workerCount: 0,
   });
+
+  // Fetch weather data on mount
+  useEffect(() => {
+    const fetchWeatherData = async () => {
+      // Check if user is authenticated
+      const token = tokenStorage.getToken();
+      if (!token) {
+        console.log('[PlanCreation] No authentication token found. Weather data will not be available.');
+        return;
+      }
+
+      try {
+        const response = await crystallizationController.getWeatherForecast();
+        
+        console.log('[PlanCreation] Weather API Response:', response);
+        console.log('[PlanCreation] Weather API Response keys:', Object.keys(response));
+        console.log('[PlanCreation] Weather API Response.data:', response?.data);
+        
+        // Check different possible response structures
+        let weatherList = null;
+        if (response?.data?.data?.list) {
+          weatherList = response.data.data.list;
+          console.log('[PlanCreation] Found weather data at response.data.data.list');
+        } else if (response?.data?.list) {
+          weatherList = response.data.list;
+          console.log('[PlanCreation] Found weather data at response.data.list');
+        } else if ((response as any)?.list) {
+          weatherList = (response as any).list;
+          console.log('[PlanCreation] Found weather data at response.list');
+        }
+        
+        if (weatherList && Array.isArray(weatherList)) {
+          const weatherMap = new Map<string, WeatherForecastDay>();
+          weatherList.forEach((day: WeatherForecastDay) => {
+            const date = new Date(day.dt * 1000);
+            const dateStr = date.toISOString().split('T')[0];
+            console.log(`[PlanCreation] Weather data for ${dateStr}:`, day.weather[0]?.icon);
+            weatherMap.set(dateStr, day);
+          });
+          console.log('[PlanCreation] Weather Map size:', weatherMap.size);
+          console.log('[PlanCreation] Weather Map keys:', Array.from(weatherMap.keys()));
+          setWeatherData(weatherMap);
+        } else {
+          console.log('[PlanCreation] No weather data in response. Full response:', JSON.stringify(response, null, 2));
+        }
+      } catch (error: any) {
+        console.error('[PlanCreation] Failed to fetch weather data:', error);
+        // Silently fail for auth errors in plan creation flow
+        if (error?.status === 401) {
+          console.log('[PlanCreation] Authentication required for weather data');
+        }
+      }
+    };
+
+    fetchWeatherData();
+  }, []);
 
   const handleBack = () => {
     if (step === 0) onBack();
@@ -888,6 +986,7 @@ export const PlanCreationFlow: React.FC<PlanCreationFlowProps> = ({
             planType={plan.planType}
             duration={(plan.duration as Duration) ?? 45}
             onDurationChange={d => setPlan(p => ({ ...p, duration: d }))}
+            weatherData={weatherData}
             onNext={(startDate, endDate) => {
               const finalDuration = dayDiff(startDate, endDate) + 1;
               setPlan(p => ({

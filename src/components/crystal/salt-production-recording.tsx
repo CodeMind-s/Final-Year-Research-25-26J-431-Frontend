@@ -295,16 +295,16 @@ export function SaltProductionRecording() {
     }
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Package className="h-6 w-6 text-primary" />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <Package className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                     </div>
-                    <div>
-                        <h1 className="text-2xl font-semibold text-foreground">{t('recording.title')}</h1>
-                        <p className="text-sm text-muted-foreground">{t('recording.productionRecords')}</p>
+                    <div className="min-w-0">
+                        <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground truncate">{t('recording.title')}</h1>
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">{t('recording.productionRecords')}</p>
                     </div>
                 </div>
                 <Button
@@ -312,24 +312,24 @@ export function SaltProductionRecording() {
                         setFormData({ month: "", production_volume: "", season: "" })
                         setShowCreateDialog(true)
                     }}
-                    className="bg-primary hover:bg-primary/90"
+                    className="bg-primary hover:bg-primary/90 w-full sm:w-auto shrink-0 text-xs sm:text-sm h-8 sm:h-10"
                 >
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                     {t('recording.addRecord')}
                 </Button>
             </div>
 
             {/* Production Chart */}
             {chartData.length > 0 && (
-                <Card className="p-6">
-                    <div className="mb-4 flex items-center gap-2">
-                        <BarChart3 className="h-5 w-5 text-primary" />
-                        <div>
-                            <h2 className="text-lg font-semibold text-foreground">{t('recording.productionOverview')}</h2>
-                            <p className="text-sm text-muted-foreground">{t('recording.actualVsPredicted')}</p>
+                <Card className="p-3 sm:p-4 md:p-6">
+                    <div className="mb-3 sm:mb-4 flex items-center gap-1.5 sm:gap-2">
+                        <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                        <div className="min-w-0">
+                            <h2 className="text-sm sm:text-base md:text-lg font-semibold text-foreground truncate">{t('recording.productionOverview')}</h2>
+                            <p className="text-xs sm:text-sm text-muted-foreground truncate">{t('recording.actualVsPredicted')}</p>
                         </div>
                     </div>
-                    <div className="h-80">
+                    <div className="h-56 sm:h-64 md:h-80">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={chartData}>
                                 <defs>
@@ -346,27 +346,27 @@ export function SaltProductionRecording() {
                                 <XAxis
                                     dataKey="season"
                                     stroke="rgb(115 115 115)"
-                                    tick={{ fontSize: 12 }}
+                                    tick={{ fontSize: 9 }}
                                     angle={-20}
                                     textAnchor="end"
-                                    height={70}
+                                    height={60}
                                 />
                                 <YAxis
                                     stroke="rgb(115 115 115)"
-                                    tick={{ fontSize: 11 }}
-                                    label={{ value: "Production (tons)", angle: -90, position: "insideLeft", style: { fontSize: 11 } }}
+                                    tick={{ fontSize: 9 }}
+                                    label={{ value: "Production (tons)", angle: -90, position: "insideLeft", style: { fontSize: 9 } }}
                                 />
                                 <Tooltip
                                     contentStyle={{
                                         backgroundColor: "white",
                                         border: "1px solid rgb(229 229 229)",
                                         borderRadius: "8px",
-                                        fontSize: "12px"
+                                        fontSize: "11px"
                                     }}
                                     formatter={(value: any) => [`${value?.toLocaleString()} tons`, ""]}
                                 />
                                 <Legend
-                                    wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }}
+                                    wrapperStyle={{ fontSize: "10px", paddingTop: "8px" }}
                                     formatter={(value) => value === "actual" ? "Actual (tons)" : "Predicted (tons)"}
                                 />
                                 <Area
@@ -394,85 +394,85 @@ export function SaltProductionRecording() {
             )}
 
             {/* Production Records Table */}
-            <Card className="p-6">
-                <div className="mb-4">
-                    <h2 className="text-lg font-semibold text-foreground">{t('recording.productionRecords')}</h2>
-                    <p className="text-sm text-muted-foreground">{t('recording.actualVsPredicted')}</p>
+            <Card className="p-3 sm:p-4 md:p-6">
+                <div className="mb-3 sm:mb-4">
+                    <h2 className="text-sm sm:text-base md:text-lg font-semibold text-foreground">{t('recording.productionRecords')}</h2>
+                    <p className="text-xs sm:text-sm text-muted-foreground">{t('recording.actualVsPredicted')}</p>
                 </div>
 
                 {isLoading ? (
-                    <div className="text-center py-12">
-                        <p className="text-muted-foreground">Loading production records...</p>
+                    <div className="text-center py-8 sm:py-12">
+                        <p className="text-muted-foreground text-xs sm:text-sm">Loading production records...</p>
                     </div>
                 ) : productions.length === 0 ? (
-                    <div className="text-center py-12">
-                        <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground">No production records found</p>
+                    <div className="text-center py-8 sm:py-12">
+                        <Package className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+                        <p className="text-muted-foreground text-xs sm:text-sm">No production records found</p>
                         <Button
                             onClick={() => setShowCreateDialog(true)}
                             variant="outline"
-                            className="mt-4"
+                            className="mt-3 sm:mt-4 text-xs sm:text-sm h-8 sm:h-10"
                         >
-                            <Plus className="h-4 w-4 mr-2" />
+                            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                             Create First Record
                         </Button>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto -mx-3 sm:mx-0">
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-border">
-                                    <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Month</th>
-                                    <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Season</th>
-                                    <th className="text-right py-3 px-4 text-sm font-semibold text-foreground">Production (tons)</th>
-                                    <th className="text-right py-3 px-4 text-sm font-semibold text-foreground">Actions</th>
+                                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-foreground">Month</th>
+                                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-foreground">Season</th>
+                                    <th className="text-right py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-foreground">Production (tons)</th>
+                                    <th className="text-right py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-foreground">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {productions.map((production) => (
                                     <tr key={production._id} className="border-b border-border hover:bg-muted/50 transition-colors">
-                                        <td className="py-3 px-4">
-                                            <div className="flex items-center gap-2">
-                                                <Calendar className="h-4 w-4 text-muted-foreground" />
-                                                <span className="font-medium text-foreground">{formatMonth(production.month)}</span>
+                                        <td className="py-2 sm:py-3 px-2 sm:px-4">
+                                            <div className="flex items-center gap-1 sm:gap-2">
+                                                <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
+                                                <span className="font-medium text-foreground text-xs sm:text-sm truncate">{formatMonth(production.month)}</span>
                                             </div>
                                         </td>
-                                        <td className="py-3 px-4">
+                                        <td className="py-2 sm:py-3 px-2 sm:px-4">
                                             <Badge
                                                 className={
                                                     production.season === "Maha"
-                                                        ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20"
-                                                        : "bg-purple-500/10 text-purple-600 border-purple-500/20"
+                                                        ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20 text-[10px] sm:text-xs"
+                                                        : "bg-purple-500/10 text-purple-600 border-purple-500/20 text-[10px] sm:text-xs"
                                                 }
                                             >
                                                 {production.season}
                                             </Badge>
                                         </td>
-                                        <td className="py-3 px-4 text-right">
-                                            <div className="flex items-center justify-end gap-2">
-                                                <TrendingUp className="h-4 w-4 text-success" />
-                                                <span className="font-bold text-foreground">
+                                        <td className="py-2 sm:py-3 px-2 sm:px-4 text-right">
+                                            <div className="flex items-center justify-end gap-1 sm:gap-2">
+                                                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-success shrink-0" />
+                                                <span className="font-bold text-foreground text-xs sm:text-sm">
                                                     {production.production_volume.toLocaleString()}
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="py-3 px-4">
-                                            <div className="flex items-center justify-end gap-2">
+                                        <td className="py-2 sm:py-3 px-2 sm:px-4">
+                                            <div className="flex items-center justify-end gap-1 sm:gap-2">
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => openEditDialog(production)}
-                                                    className="hover:bg-primary/10 hover:text-primary"
+                                                    className="hover:bg-primary/10 hover:text-primary h-7 w-7 sm:h-8 sm:w-8 p-0"
                                                 >
-                                                    <Edit className="h-4 w-4" />
+                                                    <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => openDeleteDialog(production)}
-                                                    className="hover:bg-destructive/10 hover:text-destructive"
+                                                    className="hover:bg-destructive/10 hover:text-destructive h-7 w-7 sm:h-8 sm:w-8 p-0"
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                                                 </Button>
                                             </div>
                                         </td>

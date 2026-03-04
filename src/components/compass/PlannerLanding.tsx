@@ -23,6 +23,9 @@ import {
   ArrowRight,
   Lightbulb,
 } from "lucide-react";
+import { crystallizationController } from "@/services/crystallization.controller";
+import { WeatherForecastDay } from "@/types/crystallization.types";
+import { tokenStorage } from "@/lib/storage.utils";
 
 
 // ─── Types ───────────────────────────────────────────────────────
@@ -147,25 +150,30 @@ const PulseRing: React.FC<{ children: React.ReactNode; active: boolean }> = ({
 
 type WxKind = "sunny" | "cloudy" | "rainy" | "windy";
 
-const WX_SEQ: WxKind[] = [
-  "sunny","sunny","cloudy","rainy","sunny","windy","cloudy","sunny","sunny","rainy",
-  "cloudy","sunny","windy","sunny","rainy","sunny","cloudy","sunny","sunny","windy",
-  "rainy","sunny","cloudy","sunny","windy","sunny","sunny","rainy","cloudy","sunny",
-  "sunny","cloudy","sunny","rainy","windy","sunny","cloudy","sunny","sunny","rainy",
-  "windy","sunny","cloudy","sunny","sunny","rainy","sunny","cloudy","windy","sunny",
-  "sunny","rainy","cloudy","sunny","windy","sunny","sunny","cloudy","rainy","sunny",
-  "sunny","windy","sunny",
-];
-const TEMP_SEQ = [
-  32,33,30,27,34,28,31,35,34,26,29,33,28,35,25,33,30,34,35,29,
-  27,35,30,34,29,33,35,26,30,34,32,31,33,26,28,35,30,33,27,34,
-  35,28,31,33,34,26,35,30,29,33,34,27,31,35,28,33,35,30,27,34,
-  32,29,33,
-];
+// Convert OpenWeather icon code to our weather kind
+function getWeatherKindFromIcon(iconCode: string): WxKind {
+  const code = iconCode.replace(/[dn]$/, ""); // Remove day/night suffix
+  switch (code) {
+    case "01": // clear sky
+      return "sunny";
+    case "02": // few clouds
+    case "03": // scattered clouds
+    case "04": // broken clouds
+      return "cloudy";
+    case "09": // shower rain
+    case "10": // rain
+    case "11": // thunderstorm
+      return "rainy";
+    case "50": // mist/fog
+      return "windy";
+    default:
+      return "cloudy";
+  }
+}
 
-function wxForDay(dayOffset: number): { kind: WxKind; temp: number } {
-  const idx = Math.abs(dayOffset) % WX_SEQ.length;
-  return { kind: WX_SEQ[idx], temp: TEMP_SEQ[idx] };
+// Convert Kelvin to Celsius
+function kelvinToCelsius(kelvin: number): number {
+  return Math.round(kelvin - 273.15);
 }
 
 const WxIcon: React.FC<{ kind: WxKind; size?: number }> = ({ kind, size = 14 }) => {
@@ -187,8 +195,8 @@ const WX_BORDER: Record<WxKind, string> = {
 const DAY_HEADERS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 const ForecastMonthGrid: React.FC<{
-  year: number; month: number; today: Date; maxDays: number;
-}> = ({ year, month, today, maxDays }) => {
+  year: number; month: number; today: Date; maxDays: number; weatherData: Map<string, WeatherForecastDay>;
+}> = ({ year, month, today, maxDays, weatherData }) => {
   const firstOfMonth = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDOW = firstOfMonth.getDay();
@@ -219,8 +227,36 @@ const ForecastMonthGrid: React.FC<{
           const isPast = dayOffset < 0;
           const isBeyond = dayOffset >= maxDays;
           const isToday = dayOffset === 0;
-          const wx = wxForDay(dayOffset);
-          if (isPast || isBeyond) return <div key={`h-${day}`} className="invisible" />;
+          
+          // Show only dates within 16-day forecast range
+          if (isPast) return <div key={`h-${day}`} className="invisible" />;
+          if (isBeyond) return (
+            <div key={day} className="flex flex-col items-center rounded-xl py-1.5 border border-slate-100 bg-slate-50 opacity-40">
+              <span className="text-[11px] font-bold text-slate-400">{day}</span>
+            </div>
+          );
+          
+          // Get weather data for this date (only within 16 days)
+          const dateStr = cellDate.toISOString().split('T')[0];
+          const weatherDay = weatherData.get(dateStr);
+          
+          // Debug logging for first few days
+          if (dayOffset >= 0 && dayOffset < 3) {
+            console.log(`Calendar cell - Date: ${dateStr}, dayOffset: ${dayOffset}, hasWeather: ${!!weatherDay}, weatherData size: ${weatherData.size}`);
+          }
+          
+          const wx = weatherDay 
+            ? { kind: getWeatherKindFromIcon(weatherDay.weather[0]?.icon || "01d"), temp: kelvinToCelsius(weatherDay.temp.day) }
+            : null;
+          // Only show weather data if within 16-day forecast
+          if (!wx) {
+            return (
+              <div key={day} className="flex flex-col items-center rounded-xl py-1.5 border border-slate-100 bg-slate-50 opacity-40">
+                <span className="text-[11px] font-bold text-slate-400">{day}</span>
+              </div>
+            );
+          }
+          
           return (
             <div
               key={day}
@@ -247,9 +283,13 @@ const ForecastMonthGrid: React.FC<{
 
 const WeatherForecastCalendar: React.FC = () => {
   const t = useTranslations('compass');
+  const [weatherData, setWeatherData] = useState<Map<string, WeatherForecastDay>>(new Map());
+  const [isLoading, setIsLoading] = useState(true);
+  const [authError, setAuthError] = useState(false);
+  
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const FORECAST_DAYS = 60;
+  const FORECAST_DAYS = 16;
   const lastDay = new Date(today.getTime() + (FORECAST_DAYS - 1) * 86_400_000);
   const months: { year: number; month: number }[] = [];
   const cursor = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -258,16 +298,111 @@ const WeatherForecastCalendar: React.FC = () => {
     cursor.setMonth(cursor.getMonth() + 1);
   }
 
+  // Fetch weather data on mount
+  useEffect(() => {
+    const fetchWeatherData = async () => {
+      // Check if user is authenticated
+      const token = tokenStorage.getToken();
+      if (!token) {
+        console.log('No authentication token found. Please log in to view weather data.');
+        setAuthError(true);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setAuthError(false);
+        const response = await crystallizationController.getWeatherForecast();
+        
+        console.log('Weather API Response:', response);
+        console.log('Weather API Response keys:', Object.keys(response));
+        
+        // Check different possible response structures
+        let weatherList = null;
+        if (response?.data?.data?.list) {
+          weatherList = response.data.data.list;
+          console.log('Found weather data at response.data.data.list');
+        } else if (response?.data?.list) {
+          weatherList = response.data.list;
+          console.log('Found weather data at response.data.list');
+        } else if ((response as any)?.list) {
+          weatherList = (response as any).list;
+          console.log('Found weather data at response.list');
+        }
+        
+        if (weatherList && Array.isArray(weatherList)) {
+          const weatherMap = new Map<string, WeatherForecastDay>();
+          weatherList.forEach((day: WeatherForecastDay) => {
+            const date = new Date(day.dt * 1000);
+            const dateStr = date.toISOString().split('T')[0];
+            console.log(`Weather data for ${dateStr}:`, day.weather[0]?.icon, kelvinToCelsius(day.temp.day));
+            weatherMap.set(dateStr, day);
+          });
+          console.log('Weather Map size:', weatherMap.size);
+          console.log('Weather Map keys:', Array.from(weatherMap.keys()));
+          setWeatherData(weatherMap);
+        } else {
+          console.log('No weather data in response. Full response:', JSON.stringify(response, null, 2));
+        }
+      } catch (error: any) {
+        console.error('Failed to fetch weather data:', error);
+        // Check if it's an authentication error
+        if (error?.status === 401 || error?.message?.includes('token') || error?.message?.includes('Unauthorized')) {
+          setAuthError(true);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchWeatherData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-bold text-slate-900">Weather — next 16 days ☀️</p>
+          <span className="text-[10px] font-semibold text-sky-500 uppercase tracking-wide">{t('weather.forecast')}</span>
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3">
+          <div className="flex items-center justify-center py-12">
+            <div className="text-sm text-slate-500">{t('common.loading')}...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (authError) {
+    return (
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-bold text-slate-900">Weather — next 16 days ☀️</p>
+          <span className="text-[10px] font-semibold text-sky-500 uppercase tracking-wide">{t('weather.forecast')}</span>
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <AlertTriangle className="text-amber-500 mb-3" size={32} />
+            <p className="text-sm font-semibold text-slate-700 mb-1">Authentication Required</p>
+            <p className="text-xs text-slate-500">Please log in to view weather forecast data</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-bold text-slate-900">{t('weather.next60Days')} ☀️</p>
+        <p className="text-sm font-bold text-slate-900">Weather — next 16 days ☀️</p>
         <span className="text-[10px] font-semibold text-sky-500 uppercase tracking-wide">{t('weather.forecast')}</span>
       </div>
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3">
         <div className="max-h-[460px] overflow-y-auto pr-1" style={{ scrollbarWidth: "thin" }}>
           {months.map(({ year, month }) => (
-            <ForecastMonthGrid key={`${year}-${month}`} year={year} month={month} today={today} maxDays={FORECAST_DAYS} />
+            <ForecastMonthGrid key={`${year}-${month}`} year={year} month={month} today={today} maxDays={FORECAST_DAYS} weatherData={weatherData} />
           ))}
         </div>
         <div className="flex items-center gap-3 flex-wrap pt-2 border-t border-slate-100 mt-1">

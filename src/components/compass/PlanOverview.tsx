@@ -157,18 +157,11 @@ export const PlanOverview: React.FC<PlanOverviewProps> = ({
     const revenue = totalBags * predictedPricePerBag;
     const profit = revenue - totalExpenses;
 
-    // Best seller profit
-    const bestSeller = SELLERS.reduce((best, s) =>
-      s.pricePerBag > best.pricePerBag ? s : best
-    );
-    const bestProfit = totalBags * bestSeller.pricePerBag - totalExpenses;
-
     return {
       totalBags,
       totalExpenses,
       revenue,
       profit,
-      bestProfit,
       workDays,
     };
   }, [bedCount, duration, workerCount]);
@@ -388,21 +381,6 @@ export const PlanOverview: React.FC<PlanOverviewProps> = ({
               })}
           </div>
         )}
-                    </span>
-                  </div>
-                  <p
-                    className={`text-sm font-bold ${
-                      sellerProfit >= 0 ? "text-emerald-600" : "text-red-600"
-                    }`}
-                  >
-                    {sellerProfit >= 0 ? "+" : ""}Rs.{" "}
-                    {sellerProfit.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
       </div>
 
       {/* Bottom CTA — End Plan */}

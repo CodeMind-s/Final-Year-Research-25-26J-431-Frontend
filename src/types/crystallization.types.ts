@@ -176,3 +176,70 @@ export interface DailyEnvironmentalChartData {
   humidity: number | null;
   type: 'historical' | 'predicted';
 }
+
+/**
+ * Weather Forecast Types
+ */
+export interface WeatherForecastItem {
+  id: number;
+  main: string;
+  description: string;
+  icon: string;
+}
+
+export interface WeatherForecastTemp {
+  day: number;
+  min: number;
+  max: number;
+  night: number;
+  eve: number;
+  morn: number;
+}
+
+export interface WeatherForecastFeelsLike {
+  day: number;
+  night: number;
+  eve: number;
+  morn: number;
+}
+
+export interface WeatherForecastDay {
+  dt: number;
+  sunrise: number;
+  sunset: number;
+  temp: WeatherForecastTemp;
+  feels_like: WeatherForecastFeelsLike;
+  pressure: number;
+  humidity: number;
+  weather: WeatherForecastItem[];
+  speed: number;
+  deg: number;
+  gust: number;
+  clouds: number;
+  pop: number;
+  rain?: number;
+}
+
+export interface WeatherForecastCity {
+  id: number;
+  name: string;
+  coord: {
+    lon: number;
+    lat: number;
+  };
+  country: string;
+  population: number;
+  timezone: number;
+}
+
+export interface WeatherForecastResponse {
+  success: boolean;
+  message: string;
+  data: {
+    city: WeatherForecastCity;
+    cod: string;
+    message: number;
+    cnt: number;
+    list: WeatherForecastDay[];
+  };
+}
