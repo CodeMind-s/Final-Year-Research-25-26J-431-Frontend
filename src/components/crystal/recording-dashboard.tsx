@@ -158,28 +158,28 @@ export function RecordingDashboard() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
       {/* Header with Icon */}
-      <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Sparkles className="h-6 w-6 text-primary" />
+      <div className="flex items-center gap-2 sm:gap-3">
+        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+          <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
         </div>
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Field Data Recording</h1>
-          <p className="text-sm text-muted-foreground">PSS Daily Environmental Monitoring</p>
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground truncate">Field Data Recording</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground truncate">PSS Daily Environmental Monitoring</p>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         {/* Data Entry Form */}
         <div className="lg:col-span-2">
-          <Card className="p-6 bg-linear-to-br from-background to-accent/5">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-xl font-semibold text-foreground">Record Parameters</h2>
-              <Badge className="bg-primary/10 text-primary border-primary/20">{new Date().toLocaleDateString()}</Badge>
+          <Card className="p-3 sm:p-4 md:p-6 bg-linear-to-br from-background to-accent/5">
+            <div className="flex items-center justify-between mb-2 gap-2">
+              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-foreground truncate">Record Parameters</h2>
+              <Badge className="bg-primary/10 text-primary border-primary/20 shrink-0 text-[10px] sm:text-xs">{new Date().toLocaleDateString()}</Badge>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               {/* Site Selection */}
               {/* <div className="space-y-2">
                 <Label htmlFor="site" className="text-foreground flex items-center gap-2">
@@ -200,14 +200,14 @@ export function RecordingDashboard() {
               </div> */}
 
               {/* Parameter Grid */}
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
                 {/* Temperature */}
-                <Card className="p-4 bg-destructive/5 border-destructive/20 hover:bg-destructive/10 transition-colors">
-                  <Label htmlFor="temperature" className="flex items-center gap-2 text-destructive font-semibold">
-                    <Thermometer className="h-5 w-5" />
+                <Card className="p-3 sm:p-4 bg-destructive/5 border-destructive/20 hover:bg-destructive/10 transition-colors">
+                  <Label htmlFor="temperature" className="flex items-center gap-1.5 sm:gap-2 text-destructive font-semibold text-xs sm:text-sm">
+                    <Thermometer className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
                     Temperature
                   </Label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <Input
                       id="temperature"
                       type="number"
@@ -215,19 +215,19 @@ export function RecordingDashboard() {
                       placeholder="28.0"
                       value={formData.temperature}
                       onChange={(e) => setFormData({ ...formData, temperature: e.target.value })}
-                      className="bg-background border-border text-foreground text-2xl font-bold h-14 text-center"
+                      className="bg-background border-border text-foreground text-lg sm:text-2xl font-bold h-11 sm:h-14 text-center"
                     />
-                    <span className="text-muted-foreground font-medium">°C</span>
+                    <span className="text-muted-foreground font-medium text-xs sm:text-sm shrink-0">°C</span>
                   </div>
                 </Card>
 
                 {/* Lagoon */}
-                <Card className="p-4 bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
-                  <Label htmlFor="lagoon" className="flex items-center gap-2 text-primary font-semibold">
-                    <Droplets className="h-5 w-5" />
+                <Card className="p-3 sm:p-4 bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
+                  <Label htmlFor="lagoon" className="flex items-center gap-1.5 sm:gap-2 text-primary font-semibold text-xs sm:text-sm">
+                    <Droplets className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
                     Lagoon
                   </Label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <Input
                       id="lagoon"
                       type="number"
@@ -235,19 +235,19 @@ export function RecordingDashboard() {
                       placeholder="0.0"
                       value={formData.lagoon}
                       onChange={(e) => setFormData({ ...formData, lagoon: e.target.value })}
-                      className="bg-background border-border text-foreground text-2xl font-bold h-14 text-center"
+                      className="bg-background border-border text-foreground text-lg sm:text-2xl font-bold h-11 sm:h-14 text-center"
                     />
-                    <span className="text-muted-foreground font-medium">%</span>
+                    <span className="text-muted-foreground font-medium text-xs sm:text-sm shrink-0">%</span>
                   </div>
                 </Card>
 
                 {/* OR Brine Level (Salinity) */}
-                <Card className="p-4 bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
-                  <Label htmlFor="orBrineLevel" className="flex items-center gap-2 text-primary font-semibold">
-                    <Droplets className="h-5 w-5" />
+                <Card className="p-3 sm:p-4 bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
+                  <Label htmlFor="orBrineLevel" className="flex items-center gap-1.5 sm:gap-2 text-primary font-semibold text-xs sm:text-sm">
+                    <Droplets className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
                     OR Brine Level
                   </Label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <Input
                       id="orBrineLevel"
                       type="number"
@@ -255,19 +255,19 @@ export function RecordingDashboard() {
                       placeholder="24.5"
                       value={formData.orBrineLevel}
                       onChange={(e) => setFormData({ ...formData, orBrineLevel: e.target.value })}
-                      className="bg-background border-border text-foreground text-2xl font-bold h-14 text-center"
+                      className="bg-background border-border text-foreground text-lg sm:text-2xl font-bold h-11 sm:h-14 text-center"
                     />
-                    <span className="text-muted-foreground font-medium">°Bé</span>
+                    <span className="text-muted-foreground font-medium text-xs sm:text-sm shrink-0">°Bé</span>
                   </div>
                 </Card>
 
                 {/* OR Bund Level (Water Level) */}
-                <Card className="p-4 bg-chart-2/10 border-chart-2/20 hover:bg-chart-2/20 transition-colors">
-                  <Label htmlFor="orBundLevel" className="flex items-center gap-2 text-chart-2 font-semibold">
-                    <Gauge className="h-5 w-5" />
+                <Card className="p-3 sm:p-4 bg-chart-2/10 border-chart-2/20 hover:bg-chart-2/20 transition-colors">
+                  <Label htmlFor="orBundLevel" className="flex items-center gap-1.5 sm:gap-2 text-chart-2 font-semibold text-xs sm:text-sm">
+                    <Gauge className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
                     OR Bund Level
                   </Label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <Input
                       id="orBundLevel"
                       type="number"
@@ -275,19 +275,19 @@ export function RecordingDashboard() {
                       placeholder="15.0"
                       value={formData.orBundLevel}
                       onChange={(e) => setFormData({ ...formData, orBundLevel: e.target.value })}
-                      className="bg-background border-border text-foreground text-2xl font-bold h-14 text-center"
+                      className="bg-background border-border text-foreground text-lg sm:text-2xl font-bold h-11 sm:h-14 text-center"
                     />
-                    <span className="text-muted-foreground font-medium">cm</span>
+                    <span className="text-muted-foreground font-medium text-xs sm:text-sm shrink-0">cm</span>
                   </div>
                 </Card>
 
                 {/* IR Brine Level (Salinity) */}
-                <Card className="p-4 bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
-                  <Label htmlFor="irBrineLevel" className="flex items-center gap-2 text-primary font-semibold">
-                    <Droplets className="h-5 w-5" />
+                <Card className="p-3 sm:p-4 bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
+                  <Label htmlFor="irBrineLevel" className="flex items-center gap-1.5 sm:gap-2 text-primary font-semibold text-xs sm:text-sm">
+                    <Droplets className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
                     IR Brine Level
                   </Label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <Input
                       id="irBrineLevel"
                       type="number"
@@ -295,19 +295,19 @@ export function RecordingDashboard() {
                       placeholder="24.5"
                       value={formData.irBrineLevel}
                       onChange={(e) => setFormData({ ...formData, irBrineLevel: e.target.value })}
-                      className="bg-background border-border text-foreground text-2xl font-bold h-14 text-center"
+                      className="bg-background border-border text-foreground text-lg sm:text-2xl font-bold h-11 sm:h-14 text-center"
                     />
-                    <span className="text-muted-foreground font-medium">°Bé</span>
+                    <span className="text-muted-foreground font-medium text-xs sm:text-sm shrink-0">°Bé</span>
                   </div>
                 </Card>
 
                 {/* IR Bund Level (Water Level) */}
-                <Card className="p-4 bg-chart-2/10 border-chart-2/20 hover:bg-chart-2/20 transition-colors">
-                  <Label htmlFor="irBundLevel" className="flex items-center gap-2 text-chart-2 font-semibold">
-                    <Gauge className="h-5 w-5" />
+                <Card className="p-3 sm:p-4 bg-chart-2/10 border-chart-2/20 hover:bg-chart-2/20 transition-colors">
+                  <Label htmlFor="irBundLevel" className="flex items-center gap-1.5 sm:gap-2 text-chart-2 font-semibold text-xs sm:text-sm">
+                    <Gauge className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
                     IR Bund Level
                   </Label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <Input
                       id="irBundLevel"
                       type="number"
@@ -315,19 +315,19 @@ export function RecordingDashboard() {
                       placeholder="15.0"
                       value={formData.irBundLevel}
                       onChange={(e) => setFormData({ ...formData, irBundLevel: e.target.value })}
-                      className="bg-background border-border text-foreground text-2xl font-bold h-14 text-center"
+                      className="bg-background border-border text-foreground text-lg sm:text-2xl font-bold h-11 sm:h-14 text-center"
                     />
-                    <span className="text-muted-foreground font-medium">cm</span>
+                    <span className="text-muted-foreground font-medium text-xs sm:text-sm shrink-0">cm</span>
                   </div>
                 </Card>
 
                 {/* East Channel (Water Level) */}
-                <Card className="p-4 bg-chart-3/10 border-chart-3/20 hover:bg-chart-3/20 transition-colors">
-                  <Label htmlFor="eastChannel" className="flex items-center gap-2 text-chart-3 font-semibold">
-                    <Wind className="h-5 w-5" />
+                <Card className="p-3 sm:p-4 bg-chart-3/10 border-chart-3/20 hover:bg-chart-3/20 transition-colors">
+                  <Label htmlFor="eastChannel" className="flex items-center gap-1.5 sm:gap-2 text-chart-3 font-semibold text-xs sm:text-sm">
+                    <Wind className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
                     East Channel
                   </Label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <Input
                       id="eastChannel"
                       type="number"
@@ -335,19 +335,19 @@ export function RecordingDashboard() {
                       placeholder="12.0"
                       value={formData.eastChannel}
                       onChange={(e) => setFormData({ ...formData, eastChannel: e.target.value })}
-                      className="bg-background border-border text-foreground text-2xl font-bold h-14 text-center"
+                      className="bg-background border-border text-foreground text-lg sm:text-2xl font-bold h-11 sm:h-14 text-center"
                     />
-                    <span className="text-muted-foreground font-medium">cm</span>
+                    <span className="text-muted-foreground font-medium text-xs sm:text-sm shrink-0">cm</span>
                   </div>
                 </Card>
 
                 {/* West Channel (Water Level) */}
-                <Card className="p-4 bg-chart-3/10 border-chart-3/20 hover:bg-chart-3/20 transition-colors">
-                  <Label htmlFor="westChannel" className="flex items-center gap-2 text-chart-3 font-semibold">
-                    <Wind className="h-5 w-5" />
+                <Card className="p-3 sm:p-4 bg-chart-3/10 border-chart-3/20 hover:bg-chart-3/20 transition-colors">
+                  <Label htmlFor="westChannel" className="flex items-center gap-1.5 sm:gap-2 text-chart-3 font-semibold text-xs sm:text-sm">
+                    <Wind className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
                     West Channel
                   </Label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <Input
                       id="westChannel"
                       type="number"
@@ -355,9 +355,9 @@ export function RecordingDashboard() {
                       placeholder="12.0"
                       value={formData.westChannel}
                       onChange={(e) => setFormData({ ...formData, westChannel: e.target.value })}
-                      className="bg-background border-border text-foreground text-2xl font-bold h-14 text-center"
+                      className="bg-background border-border text-foreground text-lg sm:text-2xl font-bold h-11 sm:h-14 text-center"
                     />
-                    <span className="text-muted-foreground font-medium">cm</span>
+                    <span className="text-muted-foreground font-medium text-xs sm:text-sm shrink-0">cm</span>
                   </div>
                 </Card>
               </div>
@@ -381,9 +381,9 @@ export function RecordingDashboard() {
                 type="submit"
                 size="lg"
                 disabled={isSubmitting}
-                className="w-full h-14 text-lg font-semibold bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                className="w-full h-11 sm:h-14 text-base sm:text-lg font-semibold bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
               >
-                <Sparkles className="h-5 w-5 mr-2" />
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 mr-2 shrink-0" />
                 {isSubmitting ? "Submitting..." : "Record Field Data"}
               </Button>
             </form>
@@ -391,56 +391,56 @@ export function RecordingDashboard() {
         </div>
 
         {/* Quick Stats & Recent Activity */}
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {/* Today's Summary */}
-          <Card className="p-5 bg-linear-to-br from-primary/10 to-primary/5">
-            <div className="flex items-center gap-2 mb-4">
-              <User className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold text-foreground">Today's Activity</h3>
+          <Card className="p-3 sm:p-4 md:p-5 bg-linear-to-br from-primary/10 to-primary/5">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+              <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+              <h3 className="font-semibold text-foreground text-sm sm:text-base">Today's Activity</h3>
             </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                <span className="text-sm text-muted-foreground">Entries Recorded</span>
-                <span className="text-2xl font-bold text-foreground">24</span>
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex items-center justify-between p-2 sm:p-3 bg-background/50 rounded-lg">
+                <span className="text-xs sm:text-sm text-muted-foreground">Entries Recorded</span>
+                <span className="text-lg sm:text-2xl font-bold text-foreground">24</span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                <span className="text-sm text-muted-foreground">Sectors Monitored</span>
-                <span className="text-2xl font-bold text-foreground">4</span>
+              <div className="flex items-center justify-between p-2 sm:p-3 bg-background/50 rounded-lg">
+                <span className="text-xs sm:text-sm text-muted-foreground">Sectors Monitored</span>
+                <span className="text-lg sm:text-2xl font-bold text-foreground">4</span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                <span className="text-sm text-muted-foreground">Active Workers</span>
-                <span className="text-2xl font-bold text-foreground">8</span>
+              <div className="flex items-center justify-between p-2 sm:p-3 bg-background/50 rounded-lg">
+                <span className="text-xs sm:text-sm text-muted-foreground">Active Workers</span>
+                <span className="text-lg sm:text-2xl font-bold text-foreground">8</span>
               </div>
             </div>
           </Card>
 
           {/* Data Sync */}
-          <Card className="p-5">
-            <h3 className="font-semibold text-foreground mb-3">Sync Status</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                <span className="text-xs text-muted-foreground">Synced to Server</span>
-                <Badge className="bg-success text-success-foreground">24</Badge>
+          <Card className="p-3 sm:p-4 md:p-5">
+            <h3 className="font-semibold text-foreground mb-2 sm:mb-3 text-sm sm:text-base">Sync Status</h3>
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex items-center justify-between p-1.5 sm:p-2 bg-muted/50 rounded">
+                <span className="text-[10px] sm:text-xs text-muted-foreground">Synced to Server</span>
+                <Badge className="bg-success text-success-foreground text-[10px] sm:text-xs">24</Badge>
               </div>
-              <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                <span className="text-xs text-muted-foreground">Pending Upload</span>
-                <Badge variant="secondary">0</Badge>
+              <div className="flex items-center justify-between p-1.5 sm:p-2 bg-muted/50 rounded">
+                <span className="text-[10px] sm:text-xs text-muted-foreground">Pending Upload</span>
+                <Badge variant="secondary" className="text-[10px] sm:text-xs">0</Badge>
               </div>
-              <p className="text-xs text-muted-foreground">Last sync: Just now</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Last sync: Just now</p>
             </div>
           </Card>
 
           {/* Recent Entries Preview */}
-          <Card className="p-5">
-            <h3 className="font-semibold text-foreground mb-3">Recent Entries</h3>
-            <div className="space-y-2">
+          <Card className="p-3 sm:p-4 md:p-5">
+            <h3 className="font-semibold text-foreground mb-2 sm:mb-3 text-sm sm:text-base">Recent Entries</h3>
+            <div className="space-y-1.5 sm:space-y-2">
               {recentEntries.slice(0, 3).map((entry, index) => (
-                <div key={index} className="p-2 bg-muted/30 rounded text-xs">
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="font-medium text-foreground">{entry.site}</span>
-                    <Badge variant="outline" className="text-xs">{entry.value}</Badge>
+                <div key={index} className="p-1.5 sm:p-2 bg-muted/30 rounded text-[10px] sm:text-xs">
+                  <div className="flex justify-between items-start mb-0.5 sm:mb-1 gap-1.5">
+                    <span className="font-medium text-foreground truncate">{entry.site}</span>
+                    <Badge variant="outline" className="text-[10px] shrink-0">{entry.value}</Badge>
                   </div>
-                  <p className="text-muted-foreground">{entry.worker} • {entry.date.split(' ')[1]}</p>
+                  <p className="text-muted-foreground truncate">{entry.worker} • {entry.date.split(' ')[1]}</p>
                 </div>
               ))}
             </div>
