@@ -13,6 +13,10 @@ import {
   Zap,
   RefreshCw,
   AlertCircle,
+  Layers,
+  ScanLine,
+  Droplets,
+  Star,
 } from "lucide-react";
 import {
   LineChart,
@@ -32,7 +36,10 @@ import PageHeader from "@/components/vision/PageHeader";
 
 const COLORS = ["#22c55e", "#ef4444", "#f97316"];
 
+type StatsSource = "detections" | "batches";
+
 export default function AnalyticsPage() {
+  const [source, setSource] = useState<StatsSource>("detections");
   const [summary, setSummary] = useState<StatisticsSummary | null>(null);
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
   const [hourlyStats, setHourlyStats] = useState<HourlyStats[]>([]);
@@ -44,9 +51,9 @@ export default function AnalyticsPage() {
     setError(null);
     try {
       const [summaryData, dailyData, hourlyData] = await Promise.all([
-        visionApi.getStatsSummary() as Promise<StatisticsSummary>,
-        visionApi.getDailyStats({ limit: 30 }) as Promise<DailyStats[]>,
-        visionApi.getHourlyStats() as Promise<HourlyStats[]>,
+        visionApi.getStatsSummary({ source }) as Promise<StatisticsSummary>,
+        visionApi.getDailyStats({ limit: 30, source }) as Promise<DailyStats[]>,
+        visionApi.getHourlyStats({ source }) as Promise<HourlyStats[]>,
       ]);
       setSummary(summaryData);
       setDailyStats(dailyData);
@@ -57,11 +64,13 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [source]);
 
   useEffect(() => {
     fetchStats();
   }, [fetchStats]);
+
+  const isBatchMode = source === "batches";
 
   if (loading) {
     return (
@@ -115,31 +124,69 @@ export default function AnalyticsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <PageHeader title="Statistics & Analytics" description="Performance trends and quality insights" />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={fetchStats}
-          disabled={loading}
-          className="gap-1.5"
-        >
-          <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Source Toggle */}
+          <div className="flex items-center rounded-lg border bg-muted p-0.5">
+            <button
+              onClick={() => setSource("detections")}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                source === "detections"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <ScanLine className="h-3.5 w-3.5" />
+              Detections
+            </button>
+            <button
+              onClick={() => setSource("batches")}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                source === "batches"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Layers className="h-3.5 w-3.5" />
+              Batches
+            </button>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchStats}
+            disabled={loading}
+            className="gap-1.5"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={`grid gap-4 ${isBatchMode ? "grid-cols-2 lg:grid-cols-5" : "grid-cols-2 lg:grid-cols-4"}`}>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">
-              Total Detections
+              {isBatchMode ? "Total Batches" : "Total Detections"}
             </CardTitle>
-            <Activity className="h-4 w-4 text-cyan-600" />
+            {isBatchMode ? (
+              <Layers className="h-4 w-4 text-cyan-600" />
+            ) : (
+              <Activity className="h-4 w-4 text-cyan-600" />
+            )}
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {summary?.totalDetections ?? 0}
+              {isBatchMode
+                ? summary?.totalBatches ?? 0
+                : summary?.totalDetections ?? 0}
             </div>
+            {isBatchMode && (summary?.totalDetections ?? 0) > 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {summary?.totalDetections} total frames
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -157,33 +204,81 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Avg Processing
-            </CardTitle>
-            <Clock className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatMs(summary?.averageProcessingTime ?? 0)}
-            </div>
-          </CardContent>
-        </Card>
+        {isBatchMode ? (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-gray-500">
+                  Avg Whiteness
+                </CardTitle>
+                <Droplets className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {formatPercentage(summary?.averageWhiteness ?? 0)}
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Detections/Hour
-            </CardTitle>
-            <Zap className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {summary?.detectionsPerHour?.toFixed(1) ?? 0}
-            </div>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-gray-500">
+                  Avg Quality Score
+                </CardTitle>
+                <Star className="h-4 w-4 text-amber-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-amber-600">
+                  {formatPercentage(summary?.averageQualityScore ?? 0)}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-gray-500">
+                  Batches/Hour
+                </CardTitle>
+                <Zap className="h-4 w-4 text-orange-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {summary?.detectionsPerHour?.toFixed(1) ?? 0}
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        ) : (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-gray-500">
+                  Avg Processing
+                </CardTitle>
+                <Clock className="h-4 w-4 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {formatMs(summary?.averageProcessingTime ?? 0)}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-gray-500">
+                  Detections/Hour
+                </CardTitle>
+                <Zap className="h-4 w-4 text-orange-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {summary?.detectionsPerHour?.toFixed(1) ?? 0}
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Charts Row */}
@@ -275,12 +370,15 @@ export default function AnalyticsPage() {
       {/* Hourly Distribution */}
       <Card>
         <CardHeader>
-          <CardTitle>Today&apos;s Hourly Distribution</CardTitle>
+          <CardTitle>
+            Today&apos;s Hourly Distribution
+            {isBatchMode && <span className="text-sm font-normal text-muted-foreground ml-2">(by batch start time)</span>}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {hourlyStats.every((h) => h.detections === 0) ? (
             <div className="h-64 flex items-center justify-center text-gray-500">
-              No detections today
+              No {isBatchMode ? "batches" : "detections"} today
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>

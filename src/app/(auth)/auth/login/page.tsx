@@ -58,23 +58,32 @@ export default function CommonLoginPage() {
     }
   };
 
+  const submitOtp = async (code: string) => {
+    setLocalError(null);
+    try {
+      if (method === 'phone') {
+        await verifyOtp({ phone: fullPhone, code });
+      } else {
+        await verifyOtp({ email, code });
+      }
+    } catch {
+      // Error set by context
+    }
+  };
+
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLocalError(null);
-
     if (otp.length !== 6) {
       setLocalError(t('validation.enterOtp'));
       return;
     }
+    await submitOtp(otp);
+  };
 
-    try {
-      if (method === 'phone') {
-        await verifyOtp({ phone: fullPhone, code: otp });
-      } else {
-        await verifyOtp({ email, code: otp });
-      }
-    } catch {
-      // Error set by context
+  const handleOtpChange = (value: string) => {
+    setOtp(value);
+    if (value.length === 6) {
+      submitOtp(value);
     }
   };
 
@@ -307,7 +316,7 @@ export default function CommonLoginPage() {
               {t('otp.otpSentTo', { target: otpTarget })}
             </p>
             <div className="flex justify-center pt-2">
-              <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+              <InputOTP className='' maxLength={6} value={otp} onChange={handleOtpChange}>
                 <InputOTPGroup>
                   <InputOTPSlot index={0} />
                   <InputOTPSlot index={1} />
