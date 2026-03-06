@@ -3,7 +3,7 @@
  * Handles all crystallization-related API requests
  */
 
-import { BaseController } from './base-controller';
+import { BaseController } from "./base-controller";
 import {
   DailyMeasurementRequest,
   DailyMeasurementResponse,
@@ -14,14 +14,15 @@ import {
   PredictedMonthlyProductionRequest,
   PredictedMonthlyProductionResponse,
   WeatherForecastResponse,
-} from '@/types/crystallization.types';
+  CrystallizationPredictionRequest,
+} from "@/types/crystallization.types";
 
 /**
  * Crystallization controller class
  */
 class CrystallizationController extends BaseController {
   constructor() {
-    super('/crystallization');
+    super("/crystallization");
   }
 
   /**
@@ -30,10 +31,10 @@ class CrystallizationController extends BaseController {
    * @returns Predicted monthly production data
    */
   async getPredictedMonthlyProductions(
-    request: PredictedMonthlyProductionRequest
+    request: PredictedMonthlyProductionRequest,
   ): Promise<PredictedMonthlyProductionResponse> {
     return this.get<PredictedMonthlyProductionResponse>(
-      `/predicted-monthly-productions?startMonth=${request.startMonth}&endMonth=${request.endMonth}`
+      `/predicted-monthly-productions?startMonth=${request.startMonth}&endMonth=${request.endMonth}`,
     );
   }
 
@@ -43,11 +44,11 @@ class CrystallizationController extends BaseController {
    * @returns Response with success status
    */
   async createDailyMeasurement(
-    request: DailyMeasurementRequest
+    request: DailyMeasurementRequest,
   ): Promise<DailyMeasurementResponse> {
     return this.post<DailyMeasurementResponse, DailyMeasurementRequest>(
-      '/daily-measurement',
-      request
+      "/daily-measurement",
+      request,
     );
   }
 
@@ -57,10 +58,10 @@ class CrystallizationController extends BaseController {
    * @returns Daily measurement data
    */
   async getDailyMeasurements(
-    request: DailyMeasurementGetRequest
+    request: DailyMeasurementGetRequest,
   ): Promise<DailyMeasurementGetResponse> {
     return this.get<DailyMeasurementGetResponse>(
-      `/daily-measurement?startDate=${request.startDate}&endDate=${request.endDate}`
+      `/daily-measurement?startDate=${request.startDate}&endDate=${request.endDate}`,
     );
   }
 
@@ -70,10 +71,10 @@ class CrystallizationController extends BaseController {
    * @returns Predicted daily measurement data
    */
   async getPredictedDailyMeasurements(
-    request: PredictedDailyMeasurementGetRequest
+    request: PredictedDailyMeasurementGetRequest,
   ): Promise<PredictedDailyMeasurementGetResponse> {
     return this.get<PredictedDailyMeasurementGetResponse>(
-      `/predicted-daily-measurement?startDate=${request.startDate}&endDate=${request.endDate}`
+      `/predicted-daily-measurement?startDate=${request.startDate}&endDate=${request.endDate}`,
     );
   }
 
@@ -82,7 +83,13 @@ class CrystallizationController extends BaseController {
    * @returns Weather forecast data for next 16 days
    */
   async getWeatherForecast(): Promise<WeatherForecastResponse> {
-    return this.get<WeatherForecastResponse>('/weather-forecast');
+    return this.get<WeatherForecastResponse>("/weather-forecast");
+  }
+
+  async getCrystallizationPredictions(
+    request: CrystallizationPredictionRequest,
+  ): Promise<any> {
+    return this.post<any>("/predictions", request);
   }
 }
 

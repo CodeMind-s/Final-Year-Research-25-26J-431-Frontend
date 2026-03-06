@@ -7,7 +7,7 @@
  */
 export interface PredictedMonthlyProductionRequest {
   startMonth: string; // Format: "YYYY-MM"
-  endMonth: string;   // Format: "YYYY-MM"
+  endMonth: string; // Format: "YYYY-MM"
 }
 
 /**
@@ -15,7 +15,7 @@ export interface PredictedMonthlyProductionRequest {
  */
 export interface ActualMonthlyProductionRequest {
   startMonth: string; // Format: "YYYY-MM"
-  endMonth: string;   // Format: "YYYY-MM"
+  endMonth: string; // Format: "YYYY-MM"
 }
 
 /**
@@ -81,7 +81,7 @@ export interface DailyMeasurementResponse {
  */
 export interface DailyMeasurementGetRequest {
   startDate: string; // Format: "YYYY-MM-DD"
-  endDate: string;   // Format: "YYYY-MM-DD"
+  endDate: string; // Format: "YYYY-MM-DD"
 }
 
 /**
@@ -145,7 +145,7 @@ export interface DailyMeasurementGetResponse {
  */
 export interface PredictedDailyMeasurementGetRequest {
   startDate: string; // Format: "YYYY-MM-DD"
-  endDate: string;   // Format: "YYYY-MM-DD"
+  endDate: string; // Format: "YYYY-MM-DD"
 }
 
 /**
@@ -174,7 +174,7 @@ export interface DailyEnvironmentalChartData {
   rainfall: number | null;
   temperature: number | null;
   humidity: number | null;
-  type: 'historical' | 'predicted';
+  type: "historical" | "predicted";
 }
 
 /**
@@ -242,4 +242,12 @@ export interface WeatherForecastResponse {
     cnt: number;
     list: WeatherForecastDay[];
   };
+}
+
+export interface CrystallizationPredictionRequest {
+  start_date: string; // Format: "YYYY-MM-DD"
+  forecast_days: number;
+  num_salt_beds: number;
+  latitude: number;
+  longitude: number;
 }

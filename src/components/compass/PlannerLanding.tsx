@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   Plus,
   Scissors,
@@ -22,10 +22,13 @@ import {
   ChevronRight,
   ArrowRight,
   Lightbulb,
+  Sparkles,
 } from "lucide-react";
 import { crystallizationController } from "@/services/crystallization.controller";
 import { WeatherForecastDay } from "@/types/crystallization.types";
 import { tokenStorage } from "@/lib/storage.utils";
+import { aiController } from "@/services/gemini.controller";
+import { PlanCreateHintResponse } from "@/types/gemini.types";
 
 
 // ─── Types ───────────────────────────────────────────────────────
@@ -283,9 +286,12 @@ const ForecastMonthGrid: React.FC<{
 
 const WeatherForecastCalendar: React.FC = () => {
   const t = useTranslations('compass');
+  const locale = useLocale() as 'en' | 'si' | 'ta';
   const [weatherData, setWeatherData] = useState<Map<string, WeatherForecastDay>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState(false);
+  const [planHint, setPlanHint] = useState<PlanCreateHintResponse | null>(null);
+  const [hintLoading, setHintLoading] = useState(false);
   
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -359,6 +365,27 @@ const WeatherForecastCalendar: React.FC = () => {
     fetchWeatherData();
   }, []);
 
+  // Fetch plan creation hint
+  useEffect(() => {
+    const fetchPlanHint = async () => {
+      const token = tokenStorage.getToken();
+      if (!token) return;
+
+      try {
+        setHintLoading(true);
+        const response = await aiController.getPlanCreateHint();
+        console.log('Plan Hint Response:', response);
+        setPlanHint(response);
+      } catch (error) {
+        console.error('Failed to fetch plan hint:', error);
+      } finally {
+        setHintLoading(false);
+      }
+    };
+
+    fetchPlanHint();
+  }, []);
+
   if (isLoading) {
     return (
       <div className="mb-6">
@@ -395,10 +422,42 @@ const WeatherForecastCalendar: React.FC = () => {
 
   return (
     <div className="mb-6">
+      {/* Weather Forecast */}
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-bold text-slate-900">Weather — next 16 days ☀️</p>
         <span className="text-[10px] font-semibold text-sky-500 uppercase tracking-wide">{t('weather.forecast')}</span>
       </div>
+      {/* AI Hint Card */}
+      {hintLoading ? (
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-4">
+          <div className="flex items-center gap-3 animate-pulse">
+            <div className="w-10 h-10 bg-purple-100 rounded-xl" />
+            <div className="flex-1 space-y-2">
+              <div className="h-3 bg-slate-100 rounded w-24" />
+              <div className="h-2.5 bg-slate-100 rounded w-full" />
+            </div>
+          </div>
+        </div>
+      ) : planHint ? (
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-2xl border border-purple-200 shadow-sm p-4 mb-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md shadow-purple-500/30">
+              <Sparkles size={18} className="text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <p className="text-[11px] font-extrabold text-purple-600 uppercase tracking-wide">
+                  {planHint.notification[locale]}
+                </p>
+              </div>
+              <p className="text-sm text-slate-700 leading-relaxed mb-3 font-medium">
+                {planHint.description[locale]}
+              </p>
+
+            </div>
+          </div>
+        </div>
+      ) : null}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3">
         <div className="max-h-[460px] overflow-y-auto pr-1" style={{ scrollbarWidth: "thin" }}>
           {months.map(({ year, month }) => (

@@ -159,6 +159,7 @@
     "confirmAndCreate": "Confirm & Create Plan",
     "estimateDisclaimer": "Estimates based on current market rates · Actual results may vary",
     "creating": "Creating Plan...",
+    "loading": "Loading...",
     "planCreated": "Plan Created Successfully!",
     "planCreatedDesc": "Your harvest plan has been saved and is ready to track.",
     "planFailed": "Failed to Create Plan",
