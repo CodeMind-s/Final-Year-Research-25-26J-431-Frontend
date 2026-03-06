@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -37,7 +37,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/dtos/auth.dto";
+import { adminController } from "@/services/admin.controller";
 import Image from "next/image";
+
+const ROLES_NEEDING_VERIFICATION = [UserRole.LANDOWNER, UserRole.DISTRIBUTOR, UserRole.LABORATORY];
 
 interface AdminDashboardLayoutProps {
   children: ReactNode;
@@ -56,7 +59,25 @@ export function AdminDashboardLayout({
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [pendingVerificationCount, setPendingVerificationCount] = useState(0);
   const { logout, user } = useAuth();
+
+  useEffect(() => {
+    if (user?.role === UserRole.SUPERADMIN || user?.role === UserRole.ADMIN) {
+      adminController.getUsers(1, 100).then((res) => {
+        const allUsers = res.data || [];
+        const count = allUsers.filter(
+          (u: any) =>
+            u.isOnboarded === true &&
+            u.isVerified !== true &&
+            ROLES_NEEDING_VERIFICATION.includes(u.role)
+        ).length;
+        setPendingVerificationCount(count);
+      }).catch((err) => {
+        console.error("Failed to fetch pending verification count:", err);
+      });
+    }
+  }, [user?.role, pathname]);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -165,6 +186,11 @@ export function AdminDashboardLayout({
                 >
                   <Icon className="h-5 w-5" />
                   {item.name}
+                  {item.href === "/superadmin/users" && pendingVerificationCount > 0 && (
+                    <Badge variant="destructive" className="ml-auto text-[10px] px-1.5 py-0 h-5 min-w-5 flex items-center justify-center">
+                      {pendingVerificationCount}
+                    </Badge>
+                  )}
                 </Link>
               );
             })}
