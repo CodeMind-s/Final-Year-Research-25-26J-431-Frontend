@@ -51,7 +51,7 @@ export function PurityGauge() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`text-4xl font-bold tracking-tight ${colors.text}`}>
+            <span className={`text-2xl font-bold tracking-tight ${colors.text}`}>
               {purity.toFixed(1)}%
             </span>
             <span className="text-sm text-slate-400 font-medium mt-1">Purity Level</span>

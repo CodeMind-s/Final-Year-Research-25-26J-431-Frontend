@@ -123,6 +123,9 @@ export interface StatisticsSummary {
   detectionsPerHour: number;
   periodStart: string | null;
   periodEnd: string | null;
+  totalBatches?: number;
+  averageWhiteness?: number;
+  averageQualityScore?: number;
 }
 
 export interface HourlyStats {

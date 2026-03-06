@@ -39,8 +39,14 @@ import {
   RefreshCw,
   AlertCircle,
   Calendar,
+  Layers,
+  ScanLine,
+  Droplets,
+  Star,
 } from "lucide-react";
 import PageHeader from "@/components/vision/PageHeader";
+
+type StatsSource = "detections" | "batches";
 
 function todayStr(): string {
   return new Date().toISOString().split("T")[0];
@@ -98,6 +104,7 @@ function computeSummaryFromData(
 }
 
 export default function ReportsPage() {
+  const [source, setSource] = useState<StatsSource>("detections");
   const [period, setPeriod] = useState<ReportPeriod>("hourly");
   const [singleDate, setSingleDate] = useState(todayStr());
   const [startDate, setStartDate] = useState(todayStr());
@@ -111,6 +118,10 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState(false);
+
+  const isBatchMode = source === "batches";
+  const itemLabel = isBatchMode ? "Batches" : "Detections";
+  const itemLabelSingular = isBatchMode ? "batches" : "detections";
 
   const getDateRange = useCallback((): { start: string; end: string } => {
     switch (period) {
@@ -136,7 +147,7 @@ export default function ReportsPage() {
 
     try {
       if (period === "hourly") {
-        const hourly = await visionApi.getHourlyStats(range.start);
+        const hourly = await visionApi.getHourlyStats({ date: range.start, source });
         setSummary(computeSummaryFromData(hourly));
         setHourlyData(hourly);
         setDailyData([]);
@@ -144,6 +155,7 @@ export default function ReportsPage() {
         const daily = await visionApi.getDailyStats({
           startDate: range.start,
           endDate: range.end,
+          source,
         });
         setSummary(computeSummaryFromData(daily));
         setDailyData(daily);
@@ -158,9 +170,10 @@ export default function ReportsPage() {
     } finally {
       setLoading(false);
     }
-  }, [period, getDateRange]);
+  }, [period, getDateRange, source]);
 
   const handleExportCsv = () => {
+    const sourceLabel = isBatchMode ? "batches" : "detections";
     if (period === "hourly") {
       downloadCsv(
         hourlyData.map((h) => ({
@@ -173,13 +186,13 @@ export default function ReportsPage() {
         })),
         [
           { key: "hour", header: "Hour" },
-          { key: "detections", header: "Detections" },
+          { key: "detections", header: itemLabel },
           { key: "pureCount", header: "Pure" },
           { key: "impureCount", header: "Impure" },
           { key: "unwantedCount", header: "Unwanted" },
           { key: "avgPurity", header: "Avg Purity" },
         ],
-        `quality-report-hourly-${singleDate}.csv`
+        `quality-report-${sourceLabel}-hourly-${singleDate}.csv`
       );
     } else {
       const range = getDateRange();
@@ -194,13 +207,13 @@ export default function ReportsPage() {
         })),
         [
           { key: "date", header: "Date" },
-          { key: "detections", header: "Detections" },
+          { key: "detections", header: itemLabel },
           { key: "pureCount", header: "Pure" },
           { key: "impureCount", header: "Impure" },
           { key: "unwantedCount", header: "Unwanted" },
           { key: "avgPurity", header: "Avg Purity" },
         ],
-        `quality-report-${period}-${range.start}.csv`
+        `quality-report-${sourceLabel}-${period}-${range.start}.csv`
       );
     }
   };
@@ -227,6 +240,37 @@ export default function ReportsPage() {
       <Card>
         <CardContent className="pt-">
           <div className="flex flex-wrap items-end gap-4">
+            {/* Source Toggle */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-muted-foreground">
+                Source
+              </label>
+              <div className="flex items-center rounded-lg border bg-muted p-0.5">
+                <button
+                  onClick={() => setSource("detections")}
+                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                    source === "detections"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <ScanLine className="h-3.5 w-3.5" />
+                  Detections
+                </button>
+                <button
+                  onClick={() => setSource("batches")}
+                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                    source === "batches"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Layers className="h-3.5 w-3.5" />
+                  Batches
+                </button>
+              </div>
+            </div>
+
             {/* Period Selector */}
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-muted-foreground">
@@ -373,13 +417,17 @@ export default function ReportsPage() {
 
       {/* Summary Cards */}
       {generated && summary && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className={`grid gap-4 ${isBatchMode ? "grid-cols-2 lg:grid-cols-5" : "grid-cols-2 lg:grid-cols-4"}`}>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Detections
+                Total {itemLabel}
               </CardTitle>
-              <Activity className="h-4 w-4 text-cyan-600" />
+              {isBatchMode ? (
+                <Layers className="h-4 w-4 text-cyan-600" />
+              ) : (
+                <Activity className="h-4 w-4 text-cyan-600" />
+              )}
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -423,7 +471,7 @@ export default function ReportsPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Detections/Hour
+                {itemLabel}/Hour
               </CardTitle>
               <Zap className="h-4 w-4 text-orange-600" />
             </CardHeader>
@@ -433,6 +481,28 @@ export default function ReportsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {isBatchMode && (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Avg Whiteness / Quality
+                </CardTitle>
+                <Droplets className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  <span className="text-blue-600">
+                    {formatPercentage(summary.averageWhiteness ?? 0)}
+                  </span>
+                  {" / "}
+                  <span className="text-amber-600">
+                    {formatPercentage(summary.averageQualityScore ?? 0)}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
 
@@ -443,6 +513,11 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between">
               <CardTitle>
                 {period === "hourly" ? "Hourly" : "Daily"} Breakdown
+                {isBatchMode && (
+                  <span className="text-sm font-normal text-muted-foreground ml-2">
+                    (by batch)
+                  </span>
+                )}
               </CardTitle>
               {hasData && (
                 <div className="flex gap-2">
@@ -471,8 +546,12 @@ export default function ReportsPage() {
           <CardContent>
             {!hasData ? (
               <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-                <Activity className="h-8 w-8 mb-2 opacity-40" />
-                <p>No detections found for the selected period.</p>
+                {isBatchMode ? (
+                  <Layers className="h-8 w-8 mb-2 opacity-40" />
+                ) : (
+                  <Activity className="h-8 w-8 mb-2 opacity-40" />
+                )}
+                <p>No {itemLabelSingular} found for the selected period.</p>
               </div>
             ) : (
               <Table>
@@ -481,7 +560,7 @@ export default function ReportsPage() {
                     <TableHead>
                       {period === "hourly" ? "Hour" : "Date"}
                     </TableHead>
-                    <TableHead className="text-right">Detections</TableHead>
+                    <TableHead className="text-right">{itemLabel}</TableHead>
                     <TableHead className="text-right">Pure</TableHead>
                     <TableHead className="text-right">Impure</TableHead>
                     <TableHead className="text-right">Unwanted</TableHead>
