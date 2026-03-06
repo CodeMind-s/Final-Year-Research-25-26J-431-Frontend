@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useTranslations } from 'next-intl';
 import { AppProvider } from "@/context/compass/AppContext";
+import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { TopNavBar } from "@/components/compass/TopNavBar";
 import { BottomNavBar, NavTab } from "@/components/compass/BottomNavBar";
 import { PlanCreationFlow } from "@/components/compass/PlanCreationFlow";
@@ -12,6 +13,7 @@ import { MarketAnalysis } from "@/components/compass/MarketAnalysis";
 import { HomeDashboard } from "@/components/compass/HomeDashboard";
 import { harvestPlanController } from "@/services/plan.controller";
 import { HarvestPlan } from "@/types/harvest-plan.types";
+import { UserRole } from "@/dtos/auth.dto";
 
 import { CircleUserRound } from "lucide-react";
 
@@ -295,20 +297,26 @@ export default function LandownerDashboardLayout({
   };
 
   return (
-    <section className="min-h-screen w-full bg-slate-50">
-      <AppProvider>
-        <TopNavBar
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          onLogout={handleLogout}
-        />
+    <ProtectedRoute
+      requiredRole={[UserRole.LANDOWNER]}
+      requireVerified
+      redirectTo="/"
+    >
+      <section className="min-h-screen w-full bg-slate-50">
+        <AppProvider>
+          <TopNavBar
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            onLogout={handleLogout}
+          />
 
-        <main className="pb-20 lg:pb-0">
-          {renderTabContent()}
-        </main>
+          <main className="pb-20 lg:pb-0">
+            {renderTabContent()}
+          </main>
 
-        <BottomNavBar activeTab={activeTab} onTabChange={handleTabChange} />
-      </AppProvider>
-    </section>
+          <BottomNavBar activeTab={activeTab} onTabChange={handleTabChange} />
+        </AppProvider>
+      </section>
+    </ProtectedRoute>
   );
 }
