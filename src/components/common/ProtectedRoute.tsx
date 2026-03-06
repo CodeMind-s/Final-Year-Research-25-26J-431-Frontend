@@ -10,10 +10,13 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { UserRole } from '@/dtos/auth.dto';
 
+const ROLES_NEEDING_VERIFICATION = [UserRole.LANDOWNER, UserRole.DISTRIBUTOR, UserRole.LABORATORY];
+
 interface ProtectedRouteProps {
     children: React.ReactNode;
     requiredRole?: UserRole[];
     requireOnboarded?: boolean;
+    requireVerified?: boolean;
     requireSubscription?: boolean;
     redirectTo?: string;
 }
@@ -25,6 +28,7 @@ export function ProtectedRoute({
     children,
     requiredRole,
     requireOnboarded = false,
+    requireVerified = false,
     requireSubscription = false,
     redirectTo = '/',
 }: ProtectedRouteProps) {
@@ -55,12 +59,18 @@ export function ProtectedRoute({
             return;
         }
 
+        // Check verification status
+        if (requireVerified && user && !user.isVerified && ROLES_NEEDING_VERIFICATION.includes(user.role) && !isAdmin) {
+            router.push('/auth/pending-verification');
+            return;
+        }
+
         // Check subscription status
         if (requireSubscription && user && !user.isSubscribed && !user.isTrialActive && !isAdmin) {
             router.push('/auth/plans');
             return;
         }
-    }, [isAuthenticated, isLoading, user, requiredRole, requireOnboarded, requireSubscription, router, redirectTo]);
+    }, [isAuthenticated, isLoading, user, requiredRole, requireOnboarded, requireVerified, requireSubscription, router, redirectTo]);
 
     // Show loading state
     if (isLoading) {
@@ -89,6 +99,11 @@ export function ProtectedRoute({
 
     // Onboarding check failed
     if (requireOnboarded && user && !user.isOnboarded && !isAdminUser) {
+        return null;
+    }
+
+    // Verification check failed
+    if (requireVerified && user && !user.isVerified && ROLES_NEEDING_VERIFICATION.includes(user.role) && !isAdminUser) {
         return null;
     }
 
