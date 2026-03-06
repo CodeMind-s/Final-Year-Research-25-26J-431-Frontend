@@ -113,15 +113,19 @@ export const visionApi = {
   getStatsSummary: (params?: {
     startDate?: string;
     endDate?: string;
+    source?: string;
   }): Promise<StatisticsSummary> =>
     httpClient.get<StatisticsSummary>(`${PREFIX}/statistics/summary`, {
       params,
     }),
 
-  getHourlyStats: async (date?: string): Promise<HourlyStats[]> => {
+  getHourlyStats: async (dateOrParams?: string | { date?: string; source?: string }): Promise<HourlyStats[]> => {
+    const params = typeof dateOrParams === 'string'
+      ? { date: dateOrParams }
+      : dateOrParams;
     const raw = await httpClient.get<BackendStatsResponse<HourlyStats>>(
       `${PREFIX}/statistics/hourly`,
-      { params: date ? { date } : undefined }
+      { params }
     );
     return raw.stats;
   },
@@ -130,6 +134,7 @@ export const visionApi = {
     startDate?: string;
     endDate?: string;
     limit?: number;
+    source?: string;
   }): Promise<DailyStats[]> => {
     const raw = await httpClient.get<BackendStatsResponse<DailyStats>>(
       `${PREFIX}/statistics/daily`,
