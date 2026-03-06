@@ -193,6 +193,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 return;
             }
 
+            // Roles that require admin verification before proceeding
+            const rolesNeedingVerification = [UserRole.LANDOWNER, UserRole.DISTRIBUTOR, UserRole.LABORATORY];
+            if (rolesNeedingVerification.includes(user.role) && !user.isVerified) {
+                router.push('/auth/pending-verification');
+                return;
+            }
+
             if (user.role === UserRole.LABORATORY && !user.isSubscribed) {
                 router.push('/auth/plans');
                 return;
