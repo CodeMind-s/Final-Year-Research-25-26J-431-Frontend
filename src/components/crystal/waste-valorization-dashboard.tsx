@@ -10,7 +10,7 @@ import { RecycleIcon, Droplets, ThermometerSun, TrendingUp, AlertCircle, CheckCi
 import { ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, PieChart, Pie, Cell } from "recharts"
 import { useState, useEffect, useCallback } from "react"
 import { wasteManagementController } from "@/services/waste-management.controller"
-import type { WastePredictionData as ApiWastePredictionData, WasteAverageMetrics, QuickPredictionRequest } from "@/types/waste-management.types"
+import type { WastePredictionData as ApiWastePredictionData, WasteAverageMetrics, QuickPredictionFormData, RecentPrediction } from "@/types/waste-management.types"
 
 // Extended type with period property for display
 interface WastePredictionData extends ApiWastePredictionData {
@@ -48,14 +48,18 @@ export function WasteValorizationDashboard() {
   const [quickJobId, setQuickJobId] = useState<string | null>(null)
   const [quickJobStatus, setQuickJobStatus] = useState<"processing" | "completed" | "failed" | null>(null)
   const [quickJobMessage, setQuickJobMessage] = useState<string>("")
+  const [predictionDate, setPredictionDate] = useState<string>(new Date().toISOString().split('T')[0])
+  const [recentPredictions, setRecentPredictions] = useState<RecentPrediction[]>([])
+  const [isLoadingRecent, setIsLoadingRecent] = useState(false)
   
   // Quick prediction form state
-  const [quickForm, setQuickForm] = useState<QuickPredictionRequest>({
+  const [quickForm, setQuickForm] = useState<QuickPredictionFormData>({
     production_volume: 50000,
-    rain_sum: 200,
-    temperature_mean: 28,
+    rain_sum: 100,
+    temperature_mean: 22,
     humidity_mean: 85,
-    wind_speed_mean: 15
+    wind_speed_mean: 15,
+    month: new Date().getMonth() + 1 // 1-12
   })
 
   // Fetch system forecast data
@@ -76,8 +80,6 @@ export function WasteValorizationDashboard() {
         endDate: formatDate(endDate),
         includeAverages: true
       })
-      
-      console.log("API Response:", response)
       
       // httpClient.extractData already unwraps the response, so predictions is at the top level
       if (!response?.predictions) {
@@ -113,8 +115,24 @@ export function WasteValorizationDashboard() {
   useEffect(() => {
     if (predictionMode === "forecast") {
       fetchSystemForecast()
+    } else if (predictionMode === "quick") {
+      fetchRecentPredictions()
     }
   }, [predictionMode, fetchSystemForecast])
+
+  // Fetch recent predictions
+  const fetchRecentPredictions = async () => {
+    try {
+      setIsLoadingRecent(true)
+      const response = await wasteManagementController.getRecentPredictions()
+      setRecentPredictions(response.predictions || [])
+    } catch (error) {
+      console.error("Error fetching recent predictions:", error)
+      setRecentPredictions([])
+    } finally {
+      setIsLoadingRecent(false)
+    }
+  }
 
   const calculateAveragesFromData = (data: WastePredictionData[]): WasteAverageMetrics => {
     if (data.length === 0) {
@@ -189,7 +207,10 @@ export function WasteValorizationDashboard() {
       setQuickJobStatus(null)
       setQuickPredictionResult(null)
       
-      const response = await wasteManagementController.submitQuickPrediction(quickForm)
+      const response = await wasteManagementController.submitQuickPrediction(
+        quickForm,
+        predictionDate
+      )
       
       console.log("Quick Prediction Job Submitted:", response)
       
@@ -199,13 +220,16 @@ export function WasteValorizationDashboard() {
       
       // If somehow immediate result is available (shouldn't happen in async pattern)
       if (response.prediction) {
-        const date = new Date()
+        const date = new Date(predictionDate)
         const period = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
         setQuickPredictionResult({
           ...response.prediction,
           period
         })
       }
+      
+      // Refresh recent predictions list
+      fetchRecentPredictions()
       
     } catch (error) {
       console.error("Error submitting quick prediction:", error)
@@ -236,6 +260,8 @@ export function WasteValorizationDashboard() {
           ...response.prediction,
           period
         })
+        // Refresh recent predictions when completed
+        fetchRecentPredictions()
       }
       
     } catch (error) {
@@ -349,7 +375,25 @@ export function WasteValorizationDashboard() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+          {/* Prediction Date */}
+          <div className="mb-4">
+            <Label htmlFor="prediction-date" className="text-xs">Prediction Date</Label>
+            <Input
+              id="prediction-date"
+              type="date"
+              value={predictionDate}
+              onChange={(e) => {
+                const date = e.target.value
+                setPredictionDate(date)
+                // Auto-update month field based on selected date
+                const selectedDate = new Date(date)
+                setQuickForm({ ...quickForm, month: selectedDate.getMonth() + 1 })
+              }}
+              className="h-9 max-w-xs mt-1"
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
             <div className="space-y-2">
               <Label htmlFor="prod-vol" className="text-xs">Production Volume (kg)</Label>
               <Input
@@ -405,6 +449,19 @@ export function WasteValorizationDashboard() {
                 step="0.1"
                 value={quickForm.wind_speed_mean}
                 onChange={(e) => setQuickForm({ ...quickForm, wind_speed_mean: parseFloat(e.target.value) || 0 })}
+                className="h-9"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="month" className="text-xs">Month (1-12)</Label>
+              <Input
+                id="month"
+                type="number"
+                min="1"
+                max="12"
+                value={quickForm.month}
+                onChange={(e) => setQuickForm({ ...quickForm, month: parseInt(e.target.value) || 1 })}
                 className="h-9"
               />
             </div>
@@ -484,6 +541,162 @@ export function WasteValorizationDashboard() {
                   </>
                 )}
               </div>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* Recent Predictions - Only for Quick Prediction mode */}
+      {predictionMode === "quick" && (
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                Recent Predictions
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Latest 5 prediction jobs and their results
+              </p>
+            </div>
+            <Button 
+              onClick={fetchRecentPredictions}
+              disabled={isLoadingRecent}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              {isLoadingRecent ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  Refreshing...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4" />
+                  Refresh
+                </>
+              )}
+            </Button>
+          </div>
+
+          {isLoadingRecent && recentPredictions.length === 0 ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto mb-3"></div>
+                <p className="text-sm text-muted-foreground">Loading recent predictions...</p>
+              </div>
+            </div>
+          ) : recentPredictions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Sparkles className="h-12 w-12 text-muted-foreground/40 mb-3" />
+              <p className="text-sm font-medium text-foreground">No predictions yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Submit a prediction above to get started</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentPredictions.map((prediction) => (
+                <Card key={prediction.jobId} className="p-4 border-l-4" style={{
+                  borderLeftColor: 
+                    prediction.status === "completed" ? "rgb(34 197 94)" : 
+                    prediction.status === "processing" ? "rgb(59 130 246)" : 
+                    "rgb(239 68 68)"
+                }}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant={
+                          prediction.status === "completed" ? "default" : 
+                          prediction.status === "processing" ? "secondary" : 
+                          "destructive"
+                        }>
+                          {prediction.status}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(prediction.predictionDate).toLocaleDateString('en-GB', { 
+                            day: 'numeric', 
+                            month: 'short', 
+                            year: 'numeric' 
+                          })}
+                        </span>
+                        <span className="text-xs text-muted-foreground">•</span>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(prediction.createdAt).toLocaleString('en-GB', {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-xs">
+                        <div>
+                          <p className="text-muted-foreground">Production</p>
+                          <p className="font-semibold">{prediction.requestData.production_volume.toLocaleString()} kg</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Rain</p>
+                          <p className="font-semibold">{prediction.requestData.rain_sum} mm</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Temp</p>
+                          <p className="font-semibold">{prediction.requestData.temperature_mean}°C</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Humidity</p>
+                          <p className="font-semibold">{prediction.requestData.humidity_mean}%</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Wind</p>
+                          <p className="font-semibold">{prediction.requestData.wind_speed_mean} km/h</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Month</p>
+                          <p className="font-semibold">{prediction.requestData.month}</p>
+                        </div>
+                      </div>
+
+                      {prediction.prediction && (
+                        <div className="pt-2 border-t border-border">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                            <div className="bg-warning/10 p-2 rounded">
+                              <p className="text-muted-foreground">Total Waste</p>
+                              <p className="font-bold text-warning text-base">{prediction.prediction.predicted_waste?.toLocaleString() || 0} kg</p>
+                            </div>
+                            {prediction.prediction.total_solid_waste && (
+                              <div className="bg-purple-50 p-2 rounded">
+                                <p className="text-muted-foreground">Solid Waste</p>
+                                <p className="font-bold text-purple-600 text-base">{prediction.prediction.total_solid_waste.toLocaleString()} kg</p>
+                              </div>
+                            )}
+                            {prediction.prediction.total_liquid_waste && (
+                              <div className="bg-amber-50 p-2 rounded">
+                                <p className="text-muted-foreground">Liquid Waste</p>
+                                <p className="font-bold text-amber-600 text-base">{prediction.prediction.total_liquid_waste.toLocaleString()} L</p>
+                              </div>
+                            )}
+                            {prediction.prediction.total_solid_waste && prediction.prediction.total_liquid_waste && (
+                              <div className="bg-primary/10 p-2 rounded">
+                                <p className="text-muted-foreground">Waste Ratio</p>
+                                <p className="font-bold text-primary text-base">
+                                  {((prediction.prediction.predicted_waste / prediction.requestData.production_volume) * 100).toFixed(2)}%
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {prediction.status === "processing" && (
+                      <div className="flex-shrink-0">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              ))}
             </div>
           )}
         </Card>
