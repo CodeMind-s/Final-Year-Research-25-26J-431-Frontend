@@ -233,7 +233,7 @@
     "sendRequest": "ඉල්ලීම යවන්න",
     "distributorReview": "බෙදාහරින්නා සමාලෝචනය කර ඔබේ ඉල්ලීම පිළිගනු හෝ ප්‍රතික්ෂේප කරනු ඇත",
     "priceTrend": "මිල ප්‍රවණතාව",
-    "priceTrendSub": "පසුගිය මාස 6 + ඊළඟ මාස 6 (රු./මල්ලකට)",
+    "priceTrendSub": "පසුගිය මාස 6 + ඊළඟ මාස 2 (රු./මල්ලකට)",
     "actual": "සැබෑ",
     "forecastLabel": "අනාවැකිය",
     "projectedPeak": "පුරෝකථනය කළ උපරිමය: රු. {price} {month} මාසයේ",
@@ -261,7 +261,7 @@
     "expectedPeakValue": "රු. 2,150 (මැයි)",
     "yoyChange": "+12% වසරින් වසර",
     "forecastSuffix": "(අනාවැකිය)",
-    "projectedPeakValue": "රු. 2,150",
+    "projectedPeakValue": "2,150",
     "projectedPeakMonth": "2026 මැයි",
     "demandPeakMonth": "2026 අප්‍රේල්"
   },
@@ -312,7 +312,31 @@
   },
   "layout": {
     "profile": "පැතිකඩ",
-    "comingSoon": "ඉක්මනින් පැමිණේ"
+    "comingSoon": "ඉක්මනින් පැමිණේ",
+    "loading": "පූරණය වෙමින්...",
+    "failedToLoad": "පැතිකඩ පූරණය කිරීම අසාර්ථකයි",
+    "retry": "නැවත උත්සාහ කරන්න"
+  },
+  "profile": {
+    "title": "පැතිකඩ",
+    "subtitle": "ඔබේ පුද්ගලික තොරතුරු කළමනාකරණය කරන්න",
+    "landownerProfile": "ඉඩම් හිමියාගේ පැතිකඩ",
+    "verified": "සත්‍යාපිත",
+    "roleLabel": "භූමිකාව",
+    "planLabel": "සැලසුම",
+    "active": "සක්‍රීය",
+    "accountInfo": "ගිණුම් තොරතුරු",
+    "email": "විද්‍යුත් තැපැල",
+    "phone": "දුරකථන",
+    "notProvided": "සපයා නැත",
+    "status": "තත්ත්වය",
+    "onboarded": "ලියාපදිංචි වී ඇත",
+    "trialActive": "අත්හදා බැලීම් ක්‍රියාත්මකයි",
+    "landownerDetails": "ඉඩම් හිමියාගේ විස්තර",
+    "nic": "ජාතික හැඳුනුම්පත",
+    "totalBeds": "මුළු ලුණු ඉඳන්",
+    "bedsUnit": "ඉඳන්",
+    "address": "ලිපිනය"
   },
   "saltern": {
     "mySalternLand": "මාගේ ලවණාගාර ඉඩම",

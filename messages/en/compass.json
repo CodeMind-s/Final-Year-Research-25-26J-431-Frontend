@@ -233,7 +233,7 @@
     "sendRequest": "Send Request",
     "distributorReview": "The distributor will review and accept or decline your request",
     "priceTrend": "Price Trend",
-    "priceTrendSub": "Last 6 months + next 6 months (Rs./bag)",
+    "priceTrendSub": "Last 6 months + next 2 months (Rs./bag)",
     "actual": "Actual",
     "forecastLabel": "Forecast",
     "projectedPeak": "Projected peak: Rs. {price} in {month}",
@@ -261,7 +261,7 @@
     "expectedPeakValue": "Rs. 2,150 (May)",
     "yoyChange": "+12% YoY",
     "forecastSuffix": "(forecast)",
-    "projectedPeakValue": "Rs. 2,150",
+    "projectedPeakValue": "2,150",
     "projectedPeakMonth": "May 2026",
     "demandPeakMonth": "April 2026"
   },
@@ -312,7 +312,31 @@
   },
   "layout": {
     "profile": "Profile",
-    "comingSoon": "Coming soon"
+    "comingSoon": "Coming soon",
+    "loading": "Loading...",
+    "failedToLoad": "Failed to load profile",
+    "retry": "Retry"
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Manage your personal information",
+    "landownerProfile": "Landowner Profile",
+    "verified": "Verified",
+    "roleLabel": "Role",
+    "planLabel": "Plan",
+    "active": "Active",
+    "accountInfo": "Account Information",
+    "email": "Email",
+    "phone": "Phone",
+    "notProvided": "Not provided",
+    "status": "Status",
+    "onboarded": "Onboarded",
+    "trialActive": "Trial Active",
+    "landownerDetails": "Landowner Details",
+    "nic": "National Identity Card",
+    "totalBeds": "Total Salt Beds",
+    "bedsUnit": "beds",
+    "address": "Address"
   },
   "saltern": {
     "mySalternLand": "My Saltern Land",

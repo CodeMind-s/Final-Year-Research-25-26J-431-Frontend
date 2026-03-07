@@ -80,7 +80,23 @@
     "total": "Total"
   },
   "account": {
-    "title": "My Account"
+    "title": "My Account",
+    "distributorProfile": "Distributor Profile",
+    "verified": "Verified",
+    "planLabel": "Plan",
+    "active": "Active",
+    "accountInfo": "Account Information",
+    "email": "Email",
+    "phone": "Phone",
+    "notProvided": "Not provided",
+    "status": "Status",
+    "onboarded": "Onboarded",
+    "trialActive": "Trial Active",
+    "companyDetails": "Company Details",
+    "companyName": "Company Name",
+    "registrationNumber": "Registration Number",
+    "address": "Address",
+    "failedToLoad": "Failed to load profile"
   },
   "confirm": {
     "removeOffer": "Remove this offer?",

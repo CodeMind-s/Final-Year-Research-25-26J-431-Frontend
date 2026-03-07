@@ -231,7 +231,7 @@
     "sendRequest": "கோரிக்கை அனுப்பு",
     "distributorReview": "விநியோகஸ்தர் உங்கள் கோரிக்கையை மதிப்பாய்வு செய்து ஏற்றுக்கொள்வார் அல்லது நிராகரிப்பார்",
     "priceTrend": "விலைப் போக்கு",
-    "priceTrendSub": "கடந்த 6 மாதங்கள் + அடுத்த 6 மாதங்கள் (ரூ./மூட்டை)",
+    "priceTrendSub": "கடந்த 6 மாதங்கள் + அடுத்த 2 மாதங்கள் (ரூ./மூட்டை)",
     "actual": "உண்மையான",
     "forecastLabel": "முன்னறிவிப்பு",
     "projectedPeak": "கணிக்கப்பட்ட உச்சம்: ரூ. {price} — {month} மாதத்தில்",
@@ -259,7 +259,7 @@
     "expectedPeakValue": "ரூ. 2,150 (மே)",
     "yoyChange": "+12% ஆண்டுக்காண்டு",
     "forecastSuffix": "(முன்னறிவிப்பு)",
-    "projectedPeakValue": "ரூ. 2,150",
+    "projectedPeakValue": "2,150",
     "projectedPeakMonth": "மே 2026",
     "demandPeakMonth": "ஏப்ரல் 2026"
   },
@@ -310,7 +310,31 @@
   },
   "layout": {
     "profile": "சுயவிவரம்",
-    "comingSoon": "விரைவில் வரும்"
+    "comingSoon": "விரைவில் வரும்",
+    "loading": "ஏற்றுகிறது...",
+    "failedToLoad": "சுயவிவரத்தை ஏற்ற முடியவில்லை",
+    "retry": "மீண்டும் முயற்சிக்கவும்"
+  },
+  "profile": {
+    "title": "சுயவிவரம்",
+    "subtitle": "உங்கள் தனிப்பட்ட தகவலை நிர்வகிக்கவும்",
+    "landownerProfile": "நில உரிமையாளர் சுயவிவரம்",
+    "verified": "சரிபார்க்கப்பட்டது",
+    "roleLabel": "பங்கு",
+    "planLabel": "திட்டம்",
+    "active": "செயலில்",
+    "accountInfo": "கணக்கு தகவல்",
+    "email": "மின்னஞ்சல்",
+    "phone": "தொலைபேசி",
+    "notProvided": "வழங்கப்படவில்லை",
+    "status": "நிலை",
+    "onboarded": "பதிவு செய்யப்பட்டது",
+    "trialActive": "சோதனை செயலில்",
+    "landownerDetails": "நில உரிமையாளர் விவரங்கள்",
+    "nic": "தேசிய அடையாள அட்டை",
+    "totalBeds": "மொத்த உப்பு படுக்கைகள்",
+    "bedsUnit": "படுக்கைகள்",
+    "address": "முகவரி"
   },
   "saltern": {
     "mySalternLand": "எனது உப்பள நிலம்",

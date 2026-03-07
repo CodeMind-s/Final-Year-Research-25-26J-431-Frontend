@@ -80,7 +80,23 @@
     "total": "මුළු"
   },
   "account": {
-    "title": "මගේ ගිණුම"
+    "title": "මගේ ගිණුම",
+    "distributorProfile": "විතරක පැතිකඩ",
+    "verified": "සත්‍යාපිත",
+    "planLabel": "සැලසුම",
+    "active": "සක්‍රීය",
+    "accountInfo": "ගිණුම් තොරතුරු",
+    "email": "විද්‍යුත් තැපෑල",
+    "phone": "දුරකථන",
+    "notProvided": "සපයා නැත",
+    "status": "තත්ත්වය",
+    "onboarded": "ලියාපදිංචි වී ඇත",
+    "trialActive": "අත්හදා බැලීම් ක්‍රියාත්මකයි",
+    "companyDetails": "සංස්ථා විස්තර",
+    "companyName": "සංස්ථා නම",
+    "registrationNumber": "ලියාපදිංචි සංඛ්‍යාව",
+    "address": "ලිපිනය",
+    "failedToLoad": "පැතිකඩ පූරණය කිරීම අසාර්ථකයි"
   },
   "confirm": {
     "removeOffer": "මෙම දීමනාව ඉවත් කරන්නද?",

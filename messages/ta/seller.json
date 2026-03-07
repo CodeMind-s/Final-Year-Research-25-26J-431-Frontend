@@ -80,7 +80,23 @@
     "total": "மொத்தம்"
   },
   "account": {
-    "title": "எனது கணக்கு"
+    "title": "என் கணக்கு",
+    "distributorProfile": "விதரணையாளர் சுயவிவரம்",
+    "verified": "சரிபார்க்கப்பட்டது",
+    "planLabel": "திட்டம்",
+    "active": "செயலில்",
+    "accountInfo": "கணக்கு தகவல்",
+    "email": "மின்னஞ்சல்",
+    "phone": "தொலைபேசி",
+    "notProvided": "வழங்கப்படவில்லை",
+    "status": "நிலை",
+    "onboarded": "பதிவு செய்யப்பட்டது",
+    "trialActive": "சோதனை செயலில்",
+    "companyDetails": "நிறுவன விவரங்கள்",
+    "companyName": "நிறுவனம் பெயர்",
+    "registrationNumber": "பதிவு எண்",
+    "address": "முகவரி",
+    "failedToLoad": "சுயவிவரத்தை ஏற்ற முடியவில்லை"
   },
   "confirm": {
     "removeOffer": "இந்தச் சலுகையை நீக்கவா?",
