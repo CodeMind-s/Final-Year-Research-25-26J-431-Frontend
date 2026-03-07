@@ -11,6 +11,10 @@ import {
   HarvestPlanRequest,
   HarvestPlanResponse,
   UpdateHarvestPlanRequest,
+  GetDemandPriceRequest,
+  GetDemandPriceResponse,
+  DemandPriceForecastRequest,
+  DemandPriceForecastResponse,
 } from "@/types/harvest-plan.types";
 import { BaseController } from "./base-controller";
 import { DeleteDealResponse } from "@/types/deals.types";
@@ -69,6 +73,35 @@ class HarvestPlanController extends BaseController {
 
   async updateHarvestPlan(planId: string, request: UpdateHarvestPlanRequest): Promise<HarvestPlanResponse> {
     return this.patch<HarvestPlanResponse, UpdateHarvestPlanRequest>(`/${planId}`, request);
+  }
+
+  /**
+   * Get historical demand and price data
+   * @param request - Start and end month in YYYY-MM format
+   * @returns Response with demand and price data for the specified period
+   */
+  async getDemandPrice(
+    request: GetDemandPriceRequest,
+  ): Promise<GetDemandPriceResponse> {
+    const params = new URLSearchParams();
+    params.append("startMonth", request.startMonth);
+    params.append("endMonth", request.endMonth);
+    
+    return this.get<GetDemandPriceResponse>(`/demand-price?${params.toString()}`);
+  }
+
+  /**
+   * Get demand and price forecast
+   * @param request - Forecast date
+   * @returns Response with forecasted demand and price data
+   */
+  async getDemandPriceForecast(
+    request: DemandPriceForecastRequest,
+  ): Promise<DemandPriceForecastResponse> {
+    return this.post<DemandPriceForecastResponse, DemandPriceForecastRequest>(
+      "/demand-price-forecast",
+      request,
+    );
   }
 }
 

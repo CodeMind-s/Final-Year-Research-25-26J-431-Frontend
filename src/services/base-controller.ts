@@ -7,7 +7,7 @@ import { httpClient } from '@/lib/http-client';
 import { AxiosRequestConfig } from 'axios';
 
 /**
- * Base controller class
+ * Base controller class for all API controllers
  */
 export abstract class BaseController {
   protected baseUrl: string;
@@ -18,20 +18,29 @@ export abstract class BaseController {
 
   /**
    * Build full URL with base path
+   * @param path - Endpoint path to append to base URL
+   * @returns Full URL string
    */
   protected buildUrl(path: string): string {
     return `${this.baseUrl}${path}`;
   }
 
   /**
-   * GET request
+   * Execute GET request
+   * @param path - Endpoint path
+   * @param config - Optional Axios request configuration
+   * @returns Promise with response data
    */
   protected async get<T>(path: string, config?: AxiosRequestConfig): Promise<T> {
     return httpClient.get<T>(this.buildUrl(path), config);
   }
 
   /**
-   * POST request
+   * Execute POST request
+   * @param path - Endpoint path
+   * @param data - Request body data
+   * @param config - Optional Axios request configuration
+   * @returns Promise with response data
    */
   protected async post<T, D = unknown>(
     path: string,
@@ -42,7 +51,11 @@ export abstract class BaseController {
   }
 
   /**
-   * PUT request
+   * Execute PUT request
+   * @param path - Endpoint path
+   * @param data - Request body data
+   * @param config - Optional Axios request configuration
+   * @returns Promise with response data
    */
   protected async put<T, D = unknown>(
     path: string,
@@ -53,7 +66,11 @@ export abstract class BaseController {
   }
 
   /**
-   * PATCH request
+   * Execute PATCH request
+   * @param path - Endpoint path
+   * @param data - Request body data
+   * @param config - Optional Axios request configuration
+   * @returns Promise with response data
    */
   protected async patch<T, D = unknown>(
     path: string,
@@ -64,7 +81,10 @@ export abstract class BaseController {
   }
 
   /**
-   * DELETE request
+   * Execute DELETE request
+   * @param path - Endpoint path
+   * @param config - Optional Axios request configuration
+   * @returns Promise with response data
    */
   protected async delete<T>(path: string, config?: AxiosRequestConfig): Promise<T> {
     return httpClient.delete<T>(this.buildUrl(path), config);

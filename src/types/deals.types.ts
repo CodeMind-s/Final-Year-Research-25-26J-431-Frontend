@@ -1,3 +1,11 @@
+/**
+ * Deal Type Definitions
+ * Types for deal management between landowners and distributors
+ */
+
+/**
+ * Deal object representing a transaction between landowner and distributor
+ */
 export interface DealObject {
   _id: string;
   landownerId: string;

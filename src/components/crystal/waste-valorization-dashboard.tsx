@@ -51,7 +51,7 @@ export function WasteValorizationDashboard() {
   const [predictionDate, setPredictionDate] = useState<string>(new Date().toISOString().split('T')[0])
   const [recentPredictions, setRecentPredictions] = useState<RecentPrediction[]>([])
   const [isLoadingRecent, setIsLoadingRecent] = useState(false)
-  
+
   // Quick prediction form state
   const [quickForm, setQuickForm] = useState<QuickPredictionFormData>({
     production_volume: 50000,
@@ -80,7 +80,7 @@ export function WasteValorizationDashboard() {
         endDate: formatDate(endDate),
         includeAverages: true
       })
-      
+
       // httpClient.extractData already unwraps the response, so predictions is at the top level
       if (!response?.predictions) {
         console.error("Invalid response structure:", response)
@@ -211,9 +211,7 @@ export function WasteValorizationDashboard() {
         quickForm,
         predictionDate
       )
-      
-      console.log("Quick Prediction Job Submitted:", response)
-      
+
       setQuickJobId(response.jobId)
       setQuickJobStatus(response.status)
       setQuickJobMessage(response.message)
@@ -230,7 +228,7 @@ export function WasteValorizationDashboard() {
       
       // Refresh recent predictions list
       fetchRecentPredictions()
-      
+
     } catch (error) {
       console.error("Error submitting quick prediction:", error)
       setQuickJobStatus("failed")
@@ -247,9 +245,7 @@ export function WasteValorizationDashboard() {
       setIsQuickPredicting(true)
       
       const response = await wasteManagementController.getQuickPredictionStatus(quickJobId)
-      
-      console.log("Quick Prediction Status:", response)
-      
+
       setQuickJobStatus(response.status)
       setQuickJobMessage(response.message)
       
@@ -392,7 +388,7 @@ export function WasteValorizationDashboard() {
               className="h-9 max-w-xs mt-1"
             />
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
             <div className="space-y-2">
               <Label htmlFor="prod-vol" className="text-xs">Production Volume (kg)</Label>
@@ -452,7 +448,7 @@ export function WasteValorizationDashboard() {
                 className="h-9"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="month" className="text-xs">Month (1-12)</Label>
               <Input
@@ -559,7 +555,7 @@ export function WasteValorizationDashboard() {
                 Latest 5 prediction jobs and their results
               </p>
             </div>
-            <Button 
+            <Button
               onClick={fetchRecentPredictions}
               disabled={isLoadingRecent}
               variant="outline"
@@ -597,26 +593,26 @@ export function WasteValorizationDashboard() {
             <div className="space-y-3">
               {recentPredictions.map((prediction) => (
                 <Card key={prediction.jobId} className="p-4 border-l-4" style={{
-                  borderLeftColor: 
-                    prediction.status === "completed" ? "rgb(34 197 94)" : 
-                    prediction.status === "processing" ? "rgb(59 130 246)" : 
+                  borderLeftColor:
+                    prediction.status === "completed" ? "rgb(34 197 94)" :
+                    prediction.status === "processing" ? "rgb(59 130 246)" :
                     "rgb(239 68 68)"
                 }}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-2">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant={
-                          prediction.status === "completed" ? "default" : 
-                          prediction.status === "processing" ? "secondary" : 
+                          prediction.status === "completed" ? "default" :
+                          prediction.status === "processing" ? "secondary" :
                           "destructive"
                         }>
                           {prediction.status}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          {new Date(prediction.predictionDate).toLocaleDateString('en-GB', { 
-                            day: 'numeric', 
-                            month: 'short', 
-                            year: 'numeric' 
+                          {new Date(prediction.predictionDate).toLocaleDateString('en-GB', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric'
                           })}
                         </span>
                         <span className="text-xs text-muted-foreground">•</span>
@@ -629,7 +625,7 @@ export function WasteValorizationDashboard() {
                           })}
                         </span>
                       </div>
-                      
+
                       <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-xs">
                         <div>
                           <p className="text-muted-foreground">Production</p>
@@ -688,7 +684,7 @@ export function WasteValorizationDashboard() {
                         </div>
                       )}
                     </div>
-                    
+
                     {prediction.status === "processing" && (
                       <div className="flex-shrink-0">
                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>

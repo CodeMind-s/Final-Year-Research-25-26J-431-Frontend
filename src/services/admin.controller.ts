@@ -101,10 +101,21 @@ class AdminController extends BaseController {
     return res?.data || res;
   }
 
+  /**
+   * Create a new user
+   * @param data - User creation data
+   * @returns Created user object
+   */
   async createUser(data: CreateUserRequest): Promise<any> {
     return this.post(API_CONFIG.ENDPOINTS.ADMIN.USER_CREATE, data);
   }
 
+  /**
+   * Update an existing user
+   * @param id - User ID
+   * @param data - Updated user data
+   * @returns Updated user object
+   */
   async updateUser(id: string, data: UpdateUserRequest): Promise<any> {
     return this.put(
       `${API_CONFIG.ENDPOINTS.ADMIN.USER_BY_ID}/${id}`,
@@ -112,12 +123,21 @@ class AdminController extends BaseController {
     );
   }
 
+  /**
+   * Delete a user by email
+   * @param email - User email address
+   */
   async deleteUser(email: string): Promise<void> {
     return this.delete<void>(
       `${API_CONFIG.ENDPOINTS.ADMIN.USER_DELETE}/${email}`,
     );
   }
 
+  /**
+   * Verify a user by ID
+   * @param id - User ID to verify
+   * @returns Updated user object
+   */
   async verifyUser(id: string): Promise<any> {
     return this.put(
       `${API_CONFIG.ENDPOINTS.ADMIN.USER_VERIFY}/${id}/verify`,
@@ -150,7 +170,9 @@ class AdminController extends BaseController {
   }
 
   /**
-   * Backend returns: { success, plan: Plan }
+   * Get a specific plan by key
+   * @param key - Plan key identifier
+   * @returns Plan object
    */
   async getPlan(key: string): Promise<Plan> {
     const res: any = await this.get(`${API_CONFIG.ENDPOINTS.PLANS.BY_KEY}/${key}`);
@@ -175,7 +197,10 @@ class AdminController extends BaseController {
   }
 
   /**
-   * Backend returns: { success, message, plan: Plan }
+   * Update an existing plan
+   * @param key - Plan key identifier
+   * @param data - Updated plan data
+   * @returns Updated plan object
    */
   async updatePlan(key: string, data: UpdatePlanRequest): Promise<Plan> {
     const res: any = await this.patch(
@@ -185,6 +210,10 @@ class AdminController extends BaseController {
     return res?.plan || res;
   }
 
+  /**
+   * Delete a plan by key
+   * @param key - Plan key identifier
+   */
   async deletePlan(key: string): Promise<void> {
     return this.delete<void>(
       `${API_CONFIG.ENDPOINTS.PLANS.DELETE}/${key}`,
@@ -209,6 +238,13 @@ class AdminController extends BaseController {
     };
   }
 
+  /**
+   * Get audit logs by user ID
+   * @param userId - User ID to filter logs
+   * @param limit - Maximum number of logs to return
+   * @param offset - Number of logs to skip
+   * @returns Audit logs response with logs array and total count
+   */
   async getAuditLogsByUser(
     userId: string,
     limit = 50,
@@ -224,6 +260,11 @@ class AdminController extends BaseController {
     };
   }
 
+  /**
+   * Get a specific audit log by ID
+   * @param logId - Audit log ID
+   * @returns Audit log object
+   */
   async getAuditLogById(logId: string): Promise<AuditLog> {
     const res: any = await this.get(
       `${API_CONFIG.ENDPOINTS.AUDIT_LOGS.BY_ID}/${logId}`,

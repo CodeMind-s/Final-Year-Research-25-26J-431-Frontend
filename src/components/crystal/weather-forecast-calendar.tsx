@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card } from "@/components/crystal/ui/card";
-import { crystallizationController } from "@/services/crystallization.controller";
-import { WeatherForecastDay } from "@/types/crystallization.types";
+import { CalendarDay, WeatherForecastDay } from "@/types/crystallization.types";
 import {
   Cloud,
   CloudRain,
@@ -18,19 +17,6 @@ import {
   Activity,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-
-interface CalendarDay {
-  date: Date;
-  dateStr: string;
-  dayNumber: number;
-  isCurrentMonth: boolean;
-  weatherData?: WeatherForecastDay;
-  OR_brine_level?: number;
-  OR_bund_level?: number;
-  IR_brine_level?: number;
-  IR_bound_level?: number;
-  lagoon?: number;
-}
 
 // Weather icon mapping
 const getWeatherIcon = (iconCode: string) => {
@@ -88,262 +74,8 @@ const getWeatherBackground = (iconCode: string): string => {
   }
 };
 
-// Generate mock weather data for 16 days (fallback when API returns empty)
-const generateMockWeatherData = (startDate: Date): WeatherForecastDay[] => {
-  const mockData: WeatherForecastDay[] = [];
-  const weatherIcons = ["01d", "02d", "03d", "04d", "09d", "10d"]; // Clear, few clouds, scattered clouds, broken clouds, shower rain, rain
-
-  for (let i = 0; i < 16; i++) {
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + i);
-
-    // Generate realistic temperature (26-32°C in Kelvin)
-    const tempCelsius = 26 + Math.random() * 6;
-    const tempKelvin = tempCelsius + 273.15;
-    const tempVariation = 3 + Math.random() * 2;
-
-    // Calculate sunrise and sunset timestamps (6:00 AM and 6:30 PM approximately)
-    const sunriseTime = new Date(date);
-    sunriseTime.setHours(6, 0, 0, 0);
-    const sunsetTime = new Date(date);
-    sunsetTime.setHours(18, 30, 0, 0);
-
-    mockData.push({
-      dt: Math.floor(date.getTime() / 1000),
-      sunrise: Math.floor(sunriseTime.getTime() / 1000),
-      sunset: Math.floor(sunsetTime.getTime() / 1000),
-      temp: {
-        day: tempKelvin,
-        min: tempKelvin - tempVariation,
-        max: tempKelvin + tempVariation,
-        night: tempKelvin - 3,
-        eve: tempKelvin - 1,
-        morn: tempKelvin - 2,
-      },
-      feels_like: {
-        day: tempKelvin + 2,
-        night: tempKelvin - 1,
-        eve: tempKelvin + 1,
-        morn: tempKelvin,
-      },
-      pressure: 1010 + Math.floor(Math.random() * 10),
-      humidity: 65 + Math.floor(Math.random() * 20),
-      weather: [
-        {
-          id: 800,
-          main: "Clear",
-          description: "clear sky",
-          icon: weatherIcons[Math.floor(Math.random() * weatherIcons.length)],
-        },
-      ],
-      speed: 3 + Math.random() * 4,
-      deg: Math.floor(Math.random() * 360),
-      gust: 5 + Math.random() * 5,
-      clouds: Math.floor(Math.random() * 100),
-      pop: Math.random() * 0.3,
-    });
-  }
-
-  return mockData;
-};
-
-export function WeatherForecastCalendar() {
+export function WeatherForecastCalendar({ calendarDays, isLoadingDailyData }: { calendarDays: CalendarDay[]; isLoadingDailyData: boolean }) {
   const t = useTranslations("crystal");
-  const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
-  const [isLoadingDailyData, setIsLoadingDailyData] = useState(true);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-
-  useEffect(() => {
-    const fetchDataForCalendar = async () => {
-      try {
-        setIsLoadingDailyData(true);
-
-        // Fetch both weather forecast and predicted daily measurements
-        const today = new Date();
-        const todayStr = today.toISOString().split("T")[0];
-        const futureDate = new Date(today);
-        futureDate.setDate(today.getDate() + 60); // 60 days ahead to cover 2 months
-        const futureDateStr = futureDate.toISOString().split("T")[0];
-
-        // Fetch weather forecast (with fallback to mock data on error)
-        let weatherResponse: any;
-        try {
-          weatherResponse =
-            await crystallizationController.getWeatherForecast();
-        } catch (error) {
-          console.error("Failed to fetch weather forecast:", error);
-          weatherResponse = null;
-        }
-
-        // Fetch predicted measurements
-        const predictedDataResponse =
-          await crystallizationController.getPredictedDailyMeasurements({
-            startDate: todayStr,
-            endDate: futureDateStr,
-          });
-
-        console.log("Weather Response:", weatherResponse);
-        console.log("Predicted Data Response:", predictedDataResponse);
-
-        // Extract weather data
-        let weatherList: WeatherForecastDay[] = [];
-        if (weatherResponse) {
-          if (Array.isArray(weatherResponse)) {
-            weatherList = weatherResponse;
-          } else if (weatherResponse?.data?.list) {
-            weatherList = weatherResponse.data.list;
-          }
-        }
-
-        // If weather API returns empty data or fails, use mock data as fallback
-        if (weatherList.length === 0) {
-          console.log(
-            "Weather API unavailable or returned empty data, using mock weather data for demonstration",
-          );
-          weatherList = generateMockWeatherData(today);
-        }
-
-        console.log("Weather List Length:", weatherList.length);
-
-        // Extract predicted data
-        const predictedDataList = Array.isArray(predictedDataResponse)
-          ? predictedDataResponse
-          : predictedDataResponse?.data || [];
-
-        console.log("Predicted Data Length:", predictedDataList.length);
-
-        // Create maps for both data types
-        const weatherMap = new Map<string, WeatherForecastDay>();
-        weatherList.forEach((day) => {
-          const date = new Date(day.dt * 1000);
-          const dateStr = date.toISOString().split("T")[0];
-          weatherMap.set(dateStr, day);
-        });
-
-        const predictedMap = new Map<string, any>();
-        predictedDataList.forEach((item: any) => {
-          if (item && item.date) {
-            const dateStr = item.date.split("T")[0];
-            predictedMap.set(dateStr, item);
-          }
-        });
-
-        console.log("Weather Map size:", weatherMap.size);
-        console.log("Predicted Map size:", predictedMap.size);
-
-        // Generate calendar days for current month and next month
-        const days: CalendarDay[] = [];
-
-        // Current month
-        const currentMonthStart = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          1,
-        );
-        const currentMonthEnd = new Date(
-          today.getFullYear(),
-          today.getMonth() + 1,
-          0,
-        );
-
-        // Next month
-        const nextMonthStart = new Date(
-          today.getFullYear(),
-          today.getMonth() + 1,
-          1,
-        );
-        const nextMonthEnd = new Date(
-          today.getFullYear(),
-          today.getMonth() + 2,
-          0,
-        );
-
-        // Get day of week for first day of current month (0 = Sunday)
-        const firstDayOfWeek = currentMonthStart.getDay();
-
-        // Add empty days for current month alignment
-        for (let i = 0; i < firstDayOfWeek; i++) {
-          const date = new Date(currentMonthStart);
-          date.setDate(date.getDate() - (firstDayOfWeek - i));
-          const dateStr = date.toISOString().split("T")[0];
-          const predictedData = predictedMap.get(dateStr);
-          const weatherData = weatherMap.get(dateStr);
-
-          days.push({
-            date,
-            dateStr,
-            dayNumber: date.getDate(),
-            isCurrentMonth: false,
-            weatherData,
-            OR_brine_level: predictedData?.parameters?.OR_brine_level,
-            OR_bund_level: predictedData?.parameters?.OR_bund_level,
-            IR_brine_level: predictedData?.parameters?.IR_brine_level,
-            IR_bound_level: predictedData?.parameters?.IR_bound_level,
-            lagoon: predictedData?.parameters?.lagoon,
-          });
-        }
-
-        // Add current month days
-        for (let day = 1; day <= currentMonthEnd.getDate(); day++) {
-          const date = new Date(today.getFullYear(), today.getMonth(), day);
-          const dateStr = date.toISOString().split("T")[0];
-          const predictedData = predictedMap.get(dateStr);
-          const weatherData = weatherMap.get(dateStr);
-
-          days.push({
-            date,
-            dateStr,
-            dayNumber: day,
-            isCurrentMonth: true,
-            weatherData,
-            OR_brine_level: predictedData?.parameters?.OR_brine_level,
-            OR_bund_level: predictedData?.parameters?.OR_bund_level,
-            IR_brine_level: predictedData?.parameters?.IR_brine_level,
-            IR_bound_level: predictedData?.parameters?.IR_bound_level,
-            lagoon: predictedData?.parameters?.lagoon,
-          });
-        }
-
-        // Add next month days
-        for (let day = 1; day <= nextMonthEnd.getDate(); day++) {
-          const date = new Date(today.getFullYear(), today.getMonth() + 1, day);
-          const dateStr = date.toISOString().split("T")[0];
-          const predictedData = predictedMap.get(dateStr);
-          const weatherData = weatherMap.get(dateStr);
-
-          days.push({
-            date,
-            dateStr,
-            dayNumber: day,
-            isCurrentMonth: false,
-            weatherData,
-            OR_brine_level: predictedData?.parameters?.OR_brine_level,
-            OR_bund_level: predictedData?.parameters?.OR_bund_level,
-            IR_brine_level: predictedData?.parameters?.IR_brine_level,
-            IR_bound_level: predictedData?.parameters?.IR_bound_level,
-            lagoon: predictedData?.parameters?.lagoon,
-          });
-        }
-
-        console.log("Total calendar days:", days.length);
-        console.log(
-          "Days with weather data:",
-          days.filter((d) => d.weatherData).length,
-        );
-        console.log(
-          "Days with predicted data:",
-          days.filter((d) => d.OR_brine_level || d.lagoon).length,
-        );
-        setCalendarDays(days);
-      } catch (error) {
-        console.error("Failed to fetch calendar data:", error);
-      } finally {
-        setIsLoadingDailyData(false);
-      }
-    };
-
-    fetchDataForCalendar();
-  }, []);
 
   const weekDays = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
   const today = new Date().toISOString().split("T")[0];
@@ -381,7 +113,7 @@ export function WeatherForecastCalendar() {
         </p>
       </div>
 
-      <div className="max-h-[500px] sm:max-h-[600px] overflow-y-auto">
+      <div className="max-h-[500px] sm:max-h-[600px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {/* Current Month */}
         <div className="mb-4 sm:mb-6">
           <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">

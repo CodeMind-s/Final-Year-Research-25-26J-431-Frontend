@@ -39,6 +39,7 @@ import {
 import { DistributorOfferObject } from "@/types/distributor-offers.types";
 import { distributorOffersController } from "@/services/distributor-ffers.controller";
 import { dealController } from "@/services/deal.controller";
+import { harvestPlanController } from "@/services/plan.controller";
 import { useToast } from "@/hooks/use-toast";
 import { DealObject } from "@/types/deals.types";
 import {
@@ -420,6 +421,14 @@ const DealCard: React.FC<{
 
 // ─── Main MarketAnalysis component ───────────────────────────────
 
+// Chart data type
+interface ChartDataPoint {
+  month: string;
+  price?: number;
+  demand?: number;
+  isForecast: boolean;
+}
+
 export const MarketAnalysis: React.FC = () => {
   const t = useTranslations('compass');
   const { toast } = useToast();
@@ -433,6 +442,30 @@ export const MarketAnalysis: React.FC = () => {
   const [isLoadingOffers, setIsLoadingOffers] = useState(true);
   const [isLoadingDeals, setIsLoadingDeals] = useState(true);
   const [isSendingRequest, setIsSendingRequest] = useState(false);
+  const [showAllDistributors, setShowAllDistributors] = useState(false);
+  
+  // Chart data states
+  const [priceChartData, setPriceChartData] = useState<ChartDataPoint[]>([]);
+  const [demandChartData, setDemandChartData] = useState<ChartDataPoint[]>([]);
+  const [isLoadingChartData, setIsLoadingChartData] = useState(true);
+
+  // Dynamic market insights from chart data
+  const historicalPrices = priceChartData.filter(d => !d.isForecast && d.price);
+  const currentPrice = historicalPrices.length > 0 ? historicalPrices[historicalPrices.length - 1].price || 0 : 0;
+  const forecastPrices = priceChartData.filter(d => d.isForecast && d.price);
+  const peakForecast = forecastPrices.reduce((max, curr) => 
+    (curr.price && curr.price > (max.price || 0)) ? curr : max, 
+    forecastPrices[0] || { price: 0, month: '' }
+  );
+  const peakPrice = peakForecast.price || 0;
+  const peakPriceMonth = peakForecast.month || '';
+  
+  const forecastDemands = demandChartData.filter(d => d.isForecast && d.demand);
+  const peakDemandForecast = forecastDemands.reduce((max, curr) => 
+    (curr.demand && curr.demand > (max.demand || 0)) ? curr : max,
+    forecastDemands[0] || { demand: 0, month: '' }
+  );
+  const peakDemandMonth = peakDemandForecast.month || '';
 
   const fetchDistributorOffers = async () => {
     setIsLoadingOffers(true);
@@ -445,11 +478,16 @@ export const MarketAnalysis: React.FC = () => {
       });
 
       // API returns array directly, not wrapped in {success, data} object
+      let offers: DistributorOfferObject[] = [];
       if (Array.isArray(response)) {
-        setDistributorOffers(response as any);
+        offers = response as any;
       } else if ((response as any).success && (response as any).data) {
-        setDistributorOffers((response as any).data);
+        offers = (response as any).data;
       }
+      
+      // Sort by pricePerKilo in descending order (highest first)
+      const sortedOffers = offers.sort((a, b) => b.pricePerKilo - a.pricePerKilo);
+      setDistributorOffers(sortedOffers);
     } catch (error) {
       console.error("Failed to fetch distributor offers:", error);
     } finally {
@@ -533,15 +571,94 @@ export const MarketAnalysis: React.FC = () => {
       }
     } catch (error) {
       console.error("Failed to fetch landowner deals:", error);
-      console.error("Error details:", error);
     } finally {
       setIsLoadingDeals(false);
+    }
+  };
+
+  // Fetch chart data (historical + forecast)
+  const fetchChartData = async () => {
+    setIsLoadingChartData(true);
+    try {
+      const today = new Date();
+      
+      // Calculate 6 months back from current month
+      const sixMonthsAgo = new Date(today);
+      sixMonthsAgo.setMonth(today.getMonth() - 6);
+      const startMonth = `${sixMonthsAgo.getFullYear()}-${String(sixMonthsAgo.getMonth() + 1).padStart(2, '0')}`;
+      
+      // Current month
+      const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+      
+      // Fetch historical data and forecast in parallel
+      const [historicalResponse, forecastResponse] = await Promise.all([
+        harvestPlanController.getDemandPrice({
+          startMonth,
+          endMonth: currentMonth,
+        }),
+        harvestPlanController.getDemandPriceForecast({
+          forecast_date: today.toISOString().split('T')[0],
+        }),
+      ]);
+
+      // Helper to format month to short display format (e.g., "2026-01" -> "Jan")
+      const formatMonthDisplay = (monthStr: string): string => {
+        const [year, month] = monthStr.split('-');
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return monthNames[parseInt(month) - 1];
+      };
+
+      // Process historical data
+      const historicalData = Array.isArray(historicalResponse) 
+        ? historicalResponse 
+        : historicalResponse.data || [];
+      
+      const chartData: ChartDataPoint[] = historicalData.map(item => ({
+        month: formatMonthDisplay(item.month),
+        price: Math.round(item.pricePerBag),
+        demand: item.totalDemand,
+        isForecast: false,
+      }));
+
+      // Process forecast data (take first 2 months)
+      const forecastData = forecastResponse.forecasts.slice(0, 2);
+      
+      forecastData.forEach(forecast => {
+        chartData.push({
+          month: formatMonthDisplay(forecast.month),
+          price: Math.round(forecast.price.predicted_lkr_per_bag),
+          demand: forecast.demand.predicted_bags,
+          isForecast: true,
+        });
+      });
+
+      // Split data for both charts
+      setPriceChartData(chartData.map(({ month, price, isForecast }) => ({ 
+        month, 
+        price, 
+        isForecast 
+      })));
+      
+      setDemandChartData(chartData.map(({ month, demand, isForecast }) => ({ 
+        month, 
+        demand, 
+        isForecast 
+      })));
+
+    } catch (error) {
+      console.error("Failed to fetch chart data:", error);
+      // Fallback to mock data on error
+      setPriceChartData(PRICE_DATA);
+      setDemandChartData(DEMAND_DATA);
+    } finally {
+      setIsLoadingChartData(false);
     }
   };
 
   useEffect(() => {
     fetchDistributorOffers();
     fetchLandownerDeals();
+    fetchChartData();
   }, []);
 
   const handleSendRequest = async (
@@ -558,7 +675,14 @@ export const MarketAnalysis: React.FC = () => {
       };
       const response = await dealController.createDeal(data, selectedDist._id);
 
-      if (response.success) {
+      // Check if response is successful (handle both wrapped and direct responses)
+      const isSuccess = response && (
+        (response as any).success === true || 
+        (response as any)._id || 
+        (response as any).data?._id
+      );
+
+      if (isSuccess) {
         // Clear loading state first
         setIsSendingRequest(false);
 
@@ -574,7 +698,7 @@ export const MarketAnalysis: React.FC = () => {
         // Refetch deals to show the newly created deal
         fetchLandownerDeals();
       } else {
-        throw new Error(response.message || "Failed to create deal");
+        throw new Error((response as any).message || "Failed to create deal");
       }
     } catch (error) {
       console.error("Failed to create deal:", error);
@@ -651,8 +775,8 @@ export const MarketAnalysis: React.FC = () => {
   );
 
   const pssStats = [
-    { label: t('market.currentPriceLabel'), value: t('market.currentPriceValue') },
-    { label: t('market.expectedPeak'), value: t('market.expectedPeakValue') },
+    { label: t('market.currentPriceLabel'), value: currentPrice > 0 ? `Rs. ${currentPrice.toLocaleString()}/bag` : t('market.currentPriceValue') },
+    { label: t('market.expectedPeak'), value: peakPrice > 0 ? `Rs. ${peakPrice.toLocaleString()} (${peakPriceMonth})` : t('market.expectedPeakValue') },
   ];
 
   return (
@@ -672,10 +796,7 @@ export const MarketAnalysis: React.FC = () => {
             {t('market.holdDescription')}
           </p>
           <div className="grid grid-cols-2 gap-2">
-            {[
-              { label: "Current price", value: "Rs. 1,850/bag" },
-              { label: "Expected peak", value: "Rs. 2,150 (May)" },
-            ].map((s) => (
+            {pssStats.map((s) => (
               <div
                 key={s.label}
                 className="bg-white/15 rounded-xl px-3 py-2 backdrop-blur-sm"
@@ -714,18 +835,38 @@ export const MarketAnalysis: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0">
-            {distributorOffers.map(
-              (dist: DistributorOfferObject, i: number) => (
-                <DistributorCard
-                  key={dist._id}
-                  distributor={dist}
-                  rank={i + 1}
-                  onSelect={() => setSelectedDist(dist)}
-                />
-              ),
+          <>
+            <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0">
+              {(showAllDistributors ? distributorOffers : distributorOffers.slice(0, 3)).map(
+                (dist: DistributorOfferObject, i: number) => (
+                  <DistributorCard
+                    key={dist._id}
+                    distributor={dist}
+                    rank={i + 1}
+                    onSelect={() => setSelectedDist(dist)}
+                  />
+                ),
+              )}
+            </div>
+            {distributorOffers.length > 3 && (
+              <button
+                onClick={() => setShowAllDistributors(!showAllDistributors)}
+                className="w-full mt-3 py-3 px-4 bg-white border border-slate-200 rounded-2xl text-sm font-semibold text-compass-600 hover:bg-compass-50 hover:border-compass-300 transition-colors flex items-center justify-center gap-2"
+              >
+                {showAllDistributors ? (
+                  <>
+                    Show Less
+                    <ChevronRight size={16} className="rotate-90" />
+                  </>
+                ) : (
+                  <>
+                    See More ({distributorOffers.length - 3} more)
+                    <ChevronRight size={16} className="-rotate-90" />
+                  </>
+                )}
+              </button>
             )}
-          </div>
+          </>
         )}
       </div>
 
@@ -816,13 +957,21 @@ export const MarketAnalysis: React.FC = () => {
             </div>
           </div>
 
-          <div className="h-48 w-full -ml-3">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={PRICE_DATA}>
+          {isLoadingChartData ? (
+            <div className="h-48 w-full flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-6 h-6 border-2 border-slate-200 border-t-emerald-500 rounded-full animate-spin mx-auto mb-2" />
+                <p className="text-xs text-slate-400">Loading price data...</p>
+              </div>
+            </div>
+          ) : (
+            <div className="h-48 w-full -ml-3">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={priceChartData}>
                 <defs>
                   <linearGradient id="priceGrad" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="42%" stopColor="#10b981" />
-                    <stop offset="42%" stopColor="#6ee7b7" />
+                    <stop offset="75%" stopColor="#10b981" />
+                    <stop offset="75%" stopColor="#6ee7b7" />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
@@ -853,7 +1002,12 @@ export const MarketAnalysis: React.FC = () => {
                   ]}
                   cursor={{ stroke: "#e2e8f0", strokeWidth: 1 }}
                 />
-                <ReferenceLine x="Feb" stroke="#6366f1" strokeDasharray="4 3" label={{ position: "top", value: t('market.now'), fill: "#6366f1", fontSize: 9, fontWeight: 700 }} />
+                <ReferenceLine 
+                  x={priceChartData.length > 0 ? priceChartData[priceChartData.length - 3]?.month : "Feb"} 
+                  stroke="#6366f1" 
+                  strokeDasharray="4 3" 
+                  label={{ position: "top", value: t('market.now'), fill: "#6366f1", fontSize: 9, fontWeight: 700 }} 
+                />
                 <Line
                   type="monotone"
                   dataKey="price"
@@ -880,11 +1034,17 @@ export const MarketAnalysis: React.FC = () => {
               </LineChart>
             </ResponsiveContainer>
           </div>
+          )}
           <p className="text-xs text-slate-400 text-center mt-1">
-            {t('market.projectedPeak', {
-              price: t('market.projectedPeakValue'),
-              month: t('market.projectedPeakMonth'),
-            })}
+            {peakPrice > 0 && peakPriceMonth
+              ? t('market.projectedPeak', {
+                  price: peakPrice.toLocaleString(),
+                  month: peakPriceMonth,
+                })
+              : t('market.projectedPeak', {
+                  price: t('market.projectedPeakValue'),
+                  month: t('market.projectedPeakMonth'),
+                })}
           </p>
         </div>
 
@@ -917,9 +1077,17 @@ export const MarketAnalysis: React.FC = () => {
             </div>
           </div>
 
-          <div className="h-44 w-full -ml-3">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={DEMAND_DATA} barSize={16}>
+          {isLoadingChartData ? (
+            <div className="h-44 w-full flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-6 h-6 border-2 border-slate-200 border-t-orange-500 rounded-full animate-spin mx-auto mb-2" />
+                <p className="text-xs text-slate-400">Loading demand data...</p>
+              </div>
+            </div>
+          ) : (
+            <div className="h-44 w-full -ml-3">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={demandChartData} barSize={16}>
                 <CartesianGrid
                   strokeDasharray="3 3"
                   vertical={false}
@@ -932,7 +1100,7 @@ export const MarketAnalysis: React.FC = () => {
                   tick={{ fontSize: 10, fill: "#94a3b8" }}
                   dy={8}
                 />
-                <YAxis hide domain={[0, 110]} />
+                <YAxis hide domain={[0, "dataMax + 1000"]} />
                 <Tooltip
                   cursor={{ fill: "#fafafa" }}
                   contentStyle={{
@@ -948,9 +1116,14 @@ export const MarketAnalysis: React.FC = () => {
                     t('market.demand'),
                   ]}
                 />
-                <ReferenceLine x="Feb" stroke="#6366f1" strokeDasharray="4 3" label={{ position: "top", value: t('market.now'), fill: "#6366f1", fontSize: 9, fontWeight: 700 }} />
+                <ReferenceLine 
+                  x={demandChartData.length > 0 ? demandChartData[demandChartData.length - 3]?.month : "Feb"} 
+                  stroke="#6366f1" 
+                  strokeDasharray="4 3" 
+                  label={{ position: "top", value: t('market.now'), fill: "#6366f1", fontSize: 9, fontWeight: 700 }} 
+                />
                 <Bar dataKey="demand" radius={[4, 4, 0, 0]}>
-                  {DEMAND_DATA.map((entry, index) => (
+                  {demandChartData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={entry.isForecast ? "#fdba74" : "#f97316"}
@@ -961,10 +1134,15 @@ export const MarketAnalysis: React.FC = () => {
               </BarChart>
             </ResponsiveContainer>
           </div>
+          )}
           <p className="text-xs text-slate-400 text-center mt-1">
-            {t('market.demandPeakExpected', {
-              month: t('market.demandPeakMonth'),
-            })}
+            {peakDemandMonth
+              ? t('market.demandPeakExpected', {
+                  month: peakDemandMonth,
+                })
+              : t('market.demandPeakExpected', {
+                  month: t('market.demandPeakMonth'),
+                })}
           </p>
         </div>
       </div>

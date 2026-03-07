@@ -1,3 +1,11 @@
+/**
+ * Vision Detection Type Definitions
+ * Types for salt quality detection, ROI configuration, and batch analysis
+ */
+
+/**
+ * Region of Interest (ROI) configuration for detection area
+ */
 export interface ROIConfig {
   x: number;
   y: number;

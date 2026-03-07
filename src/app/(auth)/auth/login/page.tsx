@@ -188,7 +188,7 @@ export default function CommonLoginPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="h-12 w-full bg-emerald-600 hover:bg-emerald-500 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-12 w-full bg-black hover:bg-gray-800 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? t('login.sendingOtp') : t('login.sendOtp')}
               </Button>
@@ -222,7 +222,7 @@ export default function CommonLoginPage() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="h-12 w-full bg-emerald-600 hover:bg-emerald-500 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-12 w-full bg-black hover:bg-gray-800 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? t('login.sendingOtp') : t('login.sendOtp')}
                 </Button>
@@ -281,7 +281,7 @@ export default function CommonLoginPage() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="h-12 w-full bg-emerald-600 hover:bg-emerald-500 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-12 w-full bg-black hover:bg-gray-800 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? t('login.signingIn') : t('login.signIn')}
                 </Button>
@@ -331,7 +331,7 @@ export default function CommonLoginPage() {
           <Button
             type="submit"
             disabled={isLoading || otp.length !== 6}
-            className="h-12 w-full bg-emerald-600 hover:bg-emerald-500 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-12 w-full bg-black hover:bg-gray-800 font-semibold text-white shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? t('otp.verifying') : t('otp.verifyOtp')}
           </Button>

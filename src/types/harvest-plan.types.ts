@@ -1,3 +1,11 @@
+/**
+ * Harvest Plan Type Definitions
+ * Types for harvest planning, management, and tracking
+ */
+
+/**
+ * Harvest plan object with production predictions and tracking
+ */
 export interface HarvestPlan {
   _id: string;
   userId: string;
@@ -77,4 +85,66 @@ export interface UpdateHarvestPlanResponse {
 export interface DeleteHarvestPlanResponse {
   success: boolean;
   message: string;
+}
+
+/**
+ * Demand and Price data types
+ */
+export interface DemandPriceDataPoint {
+  month: string;
+  totalDemand: number;
+  pricePerBag: number;
+}
+
+export interface GetDemandPriceRequest {
+  startMonth: string;
+  endMonth: string;
+}
+
+export interface GetDemandPriceResponse {
+  success: boolean;
+  message: string;
+  data: DemandPriceDataPoint[];
+}
+
+export interface DemandPriceForecastRequest {
+  forecast_date: string;
+}
+
+export interface ForecastDemand {
+  method: string;
+  production_source: string;
+  yield_ratio_season: string;
+  yield_ratio_source: string;
+  predicted_bags: number;
+  production_forecast_bags: number;
+  yield_ratio_used: number;
+  yield_ratio_sample_months: number;
+}
+
+export interface ForecastPrice {
+  model: string;
+  predicted_lkr_per_bag: number;
+  lower_95: number;
+  upper_95: number;
+  expected_mape_pct: number;
+}
+
+export interface ForecastDataPoint {
+  month: string;
+  horizon_months: number;
+  demand: ForecastDemand;
+  price: ForecastPrice;
+}
+
+export interface DemandPriceForecastResponse {
+  forecasts: ForecastDataPoint[];
+  warnings: string[];
+  success: boolean;
+  message: string;
+  model_version: string;
+  requested_at: string;
+  forecast_date: string;
+  last_price_data_date: string;
+  data_gap_months: number;
 }

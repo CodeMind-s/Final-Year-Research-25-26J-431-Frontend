@@ -1,74 +1,27 @@
+/**
+ * @module ProductionDashboard
+ * 
+ * Main production prediction dashboard for the Crystal module.
+ * Displays environmental predictions, production forecasts, season summary,
+ * and weather forecast calendar with comprehensive charts and metrics.
+ */
+
 "use client"
 
 import { Card } from "@/components/crystal/ui/card"
 import { Badge } from "@/components/crystal/ui/badge"
 import { Button } from "@/components/crystal/ui/button"
 import { useTranslations } from 'next-intl'
-import { TrendingUp, Droplets, Activity, Cloud, AlertCircle, CloudCog } from "lucide-react"
+import { TrendingUp, Droplets, Activity, Cloud, AlertCircle } from "lucide-react"
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine, Label } from "recharts"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { ForecastReportDialog } from "@/components/crystal/dialogs/forecast-report-dialog"
 import { NotifySupervisorsDialog } from "@/components/crystal/dialogs/notify-supervisors-dialog"
-import { currentSeason, historicalProduction, monthlyProduction } from "@/sample-data/crystal/pss-mock-data"
 import { crystallizationController } from "@/services/crystallization.controller"
-import { PredictedMonthlyProduction } from "@/types/crystallization.types"
+import { CalendarDay, PredictedMonthlyProduction, WeatherForecastDay } from "@/types/crystallization.types"
 import { productionController } from "@/services/production.controller"
 import { WeatherForecastCalendar } from "@/components/crystal/weather-forecast-calendar"
-import Image from "next/image"
-
-// Generate mock historical data (temporary until API is ready)
-const generateMockHistoricalData = (startDate: string, endDate: string): any[] => {
-  const result: any[] = []
-  const start = new Date(startDate)
-  const end = new Date(endDate)
-  const currentDate = new Date(start)
-
-  // Base values for realistic variation
-  const baseValues = {
-    water_temperature: 26,
-    lagoon: 1.5,
-    OR_brine_level: 22,
-    OR_bund_level: 0.8,
-    IR_brine_level: 24,
-    IR_bound_level: 0.7,
-    East_channel: 1.2,
-    West_channel: 1.3,
-    rainfall: 5,
-    temperature: 27,
-    humidity: 75
-  }
-
-  while (currentDate <= end) {
-    const dateStr = currentDate.toISOString().split('T')[0]
-
-    // Add some realistic variation
-    const dayOfYear = Math.floor((currentDate.getTime() - new Date(currentDate.getFullYear(), 0, 0).getTime()) / 86400000)
-    const seasonalFactor = Math.sin((dayOfYear / 365) * Math.PI * 2)
-
-    result.push({
-      date: dateStr,
-      parameters: {
-        water_temperature: parseFloat((baseValues.water_temperature + seasonalFactor * 2 + (Math.random() - 0.5)).toFixed(2)),
-        lagoon: parseFloat((baseValues.lagoon + seasonalFactor * 0.3 + (Math.random() - 0.5) * 0.2).toFixed(2)),
-        OR_brine_level: parseFloat((baseValues.OR_brine_level + seasonalFactor * 2 + (Math.random() - 0.5)).toFixed(2)),
-        OR_bund_level: parseFloat((baseValues.OR_bund_level + seasonalFactor * 0.2 + (Math.random() - 0.5) * 0.1).toFixed(2)),
-        IR_brine_level: parseFloat((baseValues.IR_brine_level + seasonalFactor * 2 + (Math.random() - 0.5)).toFixed(2)),
-        IR_bound_level: parseFloat((baseValues.IR_bound_level + seasonalFactor * 0.2 + (Math.random() - 0.5) * 0.1).toFixed(2)),
-        East_channel: parseFloat((baseValues.East_channel + seasonalFactor * 0.3 + (Math.random() - 0.5) * 0.15).toFixed(2)),
-        West_channel: parseFloat((baseValues.West_channel + seasonalFactor * 0.3 + (Math.random() - 0.5) * 0.15).toFixed(2)),
-      },
-      weather: {
-        rain_sum: parseFloat(Math.max(0, baseValues.rainfall + seasonalFactor * 10 + (Math.random() - 0.5) * 8).toFixed(2)),
-        temperature_mean: parseFloat((baseValues.temperature + seasonalFactor * 2.5 + (Math.random() - 0.5) * 1.5).toFixed(2)),
-        relative_humidity_mean: parseFloat((baseValues.humidity + seasonalFactor * 5 + (Math.random() - 0.5) * 5).toFixed(2)),
-      }
-    })
-
-    currentDate.setDate(currentDate.getDate() + 1)
-  }
-
-  return result
-}
 
 // Transform API data to chart format
 const transformDailyEnvironmentalData = (
@@ -128,9 +81,10 @@ const transformDailyEnvironmentalData = (
         IR_bound_level: item.parameters?.IR_bound_level != null ? parseFloat(item.parameters.IR_bound_level.toFixed(2)) : null,
         East_channel: item.parameters?.East_channel != null ? parseFloat(item.parameters.East_channel.toFixed(2)) : null,
         West_channel: item.parameters?.West_channel != null ? parseFloat(item.parameters.West_channel.toFixed(2)) : null,
-        rainfall: item.weather?.rain_sum != null ? parseFloat(item.weather.rain_sum.toFixed(2)) : null,
-        temperature: item.weather?.temperature_mean != null ? parseFloat(item.weather.temperature_mean.toFixed(2)) : null,
-        humidity: item.weather?.relative_humidity_mean != null ? parseFloat(item.weather.relative_humidity_mean.toFixed(2)) : null,
+        // For predicted data, don't populate weather fields - they'll be populated by weather forecast API for first 16 days only
+        rainfall: isHistorical && item.weather?.rain_sum != null ? parseFloat(item.weather.rain_sum.toFixed(2)) : null,
+        temperature: isHistorical && item.weather?.temperature_mean != null ? parseFloat(item.weather.temperature_mean.toFixed(2)) : null,
+        humidity: isHistorical && item.weather?.relative_humidity_mean != null ? parseFloat(item.weather.relative_humidity_mean.toFixed(2)) : null,
         type: isHistorical ? 'historical' : 'predicted'
       })
     } else {
@@ -162,6 +116,7 @@ const transformDailyEnvironmentalData = (
 
 export function ProductionDashboard() {
   const t = useTranslations('crystal')
+  const router = useRouter()
   const [forecastDialogOpen, setForecastDialogOpen] = useState(false)
   const [notifyDialogOpen, setNotifyDialogOpen] = useState(false)
   const [monthlyProductionData, setMonthlyProductionData] = useState<PredictedMonthlyProduction[]>([])
@@ -169,6 +124,10 @@ export function ProductionDashboard() {
   const [dailyEnvironmentalData, setDailyEnvironmentalData] = useState<any[]>([])
   const [isLoadingDailyData, setIsLoadingDailyData] = useState(true)
   const [hiddenDataKeys, setHiddenDataKeys] = useState<Set<string>>(new Set(['humidity']))
+  const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
+  const [isLoadingDailyCalendarData, setIsLoadingDailyCalendarData] = useState(true);
+  const [modelPerformance, setModelPerformance] = useState<any>(null);
+  const [isLoadingModelPerformance, setIsLoadingModelPerformance] = useState(true);
 
   // Fetch daily environmental data (historical + predicted)
   useEffect(() => {
@@ -202,14 +161,11 @@ export function ProductionDashboard() {
             startDate: historicalStartStr,
             endDate: todayStr,
           })
-          historicalData = Array.isArray(historicalResponse) ? historicalResponse : (historicalResponse?.data || [])
-          // console.log("Historical data fetched:", historicalData.length, "records")
+          historicalData = Array.isArray(historicalResponse) ? historicalResponse : ((historicalResponse as any)?.data || [])
         } catch (error) {
           console.error("Failed to fetch historical data:", error)
           // Fallback to mock data if API fails
           historicalData = []
-          // historicalData = generateMockHistoricalData(historicalStartStr, todayStr)
-          // console.log("Using mock historical data as fallback:", historicalData.length, "records")
         }
 
         try {
@@ -218,8 +174,7 @@ export function ProductionDashboard() {
             startDate: todayStr,
             endDate: predictedEndStr,
           })
-          predictedData = Array.isArray(predictedResponse) ? predictedResponse : (predictedResponse?.data || [])
-          // console.log("Predicted data fetched:", predictedData.length, "records")
+          predictedData = Array.isArray(predictedResponse) ? predictedResponse : ((predictedResponse as any)?.data || [])
         } catch (error) {
           console.error("Failed to fetch predicted data:", error)
           predictedData = []
@@ -232,22 +187,16 @@ export function ProductionDashboard() {
           historicalStartStr,
           predictedEndStr
         )
-
-        // console.log("Transformed data:", transformedData.length, "records")
         setDailyEnvironmentalData(transformedData)
       } catch (error) {
         console.error("Failed to fetch daily environmental data:", error)
         // Use mock data as fallback
         const historicalStart = new Date(today)
         historicalStart.setMonth(today.getMonth() - 6)
-        const historicalStartStr = historicalStart.toISOString().split('T')[0]
-        const todayStr = today.toISOString().split('T')[0]
         const predictedEnd = new Date(today)
         predictedEnd.setMonth(today.getMonth() + 2)
-        const predictedEndStr = predictedEnd.toISOString().split('T')[0]
 
-        const mockData = generateMockHistoricalData(historicalStartStr, predictedEndStr)
-        setDailyEnvironmentalData(mockData)
+
       } finally {
         setIsLoadingDailyData(false)
       }
@@ -264,9 +213,9 @@ export function ProductionDashboard() {
         setIsLoadingMonthlyData(true)
 
         const formatDate = (d: Date) => d.toISOString().slice(0, 7)
-        const startActual = formatDate(new Date(date.getFullYear(), date.getMonth() - 6, 15))
+        const startActual = formatDate(new Date(date.getFullYear(), date.getMonth() - 10, 15))
         const currentMonth = formatDate(date)
-        const endPredicted = formatDate(new Date(date.getFullYear(), date.getMonth() + 6, 15))
+        const endPredicted = formatDate(new Date(date.getFullYear(), date.getMonth() + 1, 15))
 
         const [actualResponse, predictedResponse] = await Promise.all([
           productionController.getActualMonthlyProductions({
@@ -294,12 +243,10 @@ export function ProductionDashboard() {
           setMonthlyProductionData(transformedData)
         } else {
           console.error('Transform returned invalid data:', transformedData)
-          setMonthlyProductionData(defaultMonthlyProductionData)
         }
       } catch (error) {
         console.error("Failed to fetch monthly productions:", error)
         // Use fallback data on error
-        setMonthlyProductionData(defaultMonthlyProductionData)
       } finally {
         setIsLoadingMonthlyData(false)
       }
@@ -307,6 +254,261 @@ export function ProductionDashboard() {
 
     fetchMonthlyProductions()
   }, [])
+
+  // Fetch model performance data
+  useEffect(() => {
+    const fetchModelPerformance = async () => {
+      try {
+        setIsLoadingModelPerformance(true)
+        const response = await crystallizationController.getCrystallizationModelPerformance({
+          limit: 1
+        })
+        setModelPerformance(response)
+      } catch (error) {
+        console.error("Failed to fetch model performance:", error)
+        setModelPerformance(null)
+      } finally {
+        setIsLoadingModelPerformance(false)
+      }
+    }
+
+    fetchModelPerformance()
+  }, [])
+
+  useEffect(() => {
+    const fetchDataForCalendar = async () => {
+      try {
+        setIsLoadingDailyCalendarData(true);
+
+        // Fetch both weather forecast and predicted daily measurements
+        const today = new Date();
+        const todayStr = today.toISOString().split("T")[0];
+        const futureDate = new Date(today);
+        futureDate.setDate(today.getDate() + 60); // 60 days ahead to cover 2 months
+        const futureDateStr = futureDate.toISOString().split("T")[0];
+
+        // Fetch weather forecast (with fallback to mock data on error)
+        let weatherResponse: any;
+        try {
+          weatherResponse =
+            await crystallizationController.getWeatherForecast();
+        } catch (error) {
+          console.error("Failed to fetch weather forecast:", error);
+          weatherResponse = null;
+        }
+
+        // Fetch predicted measurements
+        const predictedDataResponse =
+          await crystallizationController.getPredictedDailyMeasurements({
+            startDate: todayStr,
+            endDate: futureDateStr,
+          });
+
+        // Extract weather data
+        let weatherList: WeatherForecastDay[] = [];
+        if (weatherResponse) {
+          if (Array.isArray(weatherResponse)) {
+            weatherList = weatherResponse;
+          } else if (weatherResponse?.data?.list) {
+            weatherList = weatherResponse.data.list;
+          } else if (weatherResponse?.list) {
+            weatherList = weatherResponse.list;
+          }
+        }
+
+        // Extract predicted data
+        const predictedDataList = Array.isArray(predictedDataResponse)
+          ? predictedDataResponse
+          : predictedDataResponse?.data || [];
+
+        // Helper function to format date consistently (LOCAL date, not UTC)
+        const formatDateStr = (date: Date): string => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+
+        // Create maps for both data types
+        const weatherMap = new Map<string, WeatherForecastDay>();
+        weatherList.forEach((day) => {
+          const date = new Date(day.dt * 1000);
+          // Use local date to match calendar days
+          const dateStr = formatDateStr(date);
+          weatherMap.set(dateStr, day);
+        });
+
+        const predictedMap = new Map<string, any>();
+        predictedDataList.forEach((item: any) => {
+          if (item && item.date) {
+            const dateStr = item.date.split("T")[0];
+            predictedMap.set(dateStr, item);
+          }
+        });
+
+        // Generate calendar days for current month and next month
+        const days: CalendarDay[] = [];
+
+        // Current month
+        const currentMonthStart = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          1,
+        );
+        const currentMonthEnd = new Date(
+          today.getFullYear(),
+          today.getMonth() + 1,
+          0,
+        );
+
+        // Next month
+        const nextMonthStart = new Date(
+          today.getFullYear(),
+          today.getMonth() + 1,
+          1,
+        );
+        const nextMonthEnd = new Date(
+          today.getFullYear(),
+          today.getMonth() + 2,
+          0,
+        );
+
+        // Get day of week for first day of current month (0 = Sunday)
+        const firstDayOfWeek = currentMonthStart.getDay();
+
+        // Add empty days for current month alignment
+        for (let i = 0; i < firstDayOfWeek; i++) {
+          const date = new Date(currentMonthStart);
+          date.setDate(date.getDate() - (firstDayOfWeek - i));
+          const dateStr = formatDateStr(date);
+          const predictedData = predictedMap.get(dateStr);
+          const weatherData = weatherMap.get(dateStr);
+
+          days.push({
+            date,
+            dateStr,
+            dayNumber: date.getDate(),
+            isCurrentMonth: false,
+            weatherData,
+            OR_brine_level: predictedData?.parameters?.OR_brine_level,
+            OR_bund_level: predictedData?.parameters?.OR_bund_level,
+            IR_brine_level: predictedData?.parameters?.IR_brine_level,
+            IR_bound_level: predictedData?.parameters?.IR_bound_level,
+            lagoon: predictedData?.parameters?.lagoon,
+          });
+        }
+
+        // Add current month days
+        for (let day = 1; day <= currentMonthEnd.getDate(); day++) {
+          const date = new Date(today.getFullYear(), today.getMonth(), day);
+          const dateStr = formatDateStr(date);
+          const predictedData = predictedMap.get(dateStr);
+          const weatherData = weatherMap.get(dateStr);
+
+          days.push({
+            date,
+            dateStr,
+            dayNumber: day,
+            isCurrentMonth: true,
+            weatherData,
+            OR_brine_level: predictedData?.parameters?.OR_brine_level,
+            OR_bund_level: predictedData?.parameters?.OR_bund_level,
+            IR_brine_level: predictedData?.parameters?.IR_brine_level,
+            IR_bound_level: predictedData?.parameters?.IR_bound_level,
+            lagoon: predictedData?.parameters?.lagoon,
+          });
+        }
+
+        // Add next month days
+        for (let day = 1; day <= nextMonthEnd.getDate(); day++) {
+          const date = new Date(today.getFullYear(), today.getMonth() + 1, day);
+          const dateStr = formatDateStr(date);
+          const predictedData = predictedMap.get(dateStr);
+          const weatherData = weatherMap.get(dateStr);
+
+          days.push({
+            date,
+            dateStr,
+            dayNumber: day,
+            isCurrentMonth: false,
+            weatherData,
+            OR_brine_level: predictedData?.parameters?.OR_brine_level,
+            OR_bund_level: predictedData?.parameters?.OR_bund_level,
+            IR_brine_level: predictedData?.parameters?.IR_brine_level,
+            IR_bound_level: predictedData?.parameters?.IR_bound_level,
+            lagoon: predictedData?.parameters?.lagoon,
+          });
+        }
+
+        setCalendarDays(days);
+
+        // Update dailyEnvironmentalData with weather forecast data
+        // Weather API returns 16 days - overlay rainfall, temperature, humidity for first 16 days only
+        setDailyEnvironmentalData(prevData => {
+          // Convert Kelvin to Celsius for temperature
+          const kelvinToCelsius = (kelvin: number) => parseFloat((kelvin - 273.15).toFixed(2));
+          
+          // If no previous data exists, create initial structure
+          if (!prevData || prevData.length === 0) {
+            return prevData;
+          }
+
+          // Calculate dates for comparison (normalize to start of day)
+          const todayStart = new Date(today);
+          todayStart.setHours(0, 0, 0, 0);
+          
+          const sixteenDaysFromNow = new Date(todayStart);
+          sixteenDaysFromNow.setDate(sixteenDaysFromNow.getDate() + 16);
+          
+          // Update the existing data
+          const updatedData = prevData.map((item) => {
+            const itemDate = new Date(item.date);
+            itemDate.setHours(0, 0, 0, 0); // Normalize to start of day
+            
+            // Check if this is predicted data
+            if (item.type === 'predicted') {
+              // Check if this date is within first 16 days from today
+              const isWithin16Days = itemDate >= todayStart && itemDate < sixteenDaysFromNow;
+              
+              if (isWithin16Days) {
+                // For first 16 days, try to use weather data
+                const weatherData = weatherMap.get(item.date);
+                if (weatherData) {
+                  return {
+                    ...item,
+                    rainfall: weatherData.rain != null ? parseFloat(weatherData.rain.toFixed(2)) : 0,
+                    temperature: weatherData.temp?.day != null ? kelvinToCelsius(weatherData.temp.day) : item.temperature,
+                    humidity: weatherData.humidity != null ? weatherData.humidity : item.humidity,
+                  };
+                }
+                // If no weather data but within 16 days, keep original values
+                return item;
+              } else {
+                // For dates beyond 16 days, explicitly set weather fields to null
+                return {
+                  ...item,
+                  rainfall: null,
+                  temperature: null,
+                  humidity: null,
+                };
+              }
+            }
+            
+            // For historical data, keep as is
+            return item;
+          });
+          
+          return updatedData;
+        });
+      } catch (error) {
+        console.error("Failed to fetch calendar data:", error);
+      } finally {
+        setIsLoadingDailyCalendarData(false);
+      }
+    };
+
+    fetchDataForCalendar();
+  }, []);
 
   // Helper function to format month from "YYYY-MM" to "MMM YY" (e.g., "2023-10" -> "Oct 23")
   const formatMonth = (monthStr: string): string => {
@@ -347,8 +549,6 @@ export function ProductionDashboard() {
       }
     })
 
-    console.log("actualData", actualData)
-
     // Add gap if there's a time difference between actual and predicted
     if (actualData.length > 0 && predictedData.length > 0) {
       const lastActual = actualData[actualData.length - 1].month
@@ -387,45 +587,18 @@ export function ProductionDashboard() {
     return result
   }
 
-  // Default/fallback monthly production data
-  const defaultMonthlyProductionData: PredictedMonthlyProduction[] = [
-    // Maha 2024/25 - Historical (Oct 2024 - Mar 2025)
-    { month: "Oct 24", production: 1180, predicted: null, type: "historical" },
-    { month: "Nov 24", production: 1250, predicted: null, type: "historical" },
-    { month: "Dec 24", production: 1420, predicted: null, type: "historical" },
-    { month: "Jan 25", production: 1580, predicted: null, type: "historical" },
-    { month: "Feb 25", production: 1690, predicted: null, type: "historical" },
-    { month: "Mar 25", production: 1520, predicted: null, type: "historical" },
-    // Future months gap
-    { month: "...", production: null, predicted: null, type: "gap" },
-    // Maha 2025/26 - Predicted (Dec 2025 - May 2026)
-    { month: "Dec 25", production: null, predicted: 1200, type: "predicted" },
-    { month: "Jan 26", production: null, predicted: 1450, type: "predicted" },
-    { month: "Feb 26", production: null, predicted: 1650, type: "predicted" },
-    { month: "Mar 26", production: null, predicted: 1580, type: "predicted" },
-    { month: "Apr 26", production: null, predicted: 1380, type: "predicted" },
-    { month: "May 26", production: null, predicted: 1100, type: "predicted" },
-  ]
+  // Calculate dynamic values from real fetched data
+  const totalPrediction = monthlyProductionData
+    .filter(item => item.type === 'predicted' && item.predicted != null)
+    .reduce((sum, month) => sum + (month.predicted || 0), 0)
 
-  // Combine historical and future production data
-  const combinedProductionData = [
-    { period: "Yala 2023", production: 6350, type: "historical" },
-    { period: "Maha 2023/24", production: 7920, type: "historical" },
-    { period: "Yala 2024", production: 6580, type: "historical" },
-    { period: "Maha 2024/25", production: 8120, type: "historical" },
-    { period: "Dec 2025", production: null, predicted: 1200, type: "current" },
-    { period: "Jan 2026", production: null, predicted: 1450, type: "future" },
-    { period: "Feb 2026", production: null, predicted: 1650, type: "future" },
-    { period: "Mar 2026", production: null, predicted: 1580, type: "future" },
-    { period: "Apr 2026", production: null, predicted: 1380, type: "future" },
-    { period: "May 2026", production: null, predicted: 1100, type: "future" },
-  ]
+  // Get average confidence from model performance API (fallback to 0 if not available)
+  const avgConfidence = modelPerformance?.[0]?.confidence?.overallScore 
+    ? Math.round(modelPerformance[0].confidence.overallScore) 
+    : modelPerformance?.[0]?.performance_metrics?.test_accuracy
+    ? Math.round(modelPerformance[0].performance_metrics.test_accuracy)
+    : 0
 
-  const totalPrediction = monthlyProduction.reduce((sum, month) => sum + month.predicted, 0)
-  const avgConfidence = Math.round(monthlyProduction.reduce((sum, month) => sum + month.confidence, 0) / monthlyProduction.length)
-
-  const mahaSeasons = historicalProduction.filter(s => s.season.includes("Maha") && !s.predicted)
-  const avgHistorical = Math.round(mahaSeasons.reduce((sum, s) => sum + s.production, 0) / mahaSeasons.length)
 
   // Handle legend click to toggle line visibility
   const handleLegendClick = (dataKey: string) => {
@@ -443,6 +616,42 @@ export function ProductionDashboard() {
   // Get current environmental conditions (latest data point from historical data)
   const latestEnv = dailyEnvironmentalData.filter(d => d.type === 'historical').slice(-1)[0] || dailyEnvironmentalData[0]
 
+  // Determine current season based on month
+  const getCurrentSeason = () => {
+    const now = new Date()
+    const month = now.getMonth() + 1 // getMonth() returns 0-11, so add 1 for 1-12
+    const currentYear = now.getFullYear()
+    
+    if (month >= 4 && month <= 9) {
+      // Yala season (April to September)
+      return {
+        name: 'Yala',
+        year: currentYear.toString(),
+        dateRange: `Apr ${currentYear} - Sep ${currentYear}`
+      }
+    } else {
+      // Maha season (October to March)
+      const nextYear = currentYear + 1
+      let dateRange: string
+      
+      if (month >= 10) {
+        // Oct-Dec: season is Oct YYYY - Mar (YYYY+1)
+        dateRange = `Oct ${currentYear} - Mar ${nextYear}`
+      } else {
+        // Jan-Mar: season is Oct (YYYY-1) - Mar YYYY
+        dateRange = `Oct ${currentYear - 1} - Mar ${currentYear}`
+      }
+      
+      return {
+        name: 'Maha',
+        year: `${currentYear}/${nextYear.toString().slice(-2)}`,
+        dateRange
+      }
+    }
+  }
+
+  const currentSeason = getCurrentSeason()
+
   return (
     <div className="p-3 sm:p-4 md:p-5 lg:p-6 space-y-3 md:space-y-4">
       {/* Compact Header with Season */}
@@ -456,7 +665,7 @@ export function ProductionDashboard() {
           <Badge className="bg-primary text-primary-foreground text-sm sm:text-base px-2 sm:px-3 py-1">
             {currentSeason.name} {currentSeason.year}
           </Badge>
-          <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Oct 2025 - Mar 2026</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">{currentSeason.dateRange}</p>
         </div>
       </div>
 
@@ -467,7 +676,13 @@ export function ProductionDashboard() {
             <span className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">{t('dashboard.seasonForecast')}</span>
             <TrendingUp className="h-3 w-3 text-success shrink-0" />
           </div>
-          <div className="text-base sm:text-xl font-bold text-foreground">{totalPrediction.toLocaleString()}</div>
+          {isLoadingMonthlyData ? (
+            <div className="text-base sm:text-xl font-bold text-muted-foreground">--</div>
+          ) : (
+            <div className="text-base sm:text-xl font-bold text-foreground">
+              {totalPrediction > 0 ? totalPrediction.toLocaleString() : '--'}
+            </div>
+          )}
           <p className="text-[10px] sm:text-xs text-muted-foreground">tons</p>
         </Card>
 
@@ -501,7 +716,7 @@ export function ProductionDashboard() {
 
       
       {/* Weather Forecast Calendar - Next 16 Days */}
-      <WeatherForecastCalendar />
+      <WeatherForecastCalendar calendarDays={calendarDays} isLoadingDailyData={isLoadingDailyCalendarData} />
 
       {/* MAIN: Daily Environmental Predictions - MOST IMPORTANT */}
       <Card className="p-3 sm:p-4 md:p-5 border-2 border-primary/30 bg-linear-to-br from-primary/5 to-background">
@@ -620,7 +835,7 @@ export function ProductionDashboard() {
                 hide={hiddenDataKeys.has('salinity')}
               />
 
-              {/* Rainfall - Blue bars, lighter for predicted */}
+              {/* Rainfall - Blue bars (only first 16 days of prediction) */}
               <Bar
                 yAxisId="right"
                 dataKey="rainfall"
@@ -631,7 +846,7 @@ export function ProductionDashboard() {
                 hide={hiddenDataKeys.has('rainfall')}
               />
 
-              {/* Temperature - Red line */}
+              {/* Temperature - Red line (only first 16 days of prediction) */}
               <Line
                 yAxisId="left"
                 type="monotone"
@@ -640,11 +855,11 @@ export function ProductionDashboard() {
                 strokeWidth={2}
                 name="Temperature (°C)"
                 dot={false}
-                connectNulls={true}
+                connectNulls={false}
                 hide={hiddenDataKeys.has('temperature')}
               />
 
-              {/* Humidity - Green line */}
+              {/* Humidity - Green line (only first 16 days of prediction) */}
               <Line
                 yAxisId="left"
                 type="monotone"
@@ -653,7 +868,7 @@ export function ProductionDashboard() {
                 strokeWidth={2}
                 name="Humidity (%)"
                 dot={false}
-                connectNulls={true}
+                connectNulls={false}
                 hide={hiddenDataKeys.has('humidity')}
               />
 
@@ -887,20 +1102,47 @@ export function ProductionDashboard() {
           <div className="space-y-1.5 sm:space-y-2">
             <div className="p-1.5 sm:p-2 bg-primary/10 rounded">
               <p className="text-[10px] sm:text-xs text-muted-foreground">Total Forecast</p>
-              <p className="text-lg sm:text-2xl font-bold text-primary">{totalPrediction.toLocaleString()} tons</p>
+              {isLoadingMonthlyData ? (
+                <p className="text-lg sm:text-2xl font-bold text-muted-foreground">Loading...</p>
+              ) : (
+                <p className="text-lg sm:text-2xl font-bold text-primary">
+                  {totalPrediction > 0 ? totalPrediction.toLocaleString() : '--'} bags
+                </p>
+              )}
             </div>
             <div className="p-1.5 sm:p-2 bg-success/10 rounded">
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Avg Confidence</p>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <div className="flex-1 bg-background rounded-full h-1.5 sm:h-2">
-                  <div className="bg-success rounded-full h-1.5 sm:h-2" style={{ width: `${avgConfidence}%` }} />
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Avg Confidence (Model)</p>
+              {isLoadingModelPerformance ? (
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <div className="flex-1 bg-background rounded-full h-1.5 sm:h-2">
+                    <div className="bg-muted rounded-full h-1.5 sm:h-2 w-1/2 animate-pulse" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-muted-foreground">--</span>
                 </div>
-                <span className="text-xs sm:text-sm font-bold text-success">{avgConfidence}%</span>
-              </div>
+              ) : (
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <div className="flex-1 bg-background rounded-full h-1.5 sm:h-2">
+                    <div className="bg-success rounded-full h-1.5 sm:h-2" style={{ width: `${avgConfidence}%` }} />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-success">{avgConfidence}%</span>
+                </div>
+              )}
             </div>
             <div className="p-1.5 sm:p-2 bg-muted/50 rounded">
-              <p className="text-[10px] sm:text-xs text-muted-foreground">vs Historical Avg</p>
-              <p className="text-base sm:text-lg font-bold text-foreground">+{Math.round((totalPrediction - avgHistorical) / avgHistorical * 100)}% better</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Last Updated</p>
+              {isLoadingModelPerformance ? (
+                <p className="text-base sm:text-lg font-bold text-muted-foreground">--</p>
+              ) : modelPerformance?.[0]?.updatedAt || modelPerformance?.[0]?.createdAt ? (
+                <p className="text-xs sm:text-sm font-bold text-foreground">
+                  {new Date(modelPerformance[0].updatedAt || modelPerformance[0].createdAt).toLocaleDateString('en-GB', { 
+                    day: 'numeric', 
+                    month: 'short', 
+                    year: 'numeric'
+                  })}
+                </p>
+              ) : (
+                <p className="text-base sm:text-lg font-bold text-foreground">--</p>
+              )}
             </div>
           </div>
         </Card>
@@ -927,11 +1169,8 @@ export function ProductionDashboard() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 mt-2 sm:mt-3">
-            <Button size="sm" onClick={() => setForecastDialogOpen(true)} className="flex-1 text-[10px] sm:text-xs h-7 sm:h-8">
+            <Button size="sm" onClick={() => router.push('/salt-society/reports')} className="flex-1 text-[10px] sm:text-xs h-7 sm:h-8">
               {t('dashboard.forecastReport')}
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setNotifyDialogOpen(true)} className="flex-1 text-[10px] sm:text-xs h-7 sm:h-8">
-              {t('dashboard.notifications')}
             </Button>
           </div>
         </Card>

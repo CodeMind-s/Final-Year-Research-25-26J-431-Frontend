@@ -1,3 +1,13 @@
+/**
+ * Record Confirmation Dialog
+ * 
+ * Dialog component shown after successfully recording field measurements.
+ * Displays confirmation message with summary of recorded data including
+ * site information, worker details, and parameter count.
+ * 
+ * @module RecordConfirmationDialog
+ */
+
 "use client"
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/crystal/ui/dialog"

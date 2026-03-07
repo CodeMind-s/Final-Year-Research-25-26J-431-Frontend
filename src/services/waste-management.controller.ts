@@ -114,7 +114,9 @@ class WasteManagementController extends BaseController {
   }
 
   /**
-   * Transform raw job response from backend to our format
+   * Transform raw job response from backend to application format
+   * @param job - Raw job response from backend
+   * @returns Transformed recent prediction object
    * @private
    */
   private transformJobResponse(job: RawJobResponse): RecentPrediction {

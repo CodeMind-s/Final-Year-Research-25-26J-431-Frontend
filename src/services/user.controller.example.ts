@@ -41,6 +41,8 @@ class UserController extends BaseController {
 
   /**
    * Create a new user
+   * @param data - User creation data
+   * @returns Created user object
    */
   async createUser(data: CreateUserRequest): Promise<UserResponse> {
     return this.post<UserResponse, CreateUserRequest>(
@@ -51,6 +53,9 @@ class UserController extends BaseController {
 
   /**
    * Update an existing user
+   * @param id - User ID
+   * @param data - Updated user data
+   * @returns Updated user object
    */
   async updateUser(id: string, data: UpdateUserRequest): Promise<UserResponse> {
     return this.put<UserResponse, UpdateUserRequest>(
@@ -61,6 +66,8 @@ class UserController extends BaseController {
 
   /**
    * Get user by ID
+   * @param id - User ID
+   * @returns User object
    */
   async getUser(id: string): Promise<UserResponse> {
     return this.get<UserResponse>(`${API_CONFIG.ENDPOINTS.USER.GET}/${id}`);
@@ -68,6 +75,9 @@ class UserController extends BaseController {
 
   /**
    * Get all users with pagination
+   * @param page - Page number (default: 1)
+   * @param limit - Results per page (default: 10)
+   * @returns Array of user objects
    */
   async getUsers(page = 1, limit = 10): Promise<UserResponse[]> {
     return this.get<UserResponse[]>(API_CONFIG.ENDPOINTS.USER.GET, {
@@ -76,12 +86,17 @@ class UserController extends BaseController {
   }
 
   /**
-   * Delete a user
+   * Delete a user by ID
+   * @param id - User ID
    */
   async deleteUser(id: string): Promise<void> {
     return this.delete<void>(`${API_CONFIG.ENDPOINTS.USER.DELETE}/${id}`);
   }
 
+  /**
+   * Get personal details of the authenticated user
+   * @returns User object with personal details
+   */
   async personalDetails(): Promise<UserResponse> {
     return this.get<UserResponse>(API_CONFIG.ENDPOINTS.AUTH.PERSONAL_DETAILS);
   }

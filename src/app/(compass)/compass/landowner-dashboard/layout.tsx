@@ -13,9 +13,10 @@ import { MarketAnalysis } from "@/components/compass/MarketAnalysis";
 import { HomeDashboard } from "@/components/compass/HomeDashboard";
 import { harvestPlanController } from "@/services/plan.controller";
 import { HarvestPlan } from "@/types/harvest-plan.types";
-import { UserRole } from "@/dtos/auth.dto";
+import { UserRole, PersonalDetailsResponse } from "@/dtos/auth.dto";
+import { authController } from "@/services/auth.controller";
 
-import { CircleUserRound } from "lucide-react";
+import { CircleUserRound, Mail, Phone, MapPin, Layers, CreditCard, CheckCircle, XCircle, Loader2 } from "lucide-react";
 
 type PlannerView = "landing" | "creating" | "harvesting";
 
@@ -39,6 +40,10 @@ export default function LandownerDashboardLayout({
 
   // Loading state
   const [isLoadingPlans, setIsLoadingPlans] = useState(true);
+
+  // Profile state
+  const [profileData, setProfileData] = useState<PersonalDetailsResponse | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   // Transform HarvestPlan to PlanRecord
   const transformPlanToRecord = (plan: HarvestPlan): PlanRecord => {
@@ -166,6 +171,26 @@ export default function LandownerDashboardLayout({
     fetchHarvestPlans();
   }, []);
 
+  // Fetch profile data
+  const fetchProfileData = async () => {
+    try {
+      setProfileLoading(true);
+      const data = await authController.getPersonalDetails();
+      setProfileData(data);
+    } catch (err) {
+      console.error('Failed to fetch profile data:', err);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  // Fetch profile when profile tab is opened
+  useEffect(() => {
+    if (activeTab === 'profile' && !profileData) {
+      fetchProfileData();
+    }
+  }, [activeTab]);
+
 
   // Predicted bags for harvest now flow
   const predictedBags = useMemo(() => {
@@ -281,13 +306,168 @@ export default function LandownerDashboardLayout({
         return <MarketAnalysis />;
 
       case "profile":
-        return (
-          <div className="flex flex-col items-center justify-center px-6 pt-16 pb-12 text-center">
-            <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
-              <CircleUserRound size={28} className="text-slate-400" />
+        if (profileLoading) {
+          return (
+            <div className="flex items-center justify-center px-6 pt-16 pb-12">
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 size={32} className="animate-spin text-compass-600" />
+                <p className="text-sm text-slate-500">{t('layout.loading')}</p>
+              </div>
             </div>
-            <h2 className="text-lg font-bold text-slate-900 mb-1">{t('layout.profile')}</h2>
-            <p className="text-sm text-slate-500">{t('layout.comingSoon')}</p>
+          );
+        }
+
+        if (!profileData) {
+          return (
+            <div className="max-w-xl mx-auto">
+              <div className="flex flex-col items-center justify-center px-6 pt-16 pb-12 text-center">
+                <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
+                  <CircleUserRound size={28} className="text-slate-400" />
+                </div>
+                <h2 className="text-lg font-bold text-slate-900 mb-1">{t('layout.profile')}</h2>
+                <p className="text-sm text-slate-500 mb-4">{t('layout.failedToLoad')}</p>
+                <button
+                  onClick={fetchProfileData}
+                  className="px-4 py-2 bg-compass-600 text-white rounded-xl font-semibold active:scale-95 transition-all"
+                >
+                  {t('layout.retry')}
+                </button>
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div className="max-w-2xl mx-auto px-4 pt-5 pb-6 space-y-4">
+            {/* Profile Header */}
+            <div className="bg-linear-to-r from-indigo-600 to-indigo-700 rounded-2xl p-5 text-white shadow-lg">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                  <CircleUserRound size={28} className="text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h2 className="text-lg font-bold">{t('profile.landownerProfile')}</h2>
+                    {profileData.user.isVerified && (
+                      <CheckCircle size={14} className="text-green-300" />
+                    )}
+                  </div>
+                  <p className="text-white/80 text-xs">{profileData.user.role}</p>
+                </div>
+              </div>
+              {profileData.user.plan && (
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 px-3 py-2 bg-white/15 backdrop-blur-sm rounded-xl">
+                    <p className="text-[10px] text-white/60 uppercase font-semibold mb-0.5">{t('profile.planLabel')}</p>
+                    <p className="text-sm font-bold capitalize">{profileData.user.plan}</p>
+                  </div>
+                  {profileData.user.isSubscribed && (
+                    <div className="px-3 py-2 bg-green-500/20 border border-green-300/30 rounded-xl">
+                      <p className="text-xs font-bold text-green-200">{t('profile.active')}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Account Information Card */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+              <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                <CircleUserRound size={16} className="text-indigo-600" />
+                {t('profile.accountInfo')}
+              </h3>
+              <div className="space-y-3">
+                {/* Email */}
+                {profileData.user.email && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
+                    <Mail size={16} className="text-slate-400 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-semibold text-slate-500 uppercase mb-0.5">{t('profile.email')}</p>
+                      <p className="text-sm font-medium text-slate-800 wrap-break-word">
+                        {profileData.user.email}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Phone */}
+                {profileData.user.phone && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
+                    <Phone size={16} className="text-slate-400 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-[10px] font-semibold text-slate-500 uppercase mb-0.5">{t('profile.phone')}</p>
+                      <p className="text-sm font-medium text-slate-800">
+                        {profileData.user.phone}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Status Badges */}
+                <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
+                  <CheckCircle size={16} className="text-slate-400 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-[10px] font-semibold text-slate-500 uppercase mb-1.5">{t('profile.status')}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {profileData.user.isOnboarded && (
+                        <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded">
+                          {t('profile.onboarded')}
+                        </span>
+                      )}
+                      {profileData.user.isTrialActive && (
+                        <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-semibold rounded">
+                          {t('profile.trialActive')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Landowner Details Card */}
+            {profileData.landOwnerDetails && (
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+                <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                  <Layers size={16} className="text-emerald-600" />
+                  {t('profile.landownerDetails')}
+                </h3>
+                <div className="space-y-3">
+                  {/* NIC */}
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <p className="text-[10px] font-semibold text-slate-500 uppercase mb-0.5">
+                      {t('profile.nic')}
+                    </p>
+                    <p className="text-sm font-medium text-slate-800">
+                      {profileData.landOwnerDetails.nic}
+                    </p>
+                  </div>
+
+                  {/* Total Beds */}
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <p className="text-[10px] font-semibold text-slate-500 uppercase mb-0.5">
+                      {t('profile.totalBeds')}
+                    </p>
+                    <p className="text-sm font-medium text-slate-800">
+                      {profileData.landOwnerDetails.totalBeds} {t('profile.bedsUnit')}
+                    </p>
+                  </div>
+
+                  {/* Address */}
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
+                    <MapPin size={16} className="text-slate-400 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-[10px] font-semibold text-slate-500 uppercase mb-0.5">
+                        {t('profile.address')}
+                      </p>
+                      <p className="text-sm font-medium text-slate-800 leading-relaxed">
+                        {profileData.landOwnerDetails.address}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         );
 

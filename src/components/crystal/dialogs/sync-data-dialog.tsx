@@ -1,3 +1,13 @@
+/**
+ * Sync Data Dialog
+ * 
+ * Dialog component for synchronizing field data with the central server.
+ * Shows last sync status, pending changes, sync progress, and connection status.
+ * Allows manual triggering of data synchronization.
+ * 
+ * @module SyncDataDialog
+ */
+
 "use client"
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/crystal/ui/dialog"

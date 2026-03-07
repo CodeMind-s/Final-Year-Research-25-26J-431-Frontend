@@ -1,3 +1,13 @@
+/**
+ * Site Details Dialog
+ * 
+ * Dialog component displaying comprehensive details for a specific production site.
+ * Shows 30-day history charts, current metrics, temperature trends, and site specifications.
+ * Provides detailed view of brine density, maturity, and environmental conditions.
+ * 
+ * @module SiteDetailsDialog
+ */
+
 "use client"
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/crystal/ui/dialog"

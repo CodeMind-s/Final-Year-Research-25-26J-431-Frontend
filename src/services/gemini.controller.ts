@@ -1,25 +1,13 @@
 /**
- * Crystallization API Controller
- * Handles all crystallization-related API requests
+ * AI/Gemini API Controller
+ * Handles AI-powered recommendation and hint generation API requests
  */
 
 import { PlanCreateHintResponse } from "@/types/gemini.types";
 import { BaseController } from "./base-controller";
-import {
-  DailyMeasurementRequest,
-  DailyMeasurementResponse,
-  DailyMeasurementGetRequest,
-  DailyMeasurementGetResponse,
-  PredictedDailyMeasurementGetRequest,
-  PredictedDailyMeasurementGetResponse,
-  PredictedMonthlyProductionRequest,
-  PredictedMonthlyProductionResponse,
-  WeatherForecastResponse,
-  CrystallizationPredictionRequest,
-} from "@/types/crystallization.types";
 
 /**
- * Ai controller class
+ * AI controller class
  */
 class AiController extends BaseController {
   constructor() {
@@ -27,8 +15,8 @@ class AiController extends BaseController {
   }
 
   /**
-   * Get 16-day weather forecast
-   * @returns Weather forecast data for next 16 days
+   * Get AI-generated hint for harvest plan creation
+   * @returns Plan creation hint with notification, description, planning days and start date
    */
   async getPlanCreateHint(): Promise<PlanCreateHintResponse> {
     return this.get<PlanCreateHintResponse>("/plan-creating-hint");

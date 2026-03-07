@@ -16,7 +16,9 @@ class PaymentController extends BaseController {
   }
 
   /**
-   * Create checkout session
+   * Create checkout session for payment processing
+   * @param request - Checkout request data including plan and billing cycle
+   * @returns Checkout response with payment session details
    */
   async checkout(request: CheckoutRequest): Promise<CheckoutResponse> {
     return this.post<CheckoutResponse, CheckoutRequest>(
@@ -26,7 +28,8 @@ class PaymentController extends BaseController {
   }
 
   /**
-   * Get payment history
+   * Get payment history for the authenticated user
+   * @returns Array of payment records
    */
   async getPayments(): Promise<Payment[]> {
     const response = await this.get<PaymentHistoryResponse>(

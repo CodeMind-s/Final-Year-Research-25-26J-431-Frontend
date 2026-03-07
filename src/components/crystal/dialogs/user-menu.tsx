@@ -1,3 +1,13 @@
+/**
+ * User Menu
+ * 
+ * Dropdown menu component for user account actions and settings.
+ * Provides access to profile, settings, help, and logout functionality.
+ * Displays current user information and authentication status.
+ * 
+ * @module UserMenu
+ */
+
 "use client"
 
 import {
@@ -8,8 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/crystal/ui/dropdown-menu"
-import { Button } from "@/components/crystal/ui/button"
-import { User, Settings, HelpCircle, LogOut, UserCircle } from "lucide-react"
+import { Settings, HelpCircle, LogOut, UserCircle } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 
 interface UserMenuProps {
