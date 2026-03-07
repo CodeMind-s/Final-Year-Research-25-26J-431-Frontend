@@ -67,15 +67,31 @@ export interface WastePredictionsRequest {
 }
 
 /**
- * Quick prediction input parameters
+ * Quick prediction input parameters (for UI form)
  */
-export interface QuickPredictionRequest {
+export interface QuickPredictionFormData {
   production_volume: number;
   rain_sum: number;
   temperature_mean: number;
   humidity_mean: number;
   wind_speed_mean: number;
-  date?: string;
+  month: number;
+}
+
+/**
+ * Quick prediction backend request payload
+ */
+export interface QuickPredictionRequest {
+  jobType: "WASTE_PREDICTION";
+  predictionDate: string; // Format: YYYY-MM-DD
+  requestData: {
+    production_volume: number;
+    rain_sum: number;
+    temperature_mean: number;
+    humidity_mean: number;
+    wind_speed_mean: number;
+    month: number;
+  };
 }
 
 /**
@@ -95,6 +111,66 @@ export interface QuickPredictionJobResponse {
  */
 export interface QuickPredictionResponse {
   prediction: WastePredictionData;
+}
+
+/**
+ * Recent prediction item with metadata
+ */
+export interface RecentPrediction {
+  jobId: string;
+  predictionDate: string;
+  createdAt: string;
+  status: "processing" | "completed" | "failed";
+  prediction?: WastePredictionData;
+  requestData: {
+    production_volume: number;
+    rain_sum: number;
+    temperature_mean: number;
+    humidity_mean: number;
+    wind_speed_mean: number;
+    month: number;
+  };
+}
+
+/**
+ * Raw API response for a single job (from backend)
+ */
+export interface RawJobResponse {
+  _id: string;
+  userId: string;
+  jobType: string;
+  status: "COMPLETED" | "PROCESSING" | "FAILED";
+  predictionDate: string;
+  requestData: string; // JSON string
+  resultData: string; // JSON string
+  errorMessage: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Raw result data from backend (parsed from resultData JSON string)
+ */
+export interface RawResultData {
+  total_waste_kg: number;
+  solid_waste_limestone_kg: number;
+  solid_waste_gypsum_kg: number;
+  solid_waste_industrial_salt_kg: number;
+  liquid_waste_bittern_liters: number;
+  potential_epsom_salt_kg: number;
+  potential_potash_kg: number;
+  potential_magnesium_oil_liters: number;
+  model_version?: string;
+  confidence?: number | null;
+  Total_Waste_kg?: number; // Sometimes capitalized
+}
+
+/**
+ * Response for recent predictions list
+ */
+export interface RecentPredictionsResponse {
+  predictions: RecentPrediction[];
+  total: number;
 }
 
 /**
