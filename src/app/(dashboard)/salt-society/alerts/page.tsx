@@ -1,8 +1,17 @@
+/**
+ * Alerts Page
+ * 
+ * Displays system alerts and notifications for the salt production dashboard.
+ * Users can view, mark as read/unread, and dismiss various types of alerts
+ * (warnings, info, success) related to production parameters and conditions.
+ * 
+ * @module AlertsPage
+ */
+
 "use client"
 
-import { DashboardLayout } from "@/components/crystal/dashboard-layout"
 import { Card } from "@/components/crystal/ui/card"
-import { AlertTriangle, Info, CheckCircle, X } from "lucide-react"
+import { AlertTriangle, Info, CheckCircle } from "lucide-react"
 import { Badge } from "@/components/crystal/ui/badge"
 import { Button } from "@/components/crystal/ui/button"
 import { useState } from "react"

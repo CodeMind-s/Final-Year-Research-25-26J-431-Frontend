@@ -1,3 +1,13 @@
+/**
+ * Notify Supervisors Dialog
+ * 
+ * Dialog component for sending production alerts and recommendations
+ * to field supervisors and team members. Includes quick templates
+ * for common notifications and recipient selection options.
+ * 
+ * @module NotifySupervisorsDialog
+ */
+
 "use client"
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/crystal/ui/dialog"

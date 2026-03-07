@@ -158,7 +158,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
       </div>
 
       {/* 5. Saltern Map (Existing Visual) */}
-      <div className="w-full">
+      {/* <div className="w-full">
          <div className="flex items-center justify-between mb-3 px-1">
           <h2 className="text-sm font-bold text-slate-900">{t('home.mySaltern')}</h2>
         </div>
@@ -168,7 +168,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                 currentOwnerId="landowner_001" // Use actual owner ID to show owned ponds
              />
         </div>
-      </div>
+      </div> */}
 
      
 

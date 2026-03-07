@@ -1,3 +1,11 @@
+/**
+ * Distributor Offers Type Definitions
+ * Types for distributor offers and requirements management
+ */
+
+/**
+ * Distributor offer object with pricing and quantity details
+ */
 export interface DistributorOfferObject {
   _id: string;
   userId: string;

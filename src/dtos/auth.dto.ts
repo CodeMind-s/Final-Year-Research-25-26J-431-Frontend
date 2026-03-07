@@ -81,14 +81,38 @@ export interface VerifyOtpResponse {
 }
 
 /**
+ * Landowner details interface
+ */
+export interface LandOwnerDetails {
+  id: string;
+  userId: string;
+  docUrls: string[];
+  totalBeds: number;
+  nic: string;
+  address: string;
+}
+
+/**
+ * Distributor details interface
+ */
+export interface DistributorDetails {
+  id: string;
+  userId: string;
+  docUrls: string[];
+  companyName: string;
+  registrationNumber: string;
+  address: string;
+}
+
+/**
  * Personal details response DTO
  */
 export interface PersonalDetailsResponse {
   user: User;
-  landOwnerDetails?: Record<string, unknown> | null;
+  landOwnerDetails?: LandOwnerDetails | null;
   serviceProviderDetails?: Record<string, unknown> | null;
   laboratoryDetails?: Record<string, unknown> | null;
-  distributorDetails?: Record<string, unknown> | null;
+  distributorDetails?: DistributorDetails | null;
 }
 
 /**

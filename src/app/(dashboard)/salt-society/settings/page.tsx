@@ -1,19 +1,30 @@
+/**
+ * Settings Page
+ * 
+ * User settings and preferences page displaying user profile information,
+ * notification preferences, and system configuration options for the
+ * salt production monitoring system.
+ * 
+ * @module SettingsPage
+ */
+
 "use client"
 
-import { DashboardLayout } from "@/components/crystal/dashboard-layout"
 import { Card } from "@/components/crystal/ui/card"
 import { Switch } from "@/components/crystal/ui/switch"
 import { User, Mail, Briefcase, MapPin } from "lucide-react"
 import { useTranslations } from 'next-intl'
+import { useAuth } from "@/hooks/useAuth"
 
 export default function SettingsPage() {
   const t = useTranslations('crystal')
+  const { user } = useAuth()
 
   // PSS authenticated user data
   const userData = {
-    name: "Sunil Perera",
-    email: "sunil.perera@puttalam-salt.lk",
-    role: "PSS Operations Manager",
+    name: user?.name || "N/A",
+    email: user?.email || user?.phone || "N/A",
+    role: user?.role || "N/A",
     location: "Puttalam Salt Society, Sri Lanka"
   }
 
@@ -87,25 +98,6 @@ export default function SettingsPage() {
             </div>
           </Card>
 
-          <Card className="p-4 sm:p-6">
-            <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-3 sm:mb-4">{t('settings.systemPreferences')}</h2>
-            <div className="space-y-3 sm:space-y-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm font-medium text-foreground">{t('settings.offlineMode')}</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">{t('settings.offlineModeDesc')}</p>
-                </div>
-                <Switch defaultChecked className="flex-shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm font-medium text-foreground">{t('settings.autoSync')}</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">{t('settings.autoSyncDesc')}</p>
-                </div>
-                <Switch defaultChecked className="flex-shrink-0" />
-              </div>
-            </div>
-          </Card>
         </div>
       </div>
     // </DashboardLayout>

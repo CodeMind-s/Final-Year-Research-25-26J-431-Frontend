@@ -56,7 +56,6 @@ export interface PredictedMonthlyProductionResponse {
  * Daily Measurement Request
  */
 export interface DailyMeasurementRequest {
-  date: string; // Format: "YYYY-MM-DD"
   waterTemperature: number;
   lagoon: number;
   orBrineLevel: number;
@@ -115,20 +114,14 @@ export interface WeatherData {
  * Daily Measurement Data Item from API
  */
 export interface DailyMeasurementDataItem {
-  _id: {
-    $oid: string;
-  };
+  _id: string;
   date: string;
   dayNumber: number;
   parameters: DailyMeasurementParameters;
   weather: WeatherData;
-  createdAt: {
-    $date: string;
-  };
-  updatedAt: {
-    $date: string;
-  };
-  __v: number;
+  createdAt: string;
+  updatedAt: string;
+  __v?: number;
 }
 
 /**
@@ -250,4 +243,65 @@ export interface CrystallizationPredictionRequest {
   num_salt_beds: number;
   latitude: number;
   longitude: number;
+}
+
+export interface CalendarDay {
+  date: Date;
+  dateStr: string;
+  dayNumber: number;
+  isCurrentMonth: boolean;
+  weatherData?: WeatherForecastDay;
+  OR_brine_level?: number;
+  OR_bund_level?: number;
+  IR_brine_level?: number;
+  IR_bound_level?: number;
+  lagoon?: number;
+}
+
+export interface GetCrystallizationModelPerformanceRequest {
+  limit?: number;
+}
+
+export interface GetCrystallizationModelPerformanceResponse {
+  success: boolean;
+  message: string;
+  data: PerformanceObject[];
+}
+
+export interface PerformanceObject {
+  _id: string;
+  model_type: string;
+  forecast_generated: string;
+  performance_metrics: PerformanceMetricObject;
+  confidence: ConfidenceObject;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ConfidenceObject {
+  overallScore: number;
+  overallRating: string;
+  yieldRatio: number;
+  yieldStatus: string;
+  decliningTrend: boolean;
+  improvingTrend: boolean;
+  formulaR2: number;
+  holdoutMae: number;
+  nHistoryMonths: number;
+  formulaFitScore: number;
+  holdoutScore: number;
+  dataVolumeScore: number;
+  yieldScore: number;
+  bedCountTier: string;
+  bedCountNote: string;
+  date: string;
+}
+
+export interface PerformanceMetricObject {
+  test_mae: number;
+  test_rmse: number;
+  test_r2_score: number;
+  test_accuracy: number;
+  validation_r2_score: number;
+  validation_accuracy: number;
 }

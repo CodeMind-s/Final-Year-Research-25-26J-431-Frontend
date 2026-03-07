@@ -1,3 +1,11 @@
+/**
+ * @module SaltProductionRecording
+ * 
+ * Dashboard for recording and managing monthly salt production data.
+ * Displays production chart with historical and predicted data,
+ * and provides CRUD operations for production records.
+ */
+
 "use client"
 
 import { Card } from "@/components/crystal/ui/card"
@@ -31,7 +39,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/crystal/ui/alert-dialog"
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
 export function SaltProductionRecording() {
     const t = useTranslations('crystal')
@@ -58,24 +66,30 @@ export function SaltProductionRecording() {
         try {
             setIsLoading(true)
             const today = new Date()
-            const startDate = new Date(today.getFullYear() - 2, 0, 1) // 2 years ago
-            const endDate = new Date(today.getFullYear() + 1, 11, 31) // 1 year ahead
+            
+            // Get past 12 months for actual data
+            const past12Months = new Date(today)
+            past12Months.setMonth(today.getMonth() - 12)
+            
+            // Get next 2 months for predicted data
+            const next2Months = new Date(today)
+            next2Months.setMonth(today.getMonth() + 2)
 
             const formatDate = (d: Date) => d.toISOString().slice(0, 7)
 
-            // Fetch actual productions
+            // Fetch actual productions (past 12 months)
             const actualResponse = await productionController.getActualMonthlyProductions({
-                startMonth: formatDate(startDate),
+                startMonth: formatDate(past12Months),
                 endMonth: formatDate(today),
             })
 
             const actualData = Array.isArray(actualResponse) ? actualResponse : (actualResponse?.data || [])
 
-            // Fetch predicted productions
+            // Fetch predicted productions (next 2 months)
             try {
                 const predictedResponse = await crystallizationController.getPredictedMonthlyProductions({
                     startMonth: formatDate(today),
-                    endMonth: formatDate(endDate),
+                    endMonth: formatDate(next2Months),
                 })
                 const predictedData = Array.isArray(predictedResponse) ? predictedResponse : (predictedResponse?.data || [])
                 setPredictedProductions(predictedData)
@@ -103,62 +117,40 @@ export function SaltProductionRecording() {
         fetchProductions()
     }, [])
 
-    // Prepare chart data
+    // Prepare chart data - Past 12 months actual + Next 2 months predicted
     const prepareChartData = () => {
-        // Combine actual and predicted data
-        const combinedData: any[] = []
-
-        // Group actual data by season
-        const seasonalData: { [key: string]: { actual: number; season: string; month: string } } = {}
-
+        // Create a map for actual monthly data
+        const actualMonthlyData: { [key: string]: number } = {}
         productions.forEach((prod) => {
-            const seasonKey = `${prod.season} ${prod.month.split('-')[0]}`
-            if (!seasonalData[seasonKey]) {
-                seasonalData[seasonKey] = {
-                    actual: 0,
-                    season: prod.season,
-                    month: prod.month,
-                }
-            }
-            seasonalData[seasonKey].actual += prod.production_volume
+            actualMonthlyData[prod.month] = prod.production_volume
         })
 
-        // Group predicted data by season
-        const predictedSeasonalData: { [key: string]: { predicted: number; season: string } } = {}
-
+        // Create a map for predicted monthly data
+        const predictedMonthlyData: { [key: string]: number } = {}
         predictedProductions.forEach((pred) => {
-            // Determine season based on month
-            const monthNum = parseInt(pred.month.split('-')[1])
-            const season = (monthNum >= 4 && monthNum <= 9) ? 'Yala' : 'Maha'
-            const year = pred.month.split('-')[0]
-            const seasonKey = `${season} ${year}`
-
-            if (!predictedSeasonalData[seasonKey]) {
-                predictedSeasonalData[seasonKey] = {
-                    predicted: 0,
-                    season: season,
-                }
-            }
-            predictedSeasonalData[seasonKey].predicted += pred.productionForecast || 0
+            predictedMonthlyData[pred.month] = pred.productionForecast || 0
         })
 
-        // Combine into chart data
-        const allSeasons = new Set([...Object.keys(seasonalData), ...Object.keys(predictedSeasonalData)])
+        // Get all unique months and sort them
+        const allMonths = new Set([...Object.keys(actualMonthlyData), ...Object.keys(predictedMonthlyData)])
+        const sortedMonths = Array.from(allMonths).sort()
 
-        allSeasons.forEach((seasonKey) => {
-            const actual = seasonalData[seasonKey]
-            const predicted = predictedSeasonalData[seasonKey]
+        // Format month for display (e.g., "Jan 2024")
+        const formatMonthLabel = (monthStr: string): string => {
+            const [year, month] = monthStr.split('-')
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            const monthIndex = parseInt(month) - 1
+            return `${monthNames[monthIndex]} ${year}`
+        }
 
-            combinedData.push({
-                season: seasonKey,
-                actual: actual ? Math.round(actual.actual) : null,
-                predicted: predicted ? Math.round(predicted.predicted) : null,
-                seasonType: actual?.season || predicted?.season || 'Maha',
-            })
-        })
+        // Combine into chart data (actual past + predicted future)
+        const combinedData = sortedMonths.map((month) => ({
+            month: formatMonthLabel(month),
+            actual: actualMonthlyData[month] ? Math.round(actualMonthlyData[month]) : undefined,
+            predicted: predictedMonthlyData[month] ? Math.round(predictedMonthlyData[month]) : undefined,
+        }))
 
-        // Sort by season chronologically
-        return combinedData.sort((a, b) => a.season.localeCompare(b.season)).slice(-6)
+        return combinedData
     }
 
     const chartData = prepareChartData()
@@ -331,20 +323,10 @@ export function SaltProductionRecording() {
                     </div>
                     <div className="h-56 sm:h-64 md:h-80">
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={chartData}>
-                                <defs>
-                                    <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="rgb(99 102 241)" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="rgb(99 102 241)" stopOpacity={0.1} />
-                                    </linearGradient>
-                                    <linearGradient id="colorPredicted" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="rgb(168 85 247)" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="rgb(168 85 247)" stopOpacity={0.1} />
-                                    </linearGradient>
-                                </defs>
+                            <BarChart data={chartData}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgb(229 229 229)" />
                                 <XAxis
-                                    dataKey="season"
+                                    dataKey="month"
                                     stroke="rgb(115 115 115)"
                                     tick={{ fontSize: 9 }}
                                     angle={-20}
@@ -354,7 +336,7 @@ export function SaltProductionRecording() {
                                 <YAxis
                                     stroke="rgb(115 115 115)"
                                     tick={{ fontSize: 9 }}
-                                    label={{ value: "Production (tons)", angle: -90, position: "insideLeft", style: { fontSize: 9 } }}
+                                    label={{ value: "Production (bags)", angle: -90, position: "insideLeft", style: { fontSize: 9 } }}
                                 />
                                 <Tooltip
                                     contentStyle={{
@@ -363,31 +345,25 @@ export function SaltProductionRecording() {
                                         borderRadius: "8px",
                                         fontSize: "11px"
                                     }}
-                                    formatter={(value: any) => [`${value?.toLocaleString()} tons`, ""]}
+                                    formatter={(value: any) => [`${value?.toLocaleString()} bags`, ""]}
                                 />
                                 <Legend
                                     wrapperStyle={{ fontSize: "10px", paddingTop: "8px" }}
-                                    formatter={(value) => value === "actual" ? "Actual (tons)" : "Predicted (tons)"}
+                                    formatter={(value) => value === "actual" ? "Actual (past 12 months)" : "Predicted (next 2 months)"}
                                 />
-                                <Area
-                                    type="monotone"
+                                <Bar
                                     dataKey="actual"
-                                    stroke="rgb(99 102 241)"
-                                    strokeWidth={2}
-                                    fillOpacity={1}
-                                    fill="url(#colorActual)"
+                                    fill="rgb(99 102 241)"
                                     name="actual"
+                                    radius={[4, 4, 0, 0]}
                                 />
-                                <Area
-                                    type="monotone"
+                                <Bar
                                     dataKey="predicted"
-                                    stroke="rgb(168 85 247)"
-                                    strokeWidth={2}
-                                    fillOpacity={1}
-                                    fill="url(#colorPredicted)"
+                                    fill="rgb(168 85 247)"
                                     name="predicted"
+                                    radius={[4, 4, 0, 0]}
                                 />
-                            </AreaChart>
+                            </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </Card>
@@ -424,7 +400,7 @@ export function SaltProductionRecording() {
                                 <tr className="border-b border-border">
                                     <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-foreground">Month</th>
                                     <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-foreground">Season</th>
-                                    <th className="text-right py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-foreground">Production (tons)</th>
+                                    <th className="text-right py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-foreground">Production (bags)</th>
                                     <th className="text-right py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-semibold text-foreground">Actions</th>
                                 </tr>
                             </thead>
@@ -517,7 +493,7 @@ export function SaltProductionRecording() {
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="create-volume">Production Volume (tons)</Label>
+                            <Label htmlFor="create-volume">Production Volume (bags)</Label>
                             <Input
                                 id="create-volume"
                                 type="number"

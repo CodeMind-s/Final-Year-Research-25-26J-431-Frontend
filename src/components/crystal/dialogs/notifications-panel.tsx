@@ -1,3 +1,13 @@
+/**
+ * Notifications Panel
+ * 
+ * Side panel component for displaying system notifications and alerts.
+ * Supports marking notifications as read/unread, dismissing notifications,
+ * and displaying different notification types (warning, info, success).
+ * 
+ * @module NotificationsPanel
+ */
+
 "use client"
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/crystal/ui/sheet"

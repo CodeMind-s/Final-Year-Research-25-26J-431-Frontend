@@ -31,6 +31,8 @@ class AuthController extends BaseController {
 
   /**
    * Send OTP for new user registration (includes role)
+   * @param request - Sign up request data with phone/email and role
+   * @returns Response with OTP sent confirmation
    */
   async signUp(request: SignUpRequest): Promise<SignInResponse> {
     return this.post<SignInResponse, SignUpRequest>(
@@ -41,6 +43,8 @@ class AuthController extends BaseController {
 
   /**
    * Send OTP to phone or email (existing user login)
+   * @param request - Sign in request data with phone or email
+   * @returns Response with OTP sent confirmation
    */
   async signIn(request: SignInRequest): Promise<SignInResponse> {
     return this.post<SignInResponse, SignInRequest>(
@@ -50,7 +54,9 @@ class AuthController extends BaseController {
   }
 
   /**
-   * Verify OTP and get tokens
+   * Verify OTP and get authentication tokens
+   * @param request - OTP verification request with code
+   * @returns Response with access token and user data
    */
   async verifyOtp(request: VerifyOtpRequest): Promise<VerifyOtpResponse> {
     const response = await this.post<VerifyOtpResponse, VerifyOtpRequest>(
@@ -66,17 +72,19 @@ class AuthController extends BaseController {
   }
 
   /**
-   * Get personal details of authenticated user (GET /auth/personal-details)
+   * Get personal details of authenticated user
+   * @returns Full personal details response with user and role-specific details
    */
-  async getPersonalDetails(): Promise<User> {
-    const response = await this.get<PersonalDetailsResponse>(
+  async getPersonalDetails(): Promise<PersonalDetailsResponse> {
+    return this.get<PersonalDetailsResponse>(
       API_CONFIG.ENDPOINTS.AUTH.PERSONAL_DETAILS
     );
-    return response.user;
   }
 
   /**
-   * Submit landowner onboarding
+   * Submit landowner onboarding details
+   * @param request - Landowner onboarding data
+   * @returns Updated user object
    */
   async onboardLandowner(request: LandOwnerOnboardingRequest): Promise<User> {
     return this.post<User, LandOwnerOnboardingRequest>(
@@ -86,7 +94,9 @@ class AuthController extends BaseController {
   }
 
   /**
-   * Submit laboratory onboarding
+   * Submit laboratory onboarding details
+   * @param request - Laboratory onboarding data
+   * @returns Updated user object
    */
   async onboardLaboratory(request: LaboratoryOnboardingRequest): Promise<User> {
     return this.post<User, LaboratoryOnboardingRequest>(
@@ -96,7 +106,9 @@ class AuthController extends BaseController {
   }
 
   /**
-   * Submit distributor onboarding
+   * Submit distributor onboarding details
+   * @param request - Distributor onboarding data
+   * @returns Updated user object
    */
   async onboardDistributor(request: DistributorOnboardingRequest): Promise<User> {
     return this.post<User, DistributorOnboardingRequest>(
@@ -106,7 +118,9 @@ class AuthController extends BaseController {
   }
 
   /**
-   * Admin login with email/password
+   * Admin login with email and password
+   * @param credentials - Login credentials (email and password)
+   * @returns Response with access token and user data
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await this.post<LoginResponse, LoginRequest>(
@@ -122,7 +136,7 @@ class AuthController extends BaseController {
   }
 
   /**
-   * Logout user (client-side only — no backend endpoint)
+   * Logout user and clear authentication data (client-side only)
    */
   logout(): void {
     tokenStorage.clearTokens();
@@ -131,20 +145,22 @@ class AuthController extends BaseController {
 
   /**
    * Check if user is authenticated
+   * @returns True if user has valid token, false otherwise
    */
   isAuthenticated(): boolean {
     return tokenStorage.hasToken();
   }
 
   /**
-   * Get stored token
+   * Get stored authentication token
+   * @returns Access token or null if not authenticated
    */
   getToken(): string | null {
     return tokenStorage.getToken();
   }
 
   /**
-   * Clear all authentication data
+   * Clear all authentication data from storage
    */
   clearAuth(): void {
     tokenStorage.clearTokens();

@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { harvestPlanController } from "@/services/plan.controller";
 import { crystallizationController } from "@/services/crystallization.controller";
+import { distributorOffersController } from "@/services/distributor-ffers.controller";
 import { WeatherForecastDay } from "@/types/crystallization.types";
 import { tokenStorage } from "@/lib/storage.utils";
 import { useToast } from "@/hooks/use-toast";
@@ -89,9 +90,13 @@ function computeProfit(
   bedCount: number,
   duration: number,
   workerCount: number,
+  productionPerBed?: number,
+  pricePerBag?: number,
 ) {
-  const productionPerBed = duration <= 30 ? 3 : 5;
-  const totalBags = bedCount * productionPerBed;
+  // Use dynamic productionPerBed if available, otherwise fallback to duration-based calculation
+  const effectiveProduction = productionPerBed ?? (duration <= 30 ? 3 : 5);
+  const totalBags = bedCount * effectiveProduction;
+  const effectivePrice = pricePerBag ?? PRICE_PER_BAG;
   const totalWages = totalBags * CARRYING_COST_PER_BAG;
   const workDays = Math.max(
     1,
@@ -99,7 +104,7 @@ function computeProfit(
   );
   const totalRefreshments = workerCount * REFRESHMENT_PER_DAY * workDays;
   const totalExpenses = totalWages + totalRefreshments;
-  const revenue = totalBags * PRICE_PER_BAG;
+  const revenue = totalBags * effectivePrice;
   return {
     profit: revenue - totalExpenses,
     revenue,
@@ -108,6 +113,8 @@ function computeProfit(
     workDays,
     totalWages,
     totalRefreshments,
+    productionPerBed: effectiveProduction,
+    pricePerBag: effectivePrice,
   };
 }
 
@@ -118,16 +125,39 @@ function suggestedWorkerCount(totalBags: number) {
 
 // ─── Profit Banner ────────────────────────────────────────────────
 const ProfitBanner: React.FC<{
-  bedCount: number;
+  bedCount: number | null;
   duration: number;
   workerCount: number;
+  productionPerBed?: number;
+  pricePerBag?: number;
   label?: string;
-}> = ({ bedCount, duration, workerCount, label }) => {
+}> = ({ bedCount, duration, workerCount, productionPerBed, pricePerBag, label }) => {
   const t = useTranslations("compass");
   const data = useMemo(
-    () => computeProfit(bedCount, duration, workerCount),
-    [bedCount, duration, workerCount],
+    () => {
+      if (!bedCount) return null;
+      return computeProfit(bedCount, duration, workerCount, productionPerBed, pricePerBag);
+    },
+    [bedCount, duration, workerCount, productionPerBed, pricePerBag],
   );
+  
+  if (!data) {
+    return (
+      <div className="rounded-2xl p-4 mb-4 shadow-lg bg-slate-400 shadow-slate-400/20">
+        <div className="flex items-center gap-2 mb-1">
+          <TrendingUp size={13} className="text-white/70" />
+          <p className="text-[11px] text-white/70 font-semibold uppercase tracking-wide">
+            {label ?? t("creation.predictedProfit")}
+          </p>
+        </div>
+        <p className="text-2xl font-extrabold text-white leading-tight">N/A</p>
+        <p className="text-[11px] text-white/60 mt-0.5">
+          {t("creation.selectBeds")}
+        </p>
+      </div>
+    );
+  }
+  
   const pos = data.profit >= 0;
   return (
     <div
@@ -144,7 +174,11 @@ const ProfitBanner: React.FC<{
         </p>
       </div>
       <p className="text-2xl font-extrabold text-white leading-tight">
-        Rs. {data.profit.toLocaleString()}
+        {productionPerBed && pricePerBag ? (
+          `Rs. ${data.profit.toLocaleString()}`
+        ) : (
+          <span className="text-white/80">Rs. {data.profit.toLocaleString()} <span className="text-xs">(estimated)</span></span>
+        )}
       </p>
       <p className="text-[11px] text-white/60 mt-0.5">
         {t("creation.bagsRevenueCosts", {
@@ -711,7 +745,8 @@ const StepBedCount: React.FC<{
   value: number;
   onChange: (v: number) => void;
   onNext: () => void;
-}> = ({ value, onChange, onNext }) => {
+  onFetchPredictions: (bedCount: number, startDate: string, duration: number) => Promise<boolean>;
+}> = ({ value, onChange, onNext, onFetchPredictions }) => {
   const t = useTranslations("compass");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -724,16 +759,13 @@ const StepBedCount: React.FC<{
     setError(null);
     
     try {
-      const data = {
-        start_date: new Date().toISOString().split("T")[0],
-        forecast_days: 60,
-        num_salt_beds: value,
-        latitude: 8.061542,
-        longitude: 79.814714,
-      };
-      
-      await crystallizationController.getCrystallizationPredictions(data);
-      onNext();
+      const startDate = new Date().toISOString().split("T")[0];
+      const success = await onFetchPredictions(value, startDate, 45);
+      if (success) {
+        onNext();
+      } else {
+        setError("Failed to fetch predictions");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch predictions");
       console.error("Error fetching predictions:", err);
@@ -815,6 +847,9 @@ const StepDurationCalendar: React.FC<{
   weatherData: Map<string, WeatherForecastDay>;
   planHint: PlanCreateHintResponse | null;
   hintLoading: boolean;
+  productionPerBed?: number;
+  pricePerBag?: number;
+  onFetchPredictions: (bedCount: number, startDate: string, duration: number) => Promise<boolean>;
 }> = ({
   bedCount,
   planType,
@@ -824,6 +859,9 @@ const StepDurationCalendar: React.FC<{
   weatherData,
   planHint,
   hintLoading,
+  productionPerBed,
+  pricePerBag,
+  onFetchPredictions,
 }) => {
   const t = useTranslations("compass");
   const locale = useLocale() as 'en' | 'si' | 'ta';
@@ -878,35 +916,33 @@ const StepDurationCalendar: React.FC<{
     console.log('  - isCustomised:', isCustomised);
   }, [activeStart, activeEnd, activeDuration, isCustomised]);
 
-  const handleDurationChange = (d: Duration) => {
+  const handleDurationChange = async (d: Duration) => {
     onDurationChange(d);
-    // Reset custom end when duration changes
-    setCustomEnd(null);
+    // Update end date based on new duration
+    const startDate = customStart ?? suggestedStart;
+    const newEndDate = new Date(startDate);
+    newEndDate.setDate(newEndDate.getDate() + d - 1);
+    setCustomEnd(newEndDate);
+    setCustomStart(startDate); // Ensure start is also marked as custom
+    // Fetch new predictions with updated duration
+    await onFetchPredictions(bedCount, startDate.toISOString().split("T")[0], d);
   };
 
   const handleSetStart = async () => {
     if (!selectedDate) return;
     const ns = new Date(selectedDate);
-    const ne = customEnd ?? suggestedEnd;
-    if (ne <= ns) {
-      const e = new Date(ns);
-      e.setDate(e.getDate() + duration - 1);
-      setCustomEnd(e);
-    } else {
-      setCustomEnd(ne);
-    }
+    // Always set end date based on duration from the selected start date
+    const ne = new Date(ns);
+    ne.setDate(ne.getDate() + duration - 1);
+    setCustomEnd(ne);
+    
     try {
       setIsLoading(true);
-      const data = {
-        start_date: ns.toISOString().split("T")[0],
-        forecast_days: 60,
-        num_salt_beds: bedCount,
-        latitude: 8.061542,
-        longitude: 79.814714,
-      };
-      await crystallizationController.getCrystallizationPredictions(data);
-      setCustomStart(ns);
-      setSelectedDate(null); // Close the sheet after success
+      const success = await onFetchPredictions(bedCount, ns.toISOString().split("T")[0], duration);
+      if (success) {
+        setCustomStart(ns);
+        setSelectedDate(null); // Close the sheet after success
+      }
     } catch (e) {
       console.error("Error fetching crystallization predictions:", e);
     } finally {
@@ -943,6 +979,8 @@ const StepDurationCalendar: React.FC<{
         bedCount={bedCount}
         duration={activeDuration}
         workerCount={3}
+        productionPerBed={productionPerBed}
+        pricePerBag={pricePerBag}
         label={t("creation.predictedProfitDays", { days: activeDuration })}
       />
 
@@ -1088,15 +1126,10 @@ const StepDurationCalendar: React.FC<{
         onClick={async () => {
           try {
             setIsLoading(true);
-            const data = {
-              start_date: activeStart.toISOString().split("T")[0],
-              forecast_days: 60,
-              num_salt_beds: bedCount,
-              latitude: 8.061542,
-              longitude: 79.814714,
-            };
-            await crystallizationController.getCrystallizationPredictions(data);
-            onNext(activeStart, activeEnd);
+            const success = await onFetchPredictions(bedCount, activeStart.toISOString().split("T")[0], duration);
+            if (success) {
+              onNext(activeStart, activeEnd);
+            }
           } catch (e) {
             console.error("Error fetching crystallization predictions:", e);
           } finally {
@@ -1142,10 +1175,12 @@ const StepWorkerCount: React.FC<{
   value: number;
   onChange: (v: number) => void;
   onNext: () => void;
-}> = ({ bedCount, duration, value, onChange, onNext }) => {
+  productionPerBed?: number;
+  pricePerBag?: number;
+}> = ({ bedCount, duration, value, onChange, onNext, productionPerBed, pricePerBag }) => {
   const t = useTranslations("compass");
-  const productionPerBed = duration <= 30 ? 3 : 5;
-  const totalBags = bedCount * productionPerBed;
+  const effectiveProduction = productionPerBed ?? (duration <= 30 ? 3 : 5);
+  const totalBags = bedCount * effectiveProduction;
   const pssRecommended = suggestedWorkerCount(totalBags);
   const presets = [2, 3, 4, 5, 6, 8];
   const isUsingPSS = value === pssRecommended;
@@ -1156,6 +1191,8 @@ const StepWorkerCount: React.FC<{
         bedCount={bedCount}
         duration={duration}
         workerCount={value || pssRecommended}
+        productionPerBed={productionPerBed}
+        pricePerBag={pricePerBag}
         label={t("creation.predictedProfitUpdates")}
       />
 
@@ -1263,14 +1300,79 @@ const StepPlanSummary: React.FC<{
   plan: PlanData;
   onConfirm: () => void;
   isCreating: boolean;
-}> = ({ plan, onConfirm, isCreating }) => {
+  productionPerBed?: number;
+  pricePerBag?: number;
+}> = ({ plan, onConfirm, isCreating, productionPerBed, pricePerBag }) => {
   const t = useTranslations("compass");
   const duration = plan.duration ?? 45;
   const workers = plan.workerCount || 3;
+  const [sellers, setSellers] = useState<any[]>([]);
+  const [loadingSellers, setLoadingSellers] = useState(true);
+  
+  // Debug: Track sellers state changes
+  useEffect(() => {
+    console.log('[StepPlanSummary] Sellers state changed:', sellers);
+  }, [sellers]);
+  
   const computed = useMemo(
-    () => computeProfit(plan.bedCount, duration, workers),
-    [plan.bedCount, duration, workers],
+    () => computeProfit(plan.bedCount, duration, workers, productionPerBed, pricePerBag),
+    [plan.bedCount, duration, workers, productionPerBed, pricePerBag],
   );
+
+  // Fetch distributor offers
+  useEffect(() => {
+    const fetchSellers = async () => {
+      try {
+        setLoadingSellers(true);
+        
+        // Check if user is authenticated
+        const token = tokenStorage.getToken();
+        if (!token) {
+          console.log('[StepPlanSummary] No authentication token found. Using fallback sellers.');
+          setSellers([]);
+          setLoadingSellers(false);
+          return;
+        }
+        
+        const response = await distributorOffersController.getDistributorOffers({
+          page: 1,
+          limit: 10,
+        });
+        
+        console.log('[StepPlanSummary] Distributor offers response:', response);
+        console.log('[StepPlanSummary] Response data:', response?.data);
+        
+        // Response structure: The response IS the array directly (not wrapped in data property)
+        const offersList = Array.isArray(response) ? response : (response?.data || []);
+        
+        console.log('[StepPlanSummary] Offers list:', offersList);
+        console.log('[StepPlanSummary] Offers list length:', offersList.length);
+        
+        if (offersList.length === 0) {
+          console.log('[StepPlanSummary] No offers found, using fallback');
+          setSellers([]);
+          setLoadingSellers(false);
+          return;
+        }
+        
+        // Sort by price (highest first) and take top 3
+        const sortedSellers = offersList
+          .sort((a: any, b: any) => (b.pricePerKilo || 0) - (a.pricePerKilo || 0))
+          .slice(0, 3);
+        
+        console.log('[StepPlanSummary] About to set sellers:', sortedSellers);
+        setSellers(sortedSellers);
+        console.log('[StepPlanSummary] setSellers called successfully');
+      } catch (error) {
+        console.error('[StepPlanSummary] Failed to fetch sellers:', error);
+        setSellers([]);
+      } finally {
+        setLoadingSellers(false);
+      }
+    };
+    
+    fetchSellers();
+  }, []);
 
   const demandKey =
     computed.totalBags <= 20
@@ -1297,7 +1399,8 @@ const StepPlanSummary: React.FC<{
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + duration - 1);
 
-  const SELLERS_LOCAL = [
+  // Fallback sellers if API fails or returns empty
+  const SELLERS_FALLBACK = [
     {
       name: "Colombo Salt Co.",
       pricePerBag: 2100,
@@ -1320,6 +1423,22 @@ const StepPlanSummary: React.FC<{
       highlight: false,
     },
   ];
+  
+  // Map API sellers to display format
+  const displaySellers = sellers.length > 0 ? sellers.map((seller: any, index: number) => ({
+    name: seller.distributor?.distributorDetails?.companyName || 'Unknown Seller',
+    pricePerBag: Math.round(seller.pricePerKilo || 0),
+    rating: 4.5, // Default rating since API doesn't provide it
+    badge: index === 0 ? t("creation.bestPrice") : (
+      seller.requirement === 'HIGH' ? t("creation.bulkBuyer") : t("creation.quickPayment")
+    ),
+    highlight: index === 0,
+  })) : SELLERS_FALLBACK;
+  
+  // Debug log
+  console.log('[StepPlanSummary] sellers.length:', sellers.length);
+  console.log('[StepPlanSummary] displaySellers:', displaySellers);
+  console.log('[StepPlanSummary] loadingSellers:', loadingSellers);
 
   return (
     <div className="flex flex-col">
@@ -1380,8 +1499,13 @@ const StepPlanSummary: React.FC<{
       <p className="text-xs font-bold text-slate-700 mb-2">
         {t("creation.recommendedSellers")}
       </p>
-      <div className="space-y-2 mb-4">
-        {SELLERS_LOCAL.map((seller) => {
+      {loadingSellers ? (
+        <div className="flex items-center justify-center py-8 mb-4">
+          <Loader2 size={24} className="animate-spin text-compass-600" />
+        </div>
+      ) : (
+        <div className="space-y-2 mb-4">
+          {displaySellers.map((seller) => {
           const sellerProfit =
             computed.totalBags * seller.pricePerBag - computed.totalExpenses;
           return (
@@ -1429,7 +1553,8 @@ const StepPlanSummary: React.FC<{
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
 
       {/* Expenses */}
       <p className="text-xs font-bold text-slate-700 mb-2">
@@ -1602,6 +1727,60 @@ export const PlanCreationFlow: React.FC<PlanCreationFlowProps> = ({
     duration: 45,
     workerCount: 0,
   });
+  
+  // Dynamic production and price state
+  const [productionPerBed, setProductionPerBed] = useState<number | undefined>(undefined);
+  const [pricePerBag, setPricePerBag] = useState<number | undefined>(undefined);
+
+  // Helper function to fetch predictions and update state
+  const fetchPredictionsAndPrice = async (bedCount: number, startDate: string, duration: number) => {
+    try {
+      console.log('[PlanCreation] Fetching predictions for:', { bedCount, startDate, duration });
+      
+      // Call crystallization predictions
+      const crystallizationData = {
+        start_date: startDate,
+        forecast_days: duration,
+        num_salt_beds: bedCount,
+        latitude: 8.061542,
+        longitude: 79.814714,
+      };
+      
+      const crystallizationResponse = await crystallizationController.getCrystallizationPredictions(crystallizationData);
+      console.log('[PlanCreation] Crystallization response:', crystallizationResponse);
+      
+      // Extract productionPerBed from response (divide total by bedCount, round to 2 decimals)
+      if (crystallizationResponse?.monthly_production_12months?.forecasts?.[0]?.production_forecast) {
+        const totalProduction = crystallizationResponse.monthly_production_12months.forecasts[0].production_forecast;
+        const perBedProduction = parseFloat((totalProduction / bedCount).toFixed(2));
+        setProductionPerBed(perBedProduction);
+        console.log('[PlanCreation] Total production:', totalProduction, 'Per bed (rounded to 2 decimals):', perBedProduction);
+      }
+      
+      // Call demand price forecast
+      const priceResponse = await harvestPlanController.getDemandPriceForecast({
+        forecast_date: startDate,
+      });
+      console.log('[PlanCreation] Price forecast response:', priceResponse);
+      
+      // Extract price from 2nd month forecast (index 1)
+      if (priceResponse?.forecasts?.[1]?.price?.predicted_lkr_per_bag) {
+        const price = priceResponse.forecasts[1].price.predicted_lkr_per_bag;
+        setPricePerBag(Math.round(price));
+        console.log('[PlanCreation] Set pricePerBag from 2nd month:', price);
+      } else if (priceResponse?.forecasts?.[0]?.price?.predicted_lkr_per_bag) {
+        // Fallback to first month if second month not available
+        const price = priceResponse.forecasts[0].price.predicted_lkr_per_bag;
+        setPricePerBag(Math.round(price));
+        console.log('[PlanCreation] Set pricePerBag from 1st month (fallback):', price);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('[PlanCreation] Error fetching predictions:', error);
+      return false;
+    }
+  };
 
   // Fetch weather data on mount
   useEffect(() => {
@@ -1630,19 +1809,20 @@ export const PlanCreationFlow: React.FC<PlanCreationFlowProps> = ({
 
         // Check different possible response structures
         let weatherList = null;
-        if (response?.data?.data?.list) {
-          weatherList = response.data.data.list;
+        // Check if list is directly on response (according to type definition)
+        if ((response as any)?.list) {
+          weatherList = (response as any).list;
+          console.log("[PlanCreation] Found weather data at response.list");
+        } else if ((response as any)?.data?.data?.list) {
+          weatherList = (response as any).data.data.list;
           console.log(
             "[PlanCreation] Found weather data at response.data.data.list",
           );
-        } else if (response?.data?.list) {
-          weatherList = response.data.list;
+        } else if ((response as any)?.data?.list) {
+          weatherList = (response as any).data.list;
           console.log(
             "[PlanCreation] Found weather data at response.data.list",
           );
-        } else if ((response as any)?.list) {
-          weatherList = (response as any).list;
-          console.log("[PlanCreation] Found weather data at response.list");
         }
 
         if (weatherList && Array.isArray(weatherList)) {
@@ -1739,7 +1919,7 @@ export const PlanCreationFlow: React.FC<PlanCreationFlowProps> = ({
     try {
       const duration = plan.duration;
       const workers = plan.workerCount;
-      const computed = computeProfit(plan.bedCount, duration, workers);
+      const computed = computeProfit(plan.bedCount, duration, workers, productionPerBed, pricePerBag);
 
       const startDate = new Date(plan.date + "T00:00:00");
       const endDate = new Date(startDate);
@@ -1760,7 +1940,7 @@ export const PlanCreationFlow: React.FC<PlanCreationFlowProps> = ({
         actualProfit: 0,
         expenses: computed.totalExpenses,
         earnings: 0,
-        avgSellingPrice: PRICE_PER_BAG,
+        avgSellingPrice: pricePerBag ?? PRICE_PER_BAG,
       };
 
       const response =
@@ -1827,6 +2007,7 @@ export const PlanCreationFlow: React.FC<PlanCreationFlowProps> = ({
             value={plan.bedCount}
             onChange={(v) => setPlan((p) => ({ ...p, bedCount: v }))}
             onNext={() => setStep(2)}
+            onFetchPredictions={fetchPredictionsAndPrice}
           />
         )}
         {step === 2 && plan.planType !== null && (
@@ -1838,6 +2019,9 @@ export const PlanCreationFlow: React.FC<PlanCreationFlowProps> = ({
             weatherData={weatherData}
             planHint={planHint}
             hintLoading={hintLoading}
+            productionPerBed={productionPerBed}
+            pricePerBag={pricePerBag}
+            onFetchPredictions={fetchPredictionsAndPrice}
             onNext={(startDate, endDate) => {
               const finalDuration = dayDiff(startDate, endDate) + 1;
               setPlan((p) => ({
@@ -1855,6 +2039,8 @@ export const PlanCreationFlow: React.FC<PlanCreationFlowProps> = ({
             duration={plan.duration ?? 45}
             value={plan.workerCount}
             onChange={(v) => setPlan((p) => ({ ...p, workerCount: v }))}
+            productionPerBed={productionPerBed}
+            pricePerBag={pricePerBag}
             onNext={() => setStep(4)}
           />
         )}
@@ -1863,6 +2049,8 @@ export const PlanCreationFlow: React.FC<PlanCreationFlowProps> = ({
             plan={plan}
             onConfirm={handleCreatePlan}
             isCreating={isCreating}
+            productionPerBed={productionPerBed}
+            pricePerBag={pricePerBag}
           />
         )}
       </div>

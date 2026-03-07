@@ -1,8 +1,8 @@
 /**
- * Plan controller for handling harvest plan related API requests
- * This controller provides methods to create new harvest plans and retrieve existing plans for the authenticated user.
- * It interacts with the backend API endpoints related to harvest planning and abstracts away the API call details from the frontend components.
- * Handles all harvest plan-related API requests
+ * Deal API Controller
+ * Handles all deal-related API requests between landowners and distributors.
+ * This controller provides methods to create, retrieve, update, and delete deals,
+ * as well as fetch deals specific to landowners or distributors.
  */
 
 import { BaseController } from "./base-controller";
@@ -19,7 +19,7 @@ import {
 } from "@/types/deals.types";
 
 /**
- * Harvest Plan controller class
+ * Deal controller class
  */
 class DealController extends BaseController {
   constructor() {
@@ -27,9 +27,10 @@ class DealController extends BaseController {
   }
 
   /**
-   * Create harvest plan
-   * @param request - Harvest plan data
-   * @returns Response with success status and created distributor offer data
+   * Create a new deal for a specific distributor offer
+   * @param request - Deal creation data
+   * @param offerId - ID of the distributor offer to create a deal for
+   * @returns Response with success status and created deal data
    */
   async createDeal(
     request: CreateDealRequest,
@@ -41,6 +42,11 @@ class DealController extends BaseController {
     );
   }
 
+  /**
+   * Get deals for the authenticated landowner with optional filters
+   * @param request - Filters for retrieving deals (status, pagination)
+   * @returns Response with success status and list of landowner's deals
+   */
   async getLandownerDeals(
     request: GetLandownerDealsRequest,
   ): Promise<GetLandownerDealsResponse> {
@@ -55,6 +61,11 @@ class DealController extends BaseController {
     return this.get<GetLandownerDealsResponse>(endpoint);
   }
 
+  /**
+   * Get deals for the authenticated distributor with optional filters
+   * @param request - Filters for retrieving deals (status, pagination)
+   * @returns Response with success status and list of distributor's deals
+   */
   async getDistributorDeals(
     request: GetDistributorDealsRequest,
   ): Promise<GetDistributorDealsResponse> {
@@ -69,12 +80,23 @@ class DealController extends BaseController {
     return this.get<GetDistributorDealsResponse>(endpoint);
   }
 
+  /**
+   * Update an existing deal
+   * @param request - Updated deal data
+   * @param dealId - ID of the deal to update
+   * @returns Response with success status and updated deal data
+   */
   async updateDeals(
     request: UpdateDealsRequest, dealId: string
   ): Promise<UpdateDealsResponse> {
     return this.patch<UpdateDealsResponse>(`/${dealId}`, request);
   }
 
+  /**
+   * Delete a deal by ID
+   * @param dealId - ID of the deal to delete
+   * @returns Response with success status and deletion confirmation
+   */
   async deleteDeal(dealId: string): Promise<DeleteDealResponse> {
     return this.delete<DeleteDealResponse>(`/${dealId}`);
   }

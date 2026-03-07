@@ -1,9 +1,19 @@
+/**
+ * Forecast Report Dialog
+ * 
+ * Dialog component displaying detailed 7-day production forecast with
+ * confidence intervals, environmental factors, and downloadable PDF reports.
+ * Shows production trends and weather conditions affecting crystallization.
+ * 
+ * @module ForecastReportDialog
+ */
+
 "use client"
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/crystal/ui/dialog"
 import { Card } from "@/components/crystal/ui/card"
 import { Button } from "@/components/crystal/ui/button"
-import { Download, TrendingUp, Calendar, FileText } from "lucide-react"
+import { Download, FileText } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
 interface ForecastReportDialogProps {

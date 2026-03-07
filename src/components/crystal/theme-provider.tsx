@@ -1,3 +1,10 @@
+/**
+ * @module ThemeProvider
+ * 
+ * Wrapper component for next-themes provider.
+ * Enables theme switching functionality across the application.
+ */
+
 'use client'
 
 import * as React from 'react'

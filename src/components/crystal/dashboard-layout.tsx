@@ -1,3 +1,11 @@
+/**
+ * @module DashboardLayout
+ * 
+ * Main layout component for the Crystal module dashboard.
+ * Provides sidebar navigation, header with sync/notifications,
+ * and responsive mobile menu functionality.
+ */
+
 "use client"
 
 import { type ReactNode, useState } from "react"
