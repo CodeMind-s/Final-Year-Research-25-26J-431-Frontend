@@ -107,7 +107,7 @@ export const pricingPlans = [
   },
   {
     name: "Pro",
-    price: "Rs 1500",
+    price: "Rs 2999",
     period: "per month",
     description:
       "Full Crystal + Compass access for commercial salt producers scaling operations.",
@@ -126,7 +126,7 @@ export const pricingPlans = [
   },
   {
     name: "Lab",
-    price: "Rs 2500",
+    price: "Rs 4999",
     period: "per month",
     description:
       "Everything in Pro plus Vision AI for laboratories and quality-focused operations.",
@@ -138,7 +138,7 @@ export const pricingPlans = [
       "Dedicated support",
       "API access",
     ],
-    cta: "Start Lab Trial",
+    cta: "Start Lab Plan",
     highlighted: false,
     targetRoles: ["Laboratory"],
   },
