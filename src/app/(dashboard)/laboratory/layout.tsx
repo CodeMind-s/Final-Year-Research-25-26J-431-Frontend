@@ -7,6 +7,7 @@ export default function LaboratoryLayout({ children }: { children: React.ReactNo
     return (
         <ProtectedRoute
             requiredRole={[UserRole.LABORATORY]}
+            requireVerified
             redirectTo="/unauthorized"
         >
             {children}
