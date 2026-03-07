@@ -118,8 +118,6 @@ class WasteManagementController extends BaseController {
    * @private
    */
   private transformJobResponse(job: RawJobResponse): RecentPrediction {
-    console.log('Transforming job:', job);
-    
     // Parse request data
     const requestData = JSON.parse(job.requestData);
     

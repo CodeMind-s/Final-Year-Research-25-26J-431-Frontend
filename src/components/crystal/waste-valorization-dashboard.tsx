@@ -81,8 +81,6 @@ export function WasteValorizationDashboard() {
         includeAverages: true
       })
       
-      console.log("API Response:", response)
-      
       // httpClient.extractData already unwraps the response, so predictions is at the top level
       if (!response?.predictions) {
         console.error("Invalid response structure:", response)
@@ -127,7 +125,6 @@ export function WasteValorizationDashboard() {
     try {
       setIsLoadingRecent(true)
       const response = await wasteManagementController.getRecentPredictions()
-      console.log("Recent Predictions:", response)
       setRecentPredictions(response.predictions || [])
     } catch (error) {
       console.error("Error fetching recent predictions:", error)
