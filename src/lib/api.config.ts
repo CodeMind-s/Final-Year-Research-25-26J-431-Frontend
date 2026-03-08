@@ -5,78 +5,80 @@
 
 export const API_CONFIG = {
   // Base URL for API requests
-  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3400/api/v1',
-  
+  BASE_URL:
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    "https://xwh9wjd2-3400.asse.devtunnels.ms/api/v1",
+
   // Request timeout in milliseconds
   TIMEOUT: 30000,
-  
+
   // Retry configuration
   RETRY: {
     MAX_RETRIES: 3,
     RETRY_DELAY: 1000, // milliseconds
     RETRY_STATUS_CODES: [408, 429, 500, 502, 503, 504],
   },
-  
+
   // Token configuration
   TOKEN: {
-    STORAGE_KEY: 'auth_token',
-    REFRESH_TOKEN_KEY: 'refresh_token',
-    TOKEN_PREFIX: 'Bearer',
+    STORAGE_KEY: "auth_token",
+    REFRESH_TOKEN_KEY: "refresh_token",
+    TOKEN_PREFIX: "Bearer",
   },
-  
+
   // API Endpoints
   ENDPOINTS: {
     AUTH: {
-      LOGIN: '/auth/login',
-      SIGN_UP: '/auth/sign-up',
-      SIGN_IN: '/auth/sign-in',
-      VERIFY_OTP: '/auth/verify-otp',
-      PERSONAL_DETAILS: '/auth/personal-details',
-      ONBOARDING_LANDOWNER: '/auth/onboarding/landowner',
-      ONBOARDING_LABORATORY: '/auth/onboarding/laboratory',
-      ONBOARDING_DISTRIBUTOR: '/auth/onboarding/distributor',
+      LOGIN: "/auth/login",
+      SIGN_UP: "/auth/sign-up",
+      SIGN_IN: "/auth/sign-in",
+      VERIFY_OTP: "/auth/verify-otp",
+      PERSONAL_DETAILS: "/auth/personal-details",
+      ONBOARDING_LANDOWNER: "/auth/onboarding/landowner",
+      ONBOARDING_LABORATORY: "/auth/onboarding/laboratory",
+      ONBOARDING_DISTRIBUTOR: "/auth/onboarding/distributor",
     },
     USER: {
-      CREATE: '/user/create',
-      UPDATE: '/user/update',
-      DELETE: '/user/delete',
-      GET: '/user',
+      CREATE: "/user/create",
+      UPDATE: "/user/update",
+      DELETE: "/user/delete",
+      GET: "/user",
     },
     PAYMENTS: {
-      CHECKOUT: '/payments/checkout',
-      HISTORY: '/payments',
-      ALL: '/payments/all',
+      CHECKOUT: "/payments/checkout",
+      HISTORY: "/payments",
+      ALL: "/payments/all",
     },
     SUBSCRIPTIONS: {
-      ALL: '/auth/subscriptions',
+      ALL: "/auth/subscriptions",
     },
     ADMIN: {
-      USERS_LIST: '/user/all/users',
-      USER_BY_ID: '/user',
-      USER_CREATE: '/user/create',
-      USER_DELETE: '/user',
-      USER_VERIFY: '/user',
-      USER_PROFILE: '/user',
+      USERS_LIST: "/user/all/users",
+      USER_BY_ID: "/user",
+      USER_CREATE: "/user/create",
+      USER_DELETE: "/user",
+      USER_VERIFY: "/user",
+      USER_PROFILE: "/user",
     },
     PLANS: {
-      LIST: '/auth/plans',
-      BY_KEY: '/auth/plans',
-      CREATE: '/auth/plans',
-      UPDATE: '/auth/plans',
-      DELETE: '/auth/plans',
+      LIST: "/auth/plans",
+      BY_KEY: "/auth/plans",
+      CREATE: "/auth/plans",
+      UPDATE: "/auth/plans",
+      DELETE: "/auth/plans",
     },
     AUDIT_LOGS: {
-      LIST: '/audit-logs',
-      BY_USER: '/audit-logs/user',
-      BY_SERVICE: '/audit-logs/service',
-      BY_ID: '/audit-logs',
+      LIST: "/audit-logs",
+      BY_USER: "/audit-logs/user",
+      BY_SERVICE: "/audit-logs/service",
+      BY_ID: "/audit-logs",
     },
   },
-  
+
   // Headers
   HEADERS: {
-    CONTENT_TYPE: 'application/json',
-    ACCEPT: 'application/json',
+    CONTENT_TYPE: "application/json",
+    ACCEPT: "application/json",
   },
 } as const;
 
@@ -84,9 +86,9 @@ export const API_CONFIG = {
  * Environment-specific settings
  */
 export const ENV = {
-  isDevelopment: process.env.NODE_ENV === 'development',
-  isProduction: process.env.NODE_ENV === 'production',
-  isTest: process.env.NODE_ENV === 'test',
+  isDevelopment: process.env.NODE_ENV === "development",
+  isProduction: process.env.NODE_ENV === "production",
+  isTest: process.env.NODE_ENV === "test",
 } as const;
 
 /**
