@@ -46,7 +46,7 @@ export default function PaymentSuccessPage() {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl text-center">
+    <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl text-center max-w-md mx-auto">
       <div className="flex justify-center mb-4">
         <div className="h-16 w-16 rounded-full bg-emerald-100 flex items-center justify-center">
           <CheckCircle className="h-8 w-8 text-emerald-600" />

@@ -40,6 +40,7 @@ export default async function RootLayout({
     <html lang={locale}>
       <body
         className={`${inter.variable} ${notoSinhala.variable} ${notoTamil.variable} antialiased`}
+        suppressHydrationWarning
       >
         <NextIntlClientProvider messages={messages}>
           <AuthProvider>
