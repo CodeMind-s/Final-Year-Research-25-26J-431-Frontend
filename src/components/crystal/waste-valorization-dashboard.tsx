@@ -666,10 +666,52 @@ export function WasteValorizationDashboard() {
                                 <p className="font-bold text-purple-600 text-base">{prediction.prediction.total_solid_waste.toLocaleString()} kg</p>
                               </div>
                             )}
+                            {prediction.prediction.solid_waste_gypsum && (
+                              <div className="bg-purple-100 p-2 rounded">
+                                <p className="text-muted-foreground">Gypsum</p>
+                                <p className="font-bold text-purple-700 text-base">{prediction.prediction.solid_waste_gypsum.toLocaleString()} kg</p>
+                              </div>
+                            )}
+                            {prediction.prediction.solid_waste_limestone && (
+                              <div className="bg-orange-100 p-2 rounded">
+                                <p className="text-muted-foreground">Limestone</p>
+                                <p className="font-bold text-orange-700 text-base">{prediction.prediction.solid_waste_limestone.toLocaleString()} kg</p>
+                              </div>
+                            )}
+                            {prediction.prediction.solid_waste_industrial_salt && (
+                              <div className="bg-blue-100 p-2 rounded">
+                                <p className="text-muted-foreground">Industrial Salt</p>
+                                <p className="font-bold text-blue-700 text-base">{prediction.prediction.solid_waste_industrial_salt.toLocaleString()} kg</p>
+                              </div>
+                            )}
                             {prediction.prediction.total_liquid_waste && (
                               <div className="bg-amber-50 p-2 rounded">
                                 <p className="text-muted-foreground">Liquid Waste</p>
                                 <p className="font-bold text-amber-600 text-base">{prediction.prediction.total_liquid_waste.toLocaleString()} L</p>
+                              </div>
+                            )}
+                            {prediction.prediction.liquid_waste_bittern && (
+                              <div className="bg-amber-100 p-2 rounded">
+                                <p className="text-muted-foreground">Bittern</p>
+                                <p className="font-bold text-amber-700 text-base">{prediction.prediction.liquid_waste_bittern.toLocaleString()} L</p>
+                              </div>
+                            )}
+                            {prediction.prediction.potential_epsom_salt && (
+                              <div className="bg-green-100 p-2 rounded">
+                                <p className="text-muted-foreground">Epsom Salt</p>
+                                <p className="font-bold text-green-700 text-base">{prediction.prediction.potential_epsom_salt.toLocaleString()} kg</p>
+                              </div>
+                            )}
+                            {prediction.prediction.potential_potash && (
+                              <div className="bg-pink-100 p-2 rounded">
+                                <p className="text-muted-foreground">Potash</p>
+                                <p className="font-bold text-pink-700 text-base">{prediction.prediction.potential_potash.toLocaleString()} kg</p>
+                              </div>
+                            )}
+                            {prediction.prediction.potential_magnesium_oil && (
+                              <div className="bg-cyan-100 p-2 rounded">
+                                <p className="text-muted-foreground">Magnesium Oil</p>
+                                <p className="font-bold text-cyan-700 text-base">{prediction.prediction.potential_magnesium_oil.toLocaleString()} L</p>
                               </div>
                             )}
                             {prediction.prediction.total_solid_waste && prediction.prediction.total_liquid_waste && (

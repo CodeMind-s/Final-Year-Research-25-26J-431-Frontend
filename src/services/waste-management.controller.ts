@@ -102,7 +102,7 @@ class WasteManagementController extends BaseController {
    */
   async getRecentPredictions(): Promise<RecentPredictionsResponse> {
     // httpClient extracts response.data.data and returns just the array
-    const jobsArray = await httpClient.get<RawJobResponse[]>('/waste-valorization-jobs?jobType=WASTE_PREDICTION&page=1&limit=10');
+    const jobsArray = await httpClient.get<RawJobResponse[]>('/waste-valorization-jobs?jobType=WASTE_PREDICTION&page=1&limit=5');
     
     // Transform the array of jobs
     const predictions: RecentPrediction[] = (Array.isArray(jobsArray) ? jobsArray : []).map(job => this.transformJobResponse(job));
