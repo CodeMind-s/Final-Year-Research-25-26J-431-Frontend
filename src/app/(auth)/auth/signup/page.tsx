@@ -99,7 +99,7 @@ export default function CommonSignUpPage() {
   const otpTarget = isEmailRole ? email : fullPhone;
 
   return (
-    <div className="rounded-2xl max-w-xl mx-auto w-full border border-slate-200 bg-white p-8 shadow-xl">
+    <div className="rounded-2xl max-w-xl mx-auto w-full border border-slate-200 bg-white p-8 shadow-none md:shadow-xl">
       <div className="mb-6">
         <Image
           src="/assets/images/logo.svg"
@@ -129,37 +129,34 @@ export default function CommonSignUpPage() {
             <Label className="text-sm font-medium text-slate-700">
               {t('signup.iAmA')}
             </Label>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() => setRole(UserRole.LANDOWNER)}
-                className={`flex-1 rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${
-                  role === UserRole.LANDOWNER
-                    ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
-                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                }`}
+                className={`flex-1 rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${role === UserRole.LANDOWNER
+                  ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                  }`}
               >
                 {t('signup.landowner')}
               </button>
               <button
                 type="button"
                 onClick={() => setRole(UserRole.DISTRIBUTOR)}
-                className={`flex-1 rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${
-                  role === UserRole.DISTRIBUTOR
-                    ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
-                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                }`}
+                className={`flex-1 rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${role === UserRole.DISTRIBUTOR
+                  ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                  }`}
               >
                 {t('signup.distributor')}
               </button>
               <button
                 type="button"
                 onClick={() => setRole(UserRole.LABORATORY)}
-                className={`flex-1 rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${
-                  role === UserRole.LABORATORY
-                    ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
-                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                }`}
+                className={`flex-1 rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${role === UserRole.LABORATORY
+                  ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                  }`}
               >
                 {t('signup.laboratory')}
               </button>

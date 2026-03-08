@@ -35,7 +35,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
+    <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl max-w-md mx-auto">
       <div className="mb-6">
         <Image
           src="/assets/images/logo.svg"
@@ -99,6 +99,7 @@ function LandownerForm({ onSuccess, t }: { onSuccess: () => Promise<void>; t: Re
         <Label htmlFor="nic">{t('onboarding.nicNumber')}</Label>
         <Input
           id="nic"
+          type='number'
           value={nic}
           onChange={(e) => setNic(e.target.value)}
           placeholder={t('onboarding.nicPlaceholder')}
@@ -110,6 +111,7 @@ function LandownerForm({ onSuccess, t }: { onSuccess: () => Promise<void>; t: Re
         <Label htmlFor="address">{t('onboarding.address')}</Label>
         <Input
           id="address"
+          type='text'
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           placeholder={t('onboarding.addressPlaceholder')}
@@ -128,6 +130,7 @@ function LandownerForm({ onSuccess, t }: { onSuccess: () => Promise<void>; t: Re
           placeholder={t('onboarding.bedPlaceholder')}
           required
           disabled={loading}
+          max={100}
         />
       </div>
       <Button
