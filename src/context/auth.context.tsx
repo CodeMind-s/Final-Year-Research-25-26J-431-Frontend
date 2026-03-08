@@ -176,7 +176,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
             const response = await authController.verifyOtp(request);
 
             // Token is stored by controller, now fetch user details
-            const user = await authController.getPersonalDetails();
+            const personalDetails = await authController.getPersonalDetails();
+            const user = personalDetails.user;
 
             setState({
                 user,
@@ -189,29 +190,39 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
             // Post-OTP routing logic
             if (!response.isOnboarded) {
-                router.push('/auth/onboarding');
+                setTimeout(() => {
+                    router.push('/auth/onboarding');
+                }, 0);
                 return;
             }
 
             // Roles that require admin verification before proceeding
             const rolesNeedingVerification = [UserRole.LANDOWNER, UserRole.DISTRIBUTOR, UserRole.LABORATORY];
             if (rolesNeedingVerification.includes(user.role) && !user.isVerified) {
-                router.push('/auth/pending-verification');
+                setTimeout(() => {
+                    router.push('/auth/pending-verification');
+                }, 0);
                 return;
             }
 
             if (user.role === UserRole.LABORATORY && !user.isSubscribed) {
-                router.push('/auth/plans');
+                setTimeout(() => {
+                    router.push('/auth/plans');
+                }, 0);
                 return;
             }
 
             if (user.isTrialActive || user.isSubscribed) {
-                router.push(getDashboardPath(user.role));
+                setTimeout(() => {
+                    router.push(getDashboardPath(user.role));
+                }, 0);
                 return;
             }
 
             // Trial expired, not subscribed
-            router.push('/auth/plans');
+            setTimeout(() => {
+                router.push('/auth/plans');
+            }, 0);
         } catch (err) {
             const errorMessage = err instanceof ApiError
                 ? err.message
@@ -238,7 +249,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
             const response = await authController.login(credentials);
 
             // Token stored by controller, fetch full user details
-            const user = await authController.getPersonalDetails();
+            const personalDetails = await authController.getPersonalDetails();
+            const user = personalDetails.user;
 
             setState({
                 user,
@@ -249,7 +261,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
             storage.set('auth_user', user);
 
-            router.push(getDashboardPath(user.role));
+            // Use setTimeout to ensure state has propagated before navigation
+            setTimeout(() => {
+                router.push(getDashboardPath(user.role));
+            }, 0);
         } catch (err) {
             const errorMessage = err instanceof ApiError
                 ? err.message
@@ -285,7 +300,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
      */
     const refreshUser = useCallback(async () => {
         try {
-            const user = await authController.getPersonalDetails();
+            const personalDetails = await authController.getPersonalDetails();
+            const user = personalDetails.user;
             setState((prev) => ({ ...prev, user }));
             storage.set('auth_user', user);
         } catch (err) {
