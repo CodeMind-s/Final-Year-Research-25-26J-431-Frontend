@@ -18,7 +18,7 @@ export function getVisionSocket(): Socket {
   if (!socket) {
     currentToken = token;
     socket = io(`${WS_URL}/vision`, {
-      transports: ["websocket", "polling"],
+      transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
