@@ -9,7 +9,7 @@ interface UseVisionCameraOptions {
 }
 
 export function useVisionCamera(options: UseVisionCameraOptions = {}) {
-  const { width = 640, height = 480, facingMode = "environment" } = options;
+  const { width = 320, height = 320, facingMode = "environment" } = options;
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -83,7 +83,7 @@ export function useVisionCamera(options: UseVisionCameraOptions = {}) {
     setIsReady(false);
   }, []);
 
-  const captureFrame = useCallback((): string | null => {
+  const captureFrame = useCallback(async (): Promise<ArrayBuffer | null> => {
     if (!videoRef.current || !canvasRef.current || !isReadyRef.current) {
       return null;
     }
@@ -99,8 +99,19 @@ export function useVisionCamera(options: UseVisionCameraOptions = {}) {
       canvasRef.current.height
     );
 
-    const dataUrl = canvasRef.current.toDataURL("image/jpeg", 0.8);
-    return dataUrl.split(",")[1];
+    return new Promise<ArrayBuffer | null>((resolve) => {
+      canvasRef.current!.toBlob(
+        (blob) => {
+          if (!blob) {
+            resolve(null);
+            return;
+          }
+          blob.arrayBuffer().then(resolve).catch(() => resolve(null));
+        },
+        "image/jpeg",
+        0.6,
+      );
+    });
   }, []);
 
   useEffect(() => {

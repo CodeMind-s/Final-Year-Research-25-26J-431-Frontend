@@ -225,10 +225,10 @@ export function downloadQualityReportPdf(
   doc.setFontSize(10);
   doc.setTextColor(60);
   const summaryLines = [
-    `Total Detections: ${summary.totalDetections}`,
+    `Total Scans: ${summary.totalDetections}`, // was "Total Detections"
     `Average Purity: ${summary.averagePurity.toFixed(1)}%`,
     `Pure: ${summary.totalPure}  |  Impure: ${summary.totalImpure}  |  Unwanted: ${summary.totalUnwanted}`,
-    `Detections/Hour: ${summary.detectionsPerHour.toFixed(1)}`,
+    `Scans/Hour: ${summary.detectionsPerHour.toFixed(1)}`, // was "Detections/Hour"
   ];
   for (const line of summaryLines) {
     doc.text(line, margin, y);
@@ -246,8 +246,8 @@ export function downloadQualityReportPdf(
   const isHourly = period === "hourly";
   const colX = [margin, 55, 85, 115, 145, 170];
   const headers = isHourly
-    ? ["Hour", "Detections", "Pure", "Impure", "Unwanted", "Avg Purity"]
-    : ["Date", "Detections", "Pure", "Impure", "Unwanted", "Avg Purity"];
+    ? ["Hour", "Scans", "Pure", "Impure", "Unwanted", "Avg Purity"] // was "Detections"
+    : ["Date", "Scans", "Pure", "Impure", "Unwanted", "Avg Purity"]; // was "Detections"
 
   // Table header
   doc.setFontSize(9);
