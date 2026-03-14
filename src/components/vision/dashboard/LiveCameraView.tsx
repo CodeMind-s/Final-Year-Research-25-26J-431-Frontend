@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Camera, Square, Play, Wifi, Cpu, Plus, Check, RefreshCw } from "lucide-react";
 
 const CAPTURE_SIZE = 320;
-const FRAME_INTERVAL = 1000;
+const FRAME_INTERVAL = 200;
 
 export function LiveCameraView() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -25,7 +25,7 @@ export function LiveCameraView() {
     startCamera,
     stopCamera,
     captureFrame,
-  } = useVisionCamera({ width: 480, height: 480 });
+  } = useVisionCamera({ width: 320, height: 320 });
 
   const {
     isConnected,
@@ -181,8 +181,8 @@ export function LiveCameraView() {
   const startCapturing = useCallback(() => {
     if (captureIntervalRef.current) return;
 
-    captureIntervalRef.current = setInterval(() => {
-      const frame = captureFrame();
+    captureIntervalRef.current = setInterval(async () => {
+      const frame = await captureFrame();
       if (frame) {
         sendFrame(frame);
       }
