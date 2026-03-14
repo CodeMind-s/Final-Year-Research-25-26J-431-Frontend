@@ -120,8 +120,8 @@ export default function ReportsPage() {
   const [generated, setGenerated] = useState(false);
 
   const isBatchMode = source === "batches";
-  const itemLabel = isBatchMode ? "Batches" : "Detections";
-  const itemLabelSingular = isBatchMode ? "batches" : "detections";
+  const itemLabel = isBatchMode ? "Batches" : "Scans"; // was "Detections"
+  const itemLabelSingular = isBatchMode ? "batches" : "scans"; // was "detections"
 
   const getDateRange = useCallback((): { start: string; end: string } => {
     switch (period) {
@@ -255,7 +255,8 @@ export default function ReportsPage() {
                   }`}
                 >
                   <ScanLine className="h-3.5 w-3.5" />
-                  Detections
+                  {/* Detections */}
+                  Scans
                 </button>
                 <button
                   onClick={() => setSource("batches")}

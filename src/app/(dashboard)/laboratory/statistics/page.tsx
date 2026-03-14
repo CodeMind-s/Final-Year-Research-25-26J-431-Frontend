@@ -136,7 +136,8 @@ export default function AnalyticsPage() {
               }`}
             >
               <ScanLine className="h-3.5 w-3.5" />
-              Detections
+              {/* Detections */}
+              Scans
             </button>
             <button
               onClick={() => setSource("batches")}
@@ -168,7 +169,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">
-              {isBatchMode ? "Total Batches" : "Total Detections"}
+              {isBatchMode ? "Total Batches" : "Total Scans"} {/* "Total Detections" commented out */}
             </CardTitle>
             {isBatchMode ? (
               <Layers className="h-4 w-4 text-cyan-600" />
@@ -267,7 +268,8 @@ export default function AnalyticsPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-gray-500">
-                  Detections/Hour
+                  {/* Detections/Hour */}
+                  Scans/Hour
                 </CardTitle>
                 <Zap className="h-4 w-4 text-orange-600" />
               </CardHeader>
