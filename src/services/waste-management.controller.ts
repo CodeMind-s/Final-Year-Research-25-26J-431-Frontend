@@ -23,7 +23,7 @@ import { httpClient } from '@/lib/http-client';
  */
 class WasteManagementController extends BaseController {
   constructor() {
-    super('/salt-society/waste-management');
+    super('/waste-management');
   }
 
   /**
@@ -49,7 +49,7 @@ class WasteManagementController extends BaseController {
     }
     
     const queryString = params.toString();
-    const url = queryString ? `/predictions?${queryString}` : '/predictions';
+    const url = queryString ? `/predictions/monthly?${queryString}` : '/predictions/monthly';
     
     return this.get<WastePredictionsResponse>(url);
   }
@@ -114,6 +114,40 @@ class WasteManagementController extends BaseController {
   }
 
   /**
+   * Get saved price estimates (if any) from backend
+   */
+  // Price estimate endpoints removed from frontend (handled server-side).
+
+  /**
+   * Get aggregated report summary for waste predictions over a month range
+   * @param params - { siteId, startMonth (YYYY-MM), endMonth (YYYY-MM), currency }
+   */
+  async getReportSummary(params: { siteId?: string; startMonth?: string; endMonth?: string; currency?: string }) {
+    const q = new URLSearchParams()
+    if (params.siteId) q.append('site_id', params.siteId)
+    if (params.startMonth) q.append('start_month', params.startMonth)
+    if (params.endMonth) q.append('end_month', params.endMonth)
+    if (params.currency) q.append('currency', params.currency)
+    const url = `/reports/predictions/summary?${q.toString()}`
+    return this.get<any>(url)
+  }
+
+  /**
+   * Get detailed per-month report rows for waste predictions
+   * @param params - { siteId, startMonth, endMonth, currency, format }
+   */
+  async getReportDetailed(params: { siteId?: string; startMonth?: string; endMonth?: string; currency?: string; format?: string }) {
+    const q = new URLSearchParams()
+    if (params.siteId) q.append('site_id', params.siteId)
+    if (params.startMonth) q.append('start_month', params.startMonth)
+    if (params.endMonth) q.append('end_month', params.endMonth)
+    if (params.currency) q.append('currency', params.currency)
+    if (params.format) q.append('format', params.format)
+    const url = `/reports/predictions/detailed?${q.toString()}`
+    return this.get<any>(url)
+  }
+
+  /**
    * Transform raw job response from backend to application format
    * @param job - Raw job response from backend
    * @returns Transformed recent prediction object
@@ -156,7 +190,7 @@ class WasteManagementController extends BaseController {
           potential_magnesium_oil: resultData.potential_magnesium_oil_liters,
           total_liquid_waste: resultData.liquid_waste_bittern_liters,
           
-          period: new Date(job.predictionDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+          period: new Date(job.predictionDate).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
         } as WastePredictionData & { period: string };
       } catch (error) {
         console.error("Error parsing result data:", error);

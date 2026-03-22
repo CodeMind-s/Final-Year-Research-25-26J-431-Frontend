@@ -34,7 +34,7 @@ export default function Home() {
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Brinex Valor</h1>
-              <p className="text-sm text-muted-foreground mt-1">Salt Waste Valorization Dashboard</p>
+              <p className="text-sm text-muted-foreground mt-1">BrineX Waste Valorization Dashboard</p>
             </div>
             <div className="flex items-center gap-2">
               <Checkbox

@@ -658,7 +658,7 @@ export function ProductionDashboard() {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="text-center sm:text-left">
           <h1 className="text-xl sm:text-2xl font-semibold text-foreground">{t('dashboard.title')}</h1>
-          <p className="text-xs sm:text-sm text-muted-foreground">Puttalam Salt Society - Critical Operational Data</p>
+          <p className="text-xs sm:text-sm text-muted-foreground">BrineX - Critical Operational Data</p>
         </div>
         
         <div className="text-center sm:text-right">

@@ -10,6 +10,7 @@ import { RecycleIcon, Droplets, ThermometerSun, TrendingUp, AlertCircle, CheckCi
 import { ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, PieChart, Pie, Cell } from "recharts"
 import { useState, useEffect, useCallback } from "react"
 import { wasteManagementController } from "@/services/waste-management.controller"
+import { formatPercent } from '@/lib/waste-metrics'
 import type { WastePredictionData as ApiWastePredictionData, WasteAverageMetrics, QuickPredictionFormData, RecentPrediction } from "@/types/waste-management.types"
 
 // Extended type with period property for display
@@ -32,6 +33,7 @@ const LIQUID_WASTE_COLORS = {
 }
 
 export function WasteValorizationDashboard() {
+  const DEFAULT_SITE_ID = '123e4567-e89b-12d3-a456-426614174000'
   const [predictionMode, setPredictionMode] = useState<"forecast" | "quick">("forecast")
   const [wasteData, setWasteData] = useState<WastePredictionData[]>([])
   const [averages, setAverages] = useState<WasteAverageMetrics>({
@@ -69,9 +71,12 @@ export function WasteValorizationDashboard() {
       
       const today = new Date()
       const startDate = new Date(today)
-      startDate.setDate(today.getDate() - 30)
+      // Use monthly data: fetch ~12 months history and 3 months forecast
+      startDate.setMonth(today.getMonth() - 12)
+      startDate.setDate(1)
       const endDate = new Date(today)
-      endDate.setDate(today.getDate() + 14)
+      endDate.setMonth(today.getMonth() + 3)
+      endDate.setDate(new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0).getDate())
       
       const formatDate = (date: Date) => date.toISOString().split('T')[0]
       
@@ -88,8 +93,15 @@ export function WasteValorizationDashboard() {
       }
       
       const transformedData: WastePredictionData[] = response.predictions.map(item => {
-        const date = new Date(item.date)
-        const period = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+        const source = (item as any).month || (item as any).date || ''
+        const parseSource = (s: string) => {
+          if (!s) return null
+          // If format is YYYY-MM, append first day
+          if (/^\d{4}-\d{2}$/.test(s)) return new Date(s + '-01')
+          return new Date(s)
+        }
+        const date = parseSource(source)
+        const period = date ? date.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : 'N/A'
         return { ...item, period }
       })
       
@@ -119,6 +131,8 @@ export function WasteValorizationDashboard() {
       fetchRecentPredictions()
     }
   }, [predictionMode, fetchSystemForecast])
+
+  
 
   // Fetch recent predictions
   const fetchRecentPredictions = async () => {
@@ -201,6 +215,15 @@ export function WasteValorizationDashboard() {
     }
   }
 
+  const formatCompact = (value?: number) => {
+    if (value === undefined || value === null) return '0'
+    try {
+      return new Intl.NumberFormat('en', { notation: 'compact', compactDisplay: 'short', maximumFractionDigits: value >= 1000000 ? 2 : value >= 10000 ? 1 : 0 }).format(value)
+    } catch {
+      return value.toLocaleString()
+    }
+  }
+
   const handleQuickPrediction = async () => {
     try {
       setIsQuickPredicting(true)
@@ -219,7 +242,7 @@ export function WasteValorizationDashboard() {
       // If somehow immediate result is available (shouldn't happen in async pattern)
       if (response.prediction) {
         const date = new Date(predictionDate)
-        const period = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+        const period = date.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
         setQuickPredictionResult({
           ...response.prediction,
           period
@@ -251,7 +274,7 @@ export function WasteValorizationDashboard() {
       
       if (response.status === "completed" && response.prediction) {
         const date = new Date()
-        const period = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+        const period = date.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
         setQuickPredictionResult({
           ...response.prediction,
           period
@@ -268,6 +291,8 @@ export function WasteValorizationDashboard() {
       setIsQuickPredicting(false)
     }
   }
+
+  
 
   // Prepare waste breakdown data for pie charts
   const getSolidWasteBreakdown = (data: WastePredictionData | WasteAverageMetrics) => [
@@ -287,22 +312,35 @@ export function WasteValorizationDashboard() {
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (
-        <div className="bg-white border border-border rounded-lg p-3 shadow-lg">
+        <div className="bg-white border border-border rounded-lg p-3 shadow-lg max-w-sm">
           <p className="text-xs font-semibold text-foreground mb-2">{label}</p>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-primary">Total Waste:</span> {data.predicted_waste?.toLocaleString() || 0} kg
-            </p>
-            {data.total_solid_waste && (
+          <div className="grid grid-cols-2 gap-2">
+            <div className="col-span-2">
               <p className="text-xs text-muted-foreground">
-                <span className="font-medium text-purple-600">Solid:</span> {data.total_solid_waste.toLocaleString()} kg
+                <span className="font-medium text-primary">Total Waste:</span> {data.predicted_waste?.toLocaleString() || 0} kg
               </p>
-            )}
-            {data.total_liquid_waste && (
-              <p className="text-xs text-muted-foreground">
-                <span className="font-medium text-amber-600">Liquid:</span> {data.total_liquid_waste.toLocaleString()} L
-              </p>
-            )}
+            </div>
+
+            <div>
+              <p className="text-xs text-muted-foreground"><span className="font-medium text-purple-600">Gypsum:</span> {data.solid_waste_gypsum?.toLocaleString() || 0} kg</p>
+              <p className="text-xs text-muted-foreground"><span className="font-medium text-purple-600">Limestone:</span> {data.solid_waste_limestone?.toLocaleString() || 0} kg</p>
+              <p className="text-xs text-muted-foreground"><span className="font-medium text-purple-600">Industrial Salt:</span> {data.solid_waste_industrial_salt?.toLocaleString() || 0} kg</p>
+            </div>
+
+            <div>
+              <p className="text-xs text-muted-foreground"><span className="font-medium text-amber-600">Bittern:</span> {data.liquid_waste_bittern?.toLocaleString() || 0} L</p>
+              <p className="text-xs text-muted-foreground"><span className="font-medium text-amber-600">Epsom Salt:</span> {data.potential_epsom_salt?.toLocaleString() || 0} kg</p>
+              <p className="text-xs text-muted-foreground"><span className="font-medium text-amber-600">Potash:</span> {data.potential_potash?.toLocaleString() || 0} kg</p>
+              <p className="text-xs text-muted-foreground"><span className="font-medium text-amber-600">Mg Oil:</span> {data.potential_magnesium_oil?.toLocaleString() || 0} L</p>
+            </div>
+
+            <div className="col-span-2 mt-1 pt-1 border-t border-border">
+              <p className="text-xs text-muted-foreground"><span className="font-medium">Production:</span> {(data.production_volume || 0).toLocaleString()} kg</p>
+              <p className="text-xs text-muted-foreground"><span className="font-medium">Rain:</span> {(data.rain_sum || 0).toFixed(2)} mm</p>
+              <p className="text-xs text-muted-foreground"><span className="font-medium">Temp:</span> {(data.temperature_mean || 0).toFixed(1)}°C</p>
+              <p className="text-xs text-muted-foreground"><span className="font-medium">Humidity:</span> {(data.humidity_mean || 0).toFixed(1)}%</p>
+              <p className="text-xs text-muted-foreground"><span className="font-medium">Wind:</span> {(data.wind_speed_mean || 0).toFixed(1)} km/h</p>
+            </div>
           </div>
         </div>
       )
@@ -331,7 +369,7 @@ export function WasteValorizationDashboard() {
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <RecycleIcon className="h-7 w-7 text-primary" />
-            Salt Waste Valorization
+            BrineX Waste Valorization
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             AI-powered waste prediction and valorization analytics
@@ -351,6 +389,8 @@ export function WasteValorizationDashboard() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
+          {/* Set Unit Prices button removed per request (price UI hidden) */}
+              {/* Reports moved to Reports tab */}
           
           <Badge variant="outline" className="px-3 py-1.5">
             <span className="text-xs font-medium">Updated: {new Date().toLocaleDateString('en-GB')}</span>
@@ -742,81 +782,89 @@ export function WasteValorizationDashboard() {
 
       {/* Key Metrics - Show Quick Prediction Result or Averages */}
       {(predictionMode === "forecast" || quickPredictionResult) && (
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          <Card className="p-5">
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
+        <div className="flex gap-4 overflow-x-auto snap-x snap-proximity md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <Card className="relative overflow-hidden p-6 min-w-[18rem] md:min-w-0 snap-start h-full">
+            <div className="absolute top-3 left-3 w-8 h-8 rounded bg-primary/10 flex items-center justify-center z-10">
+              <Factory className="h-4 w-4 text-primary" />
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex-1 min-w-0 pl-10">
                 <p className="text-sm text-muted-foreground font-medium">Production</p>
-                <p className="text-3xl font-bold text-foreground">{displayData.production_volume?.toLocaleString() || 0}</p>
-                <p className="text-sm text-muted-foreground">kg/day</p>
-              </div>
-              <div className="p-2.5 bg-primary/10 rounded-lg">
-                <Factory className="h-6 w-6 text-primary" />
+                <p className="text-2xl md:text-3xl font-extrabold text-foreground leading-tight">
+                  <span title={(displayData.production_volume || 0).toLocaleString()}>{formatCompact(displayData.production_volume)}</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">kg / month</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-5">
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
+          <Card className="relative overflow-hidden p-6 min-w-[18rem] md:min-w-0 snap-start h-full">
+            <div className="absolute top-3 left-3 w-8 h-8 rounded bg-warning/10 flex items-center justify-center z-10">
+              <RecycleIcon className="h-4 w-4 text-warning" />
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex-1 min-w-0 pl-10">
                 <p className="text-sm text-muted-foreground font-medium">Total Waste</p>
-                <p className="text-3xl font-bold text-warning">{displayData.predicted_waste?.toLocaleString() || 0}</p>
-                <p className="text-sm text-muted-foreground">kg/day</p>
-              </div>
-              <div className="p-2.5 bg-warning/10 rounded-lg">
-                <RecycleIcon className="h-6 w-6 text-warning" />
+                <p className="text-2xl md:text-3xl font-extrabold text-warning leading-tight">
+                  <span title={(displayData.predicted_waste || 0).toLocaleString()}>{formatCompact(displayData.predicted_waste)}</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">kg / month</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-5">
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
+          <Card className="relative overflow-hidden p-6 min-w-[18rem] md:min-w-0 snap-start h-full">
+            <div className="absolute top-3 left-3 w-8 h-8 rounded bg-purple-50 flex items-center justify-center z-10">
+              <Beaker className="h-4 w-4 text-purple-600" />
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex-1 min-w-0 pl-10">
                 <p className="text-sm text-muted-foreground font-medium">Solid Waste</p>
-                <p className="text-3xl font-bold text-purple-600">{displayData.total_solid_waste?.toLocaleString() || 0}</p>
-                <p className="text-sm text-muted-foreground">kg/day</p>
-              </div>
-              <div className="p-2.5 bg-purple-50 rounded-lg">
-                <Beaker className="h-6 w-6 text-purple-600" />
+                <p className="text-2xl md:text-3xl font-extrabold text-purple-600 leading-tight">
+                  <span title={(displayData.total_solid_waste || 0).toLocaleString()}>{formatCompact(displayData.total_solid_waste)}</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">kg / month</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-5">
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
+          <Card className="relative overflow-hidden p-6 min-w-[18rem] md:min-w-0 snap-start h-full">
+            <div className="absolute top-3 left-3 w-8 h-8 rounded bg-amber-50 flex items-center justify-center z-10">
+              <Droplets className="h-4 w-4 text-amber-600" />
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex-1 min-w-0 pl-10">
                 <p className="text-sm text-muted-foreground font-medium">Liquid Waste</p>
-                <p className="text-3xl font-bold text-amber-600">{displayData.total_liquid_waste?.toLocaleString() || 0}</p>
-                <p className="text-sm text-muted-foreground">L/day</p>
-              </div>
-              <div className="p-2.5 bg-amber-50 rounded-lg">
-                <Droplets className="h-6 w-6 text-amber-600" />
+                <p className="text-2xl md:text-3xl font-extrabold text-amber-600 leading-tight">
+                  <span title={(displayData.total_liquid_waste || 0).toLocaleString()}>{formatCompact(displayData.total_liquid_waste)}</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">L / month</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-5">
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
+          <Card className="relative overflow-hidden p-6 min-w-[18rem] md:min-w-0 snap-start h-full">
+            <div className="absolute top-3 left-3 w-8 h-8 rounded bg-destructive/10 flex items-center justify-center z-10">
+              <ThermometerSun className="h-4 w-4 text-destructive" />
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex-1 min-w-0 pl-10">
                 <p className="text-sm text-muted-foreground font-medium">Temperature</p>
-                <p className="text-3xl font-bold text-destructive">{displayData.temperature_mean}°C</p>
-                <p className="text-sm text-muted-foreground">Mean</p>
-              </div>
-              <div className="p-2.5 bg-destructive/10 rounded-lg">
-                <ThermometerSun className="h-6 w-6 text-destructive" />
+                <p className="text-2xl md:text-3xl font-extrabold text-destructive leading-tight">{displayData.temperature_mean != null ? Number(displayData.temperature_mean).toFixed(1) : 'NA'}°C</p>
+                <p className="text-xs text-muted-foreground mt-1">Mean</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-5">
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
+          <Card className="relative overflow-hidden p-6 h-full">
+            <div className="absolute top-3 left-3 w-8 h-8 rounded bg-cyan-50 flex items-center justify-center z-10">
+              <Droplets className="h-4 w-4 text-cyan-600" />
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex-1 min-w-0 pl-10">
                 <p className="text-sm text-muted-foreground font-medium">Humidity</p>
-                <p className="text-3xl font-bold text-cyan-600">{displayData.humidity_mean}%</p>
-                <p className="text-sm text-muted-foreground">Relative</p>
-              </div>
-              <div className="p-2.5 bg-cyan-50 rounded-lg">
-                <Droplets className="h-6 w-6 text-cyan-600" />
+                <p className="text-2xl md:text-3xl font-extrabold text-cyan-600 leading-tight">{displayData.humidity_mean}%</p>
+                <p className="text-xs text-muted-foreground mt-1">Relative</p>
               </div>
             </div>
           </Card>
@@ -824,17 +872,18 @@ export function WasteValorizationDashboard() {
       )}
 
       {/* Time Series Chart - Only for System Forecast */}
+      {/* Reports moved to Reports tab */}
       {predictionMode === "forecast" && (
         <Card className="p-4">
           <div className="mb-4">
             <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
-              Daily Waste Prediction Timeline
+              Monthly Waste Prediction Timeline
             </h2>
             <p className="text-xs text-muted-foreground mt-1">
-              {wasteData.length > 0 && wasteData[0].total_solid_waste !== undefined 
-                ? "Historical (30 days) and forecasted waste generation (14 days ahead) with solid/liquid breakdown"
-                : "Historical (30 days) and forecasted waste generation (14 days ahead)"}
+              {wasteData.length > 0 && wasteData[0].total_solid_waste !== undefined
+                ? "Historical (12 months) and forecasted waste generation (3 months ahead) with solid/liquid breakdown"
+                : "Historical (12 months) and forecasted waste generation (3 months ahead)"}
             </p>
           </div>
           <div className="h-80">
@@ -863,7 +912,7 @@ export function WasteValorizationDashboard() {
                   stroke="rgb(115 115 115)"
                   tick={{ fontSize: 11 }}
                   label={{
-                    value: "Waste (kg / L)",
+                    value: "Waste (kg / L per month)",
                     angle: -90,
                     position: "insideLeft",
                     style: { fontSize: 11, fill: "rgb(115 115 115)" }
@@ -1102,11 +1151,7 @@ export function WasteValorizationDashboard() {
                 <p className="text-sm font-medium text-foreground">Waste-to-Production Ratio</p>
                 <p className="text-xs text-muted-foreground mt-0.5">Current efficiency</p>
               </div>
-              <span className="text-lg font-bold text-success">
-                {displayData.production_volume && displayData.predicted_waste
-                  ? ((displayData.predicted_waste / displayData.production_volume) * 100).toFixed(2)
-                  : '0.00'}%
-              </span>
+              <span className="text-lg font-bold text-success">{formatPercent((displayData as any).waste_to_production_ratio_percent, 2)}</span>
             </div>
             
             <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
@@ -1114,24 +1159,10 @@ export function WasteValorizationDashboard() {
                 <p className="text-sm font-medium text-foreground">Solid Waste Percentage</p>
                 <p className="text-xs text-muted-foreground mt-0.5">Of total waste</p>
               </div>
-              <span className="text-lg font-bold text-primary">
-                {displayData.predicted_waste && displayData.total_solid_waste
-                  ? ((displayData.total_solid_waste / displayData.predicted_waste) * 100).toFixed(1)
-                  : '0.0'}%
-              </span>
+              <span className="text-lg font-bold text-primary">{formatPercent((displayData as any).solid_waste_percentage_percent, 1)}</span>
             </div>
 
-            <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
-              <div>
-                <p className="text-sm font-medium text-foreground">Valorization Potential</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Recoverable products value</p>
-              </div>
-              <span className="text-lg font-bold text-amber-600">
-                ${((displayData.potential_epsom_salt || 0) * 0.5 + 
-                   (displayData.potential_potash || 0) * 0.8 + 
-                   (displayData.potential_magnesium_oil || 0) * 1.2).toLocaleString()}
-              </span>
-            </div>
+            {/* Valorization Potential removed from dashboard (price-related data hidden) */}
           </div>
         </Card>
 
@@ -1189,6 +1220,8 @@ export function WasteValorizationDashboard() {
           </div>
         </Card>
       </div>
+
+      {/* Price modal removed (price UI hidden) */}
     </div>
   )
 }
