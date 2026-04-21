@@ -10,6 +10,10 @@ export function useVisionWebSocket() {
   const lastFrameTime = useRef(Date.now());
   const frameCount = useRef(0);
   const isStreamingRef = useRef(false);
+  const lastSendTimeRef = useRef(0);
+  const awaitingResponseRef = useRef(false);
+  const pendingResultRef = useRef<DetectionResult | null>(null);
+  const resultFlushTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
     isConnected,
@@ -101,7 +105,20 @@ export function useVisionWebSocket() {
     });
 
     socket.on("detection_result", (result: DetectionResult) => {
-      setCurrentResult(result);
+      awaitingResponseRef.current = false;
+
+      // Throttle store updates to max 10/sec
+      pendingResultRef.current = result;
+      if (!resultFlushTimerRef.current) {
+        resultFlushTimerRef.current = setTimeout(() => {
+          resultFlushTimerRef.current = null;
+          if (pendingResultRef.current) {
+            setCurrentResult(pendingResultRef.current);
+            pendingResultRef.current = null;
+          }
+        }, 100);
+      }
+
       incrementFrames();
 
       frameCount.current++;
@@ -136,6 +153,10 @@ export function useVisionWebSocket() {
       socket.off("roi_updated");
       socket.off("detection_result");
       socket.off("error");
+      if (resultFlushTimerRef.current) {
+        clearTimeout(resultFlushTimerRef.current);
+        resultFlushTimerRef.current = null;
+      }
     };
   }, [
     setConnected,
@@ -161,14 +182,19 @@ export function useVisionWebSocket() {
     reset();
   }, [reset]);
 
-  const sendFrame = useCallback((frameData: string) => {
+  const sendFrame = useCallback((frameData: ArrayBuffer) => {
     if (!isStreamingRef.current) {
       return;
     }
-    socketRef.current.emit("frame", {
-      data: frameData,
-      timestamp: Date.now(),
-    });
+
+    const now = Date.now();
+    if (now - lastSendTimeRef.current < 200 || awaitingResponseRef.current) {
+      return;
+    }
+
+    lastSendTimeRef.current = now;
+    awaitingResponseRef.current = true;
+    socketRef.current.emit("frame", frameData);
   }, []);
 
   const startBatch = useCallback((customRoi?: ROIConfig) => {

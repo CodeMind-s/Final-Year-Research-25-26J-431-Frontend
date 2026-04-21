@@ -6,8 +6,7 @@
 export const API_CONFIG = {
   // Base URL for API requests
   BASE_URL:
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    "https://xwh9wjd2-3400.asse.devtunnels.ms/api/v1",
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3400/api/v1",
 
   // Request timeout in milliseconds
   TIMEOUT: 30000,
