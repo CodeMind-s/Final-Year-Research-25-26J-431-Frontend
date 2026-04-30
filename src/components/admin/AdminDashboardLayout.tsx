@@ -162,7 +162,7 @@ export function AdminDashboardLayout({
         <div className="flex h-full flex-col">
           {/* Brand */}
           <div className="flex h-16 items-center gap-3 border-b border-border px-6">
-            <Image src={'/assets/images/logo.svg'} alt='brinex logo' width={500} height={50} />
+            <Image src={'/assets/images/logo.svg'} alt='brinex logo' width={150} height={40} />
           </div>
 
           {/* Navigation */}

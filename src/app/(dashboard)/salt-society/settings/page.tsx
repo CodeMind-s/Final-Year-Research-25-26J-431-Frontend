@@ -15,10 +15,15 @@ import { Switch } from "@/components/crystal/ui/switch"
 import { User, Mail, Briefcase, MapPin } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import { useAuth } from "@/hooks/useAuth"
+import { useEffect } from "react"
 
 export default function SettingsPage() {
   const t = useTranslations('crystal')
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
+
+  useEffect(() => {
+    refreshUser()
+  }, [])
 
   // PSS authenticated user data
   const userData = {
