@@ -1,13 +1,38 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { visionApi } from "@/lib/vision-api-client";
 import { BatchSummary } from "@/types/vision-detection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Package, Clock, CheckCircle, Timer, RefreshCw, AlertCircle } from "lucide-react";
 import PageHeader from "@/components/vision/PageHeader";
+
+const PAGE_SIZE = 10;
+
+function getPageNumbers(currentPage: number, totalPages: number): (number | "ellipsis")[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+  const pages: (number | "ellipsis")[] = [1];
+  if (currentPage > 3) pages.push("ellipsis");
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(totalPages - 1, currentPage + 1);
+  for (let i = start; i <= end; i++) pages.push(i);
+  if (currentPage < totalPages - 2) pages.push("ellipsis");
+  pages.push(totalPages);
+  return pages;
+}
 
 function getPurityColor(purity: number | null | undefined): string {
   if (purity === null || purity === undefined) return "text-slate-400";
@@ -79,6 +104,7 @@ export default function BatchAssessmentPage() {
   const [batches, setBatches] = useState<BatchSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchBatches = useCallback(async () => {
     setLoading(true);
@@ -86,6 +112,7 @@ export default function BatchAssessmentPage() {
     try {
       const response = await visionApi.getAllBatches({ page: 1, limit: 100 });
       setBatches(response.batches);
+      setCurrentPage(1);
     } catch (err) {
       console.error("Failed to fetch batches:", err);
       setBatches([]);
@@ -99,10 +126,21 @@ export default function BatchAssessmentPage() {
     fetchBatches();
   }, [fetchBatches]);
 
+  const totalPages = Math.max(1, Math.ceil(batches.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedBatches = useMemo(
+    () => batches.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [batches, safePage],
+  );
+  const pageNumbers = getPageNumbers(safePage, totalPages);
+  const rangeStart = batches.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(safePage * PAGE_SIZE, batches.length);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <PageHeader title="Batch Quality Assessment" description="Detection batches from the current session" />
+        {/* "Detection batches" wording removed per marketing — batches only */}
+        <PageHeader title="Batch Quality Assessment" description="Batches from the current session" />
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -147,7 +185,8 @@ export default function BatchAssessmentPage() {
             <div className="text-center py-12 text-slate-400">
               <Package className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p className="text-sm font-medium">No batches found</p>
-              <p className="text-xs mt-1">Start a detection session to see batches here</p>
+              {/* "detection session" wording replaced per marketing */}
+              <p className="text-xs mt-1">Start a scan session to see batches here</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -180,7 +219,7 @@ export default function BatchAssessmentPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {batches.map((batch) => (
+                  {paginatedBatches.map((batch) => (
                     <tr key={batch.id} className="hover:bg-slate-50 transition-colors">
                       <td className="py-3 px-4">
                         <span className="font-bold text-slate-900">#{batch.batchNumber}</span>
@@ -252,6 +291,63 @@ export default function BatchAssessmentPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+          {!loading && batches.length > 0 && (
+            <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs text-slate-500">
+                Showing <span className="font-medium text-slate-700">{rangeStart}</span>–
+                <span className="font-medium text-slate-700">{rangeEnd}</span> of{" "}
+                <span className="font-medium text-slate-700">{batches.length}</span> batches
+              </p>
+              {totalPages > 1 && (
+                <Pagination className="mx-0 w-auto justify-end">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (safePage > 1) setCurrentPage(safePage - 1);
+                        }}
+                        aria-disabled={safePage === 1}
+                        className={safePage === 1 ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                    {pageNumbers.map((p, idx) =>
+                      p === "ellipsis" ? (
+                        <PaginationItem key={`e-${idx}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      ) : (
+                        <PaginationItem key={p}>
+                          <PaginationLink
+                            href="#"
+                            isActive={p === safePage}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setCurrentPage(p);
+                            }}
+                          >
+                            {p}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ),
+                    )}
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (safePage < totalPages) setCurrentPage(safePage + 1);
+                        }}
+                        aria-disabled={safePage === totalPages}
+                        className={safePage === totalPages ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
             </div>
           )}
         </CardContent>

@@ -40,7 +40,6 @@ import {
   AlertCircle,
   Calendar,
   Layers,
-  ScanLine,
   Droplets,
   Star,
 } from "lucide-react";
@@ -104,7 +103,8 @@ function computeSummaryFromData(
 }
 
 export default function ReportsPage() {
-  const [source, setSource] = useState<StatsSource>("detections");
+  // Detections source removed at marketing's request — batches only to avoid confusion with detections
+  const [source] = useState<StatsSource>("batches");
   const [period, setPeriod] = useState<ReportPeriod>("hourly");
   const [singleDate, setSingleDate] = useState(todayStr());
   const [startDate, setStartDate] = useState(todayStr());
@@ -233,14 +233,15 @@ export default function ReportsPage() {
       {/* Page Header */}
       <PageHeader
         title="Quality Inspection Reports"
-        description="Generate and export quality inspection reports with real detection data"
+        description="Generate and export quality inspection reports from batch data"
       />
 
       {/* Controls */}
       <Card>
         <CardContent className="pt-">
           <div className="flex flex-wrap items-end gap-4">
-            {/* Source Toggle */}
+            {/* Source Toggle — Scans/Detections option commented out per marketing (batches only) */}
+            {/*
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-muted-foreground">
                 Source
@@ -255,7 +256,6 @@ export default function ReportsPage() {
                   }`}
                 >
                   <ScanLine className="h-3.5 w-3.5" />
-                  {/* Detections */}
                   Scans
                 </button>
                 <button
@@ -271,6 +271,7 @@ export default function ReportsPage() {
                 </button>
               </div>
             </div>
+            */}
 
             {/* Period Selector */}
             <div className="space-y-1.5">
