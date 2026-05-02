@@ -32,8 +32,8 @@ export const HarvestReadinessCards: React.FC<HarvestReadinessCardsProps> = ({
         concern: t('readiness.salinityConcern'),
       },
       colors: {
-        good: { bg: "bg-emerald-50", iconBg: "bg-emerald-100 text-emerald-600", dot: "bg-emerald-500", text: "text-emerald-800" },
-        moderate: { bg: "bg-amber-50", iconBg: "bg-amber-100 text-amber-600", dot: "bg-amber-500", text: "text-amber-800" },
+        good: { bg: "bg-green-50", iconBg: "bg-green-100 text-green-600", dot: "bg-green-500", text: "text-green-800" },
+        moderate: { bg: "bg-yellow-50", iconBg: "bg-yellow-100 text-yellow-600", dot: "bg-yellow-500", text: "text-yellow-800" },
         concern: { bg: "bg-red-50", iconBg: "bg-red-100 text-red-600", dot: "bg-red-500", text: "text-red-800" },
       },
     },
@@ -46,9 +46,9 @@ export const HarvestReadinessCards: React.FC<HarvestReadinessCardsProps> = ({
         concern: t('readiness.rainfallConcern'),
       },
       colors: {
-        good: { bg: "bg-sky-50", iconBg: "bg-sky-100 text-sky-600", dot: "bg-emerald-500", text: "text-sky-800" },
-        moderate: { bg: "bg-amber-50", iconBg: "bg-amber-100 text-amber-600", dot: "bg-amber-500", text: "text-amber-800" },
-        concern: { bg: "bg-red-50", iconBg: "bg-red-100 text-red-600", dot: "bg-red-500", text: "text-red-800" },
+        good: { bg: "bg-slate-50", iconBg: "bg-slate-100 text-slate-600", dot: "bg-slate-500", text: "text-slate-800" },
+        moderate: { bg: "bg-cyan-50", iconBg: "bg-cyan-100 text-cyan-600", dot: "bg-cyan-500", text: "text-cyan-800" },
+        concern: { bg: "bg-blue-50", iconBg: "bg-blue-100 text-blue-600", dot: "bg-blue-500", text: "text-blue-800" },
       },
     },
     temperature: {
@@ -60,14 +60,40 @@ export const HarvestReadinessCards: React.FC<HarvestReadinessCardsProps> = ({
         concern: t('readiness.tempConcern'),
       },
       colors: {
-        good: { bg: "bg-orange-50", iconBg: "bg-orange-100 text-orange-600", dot: "bg-emerald-500", text: "text-orange-800" },
-        moderate: { bg: "bg-amber-50", iconBg: "bg-amber-100 text-amber-600", dot: "bg-amber-500", text: "text-amber-800" },
+        good: { bg: "bg-yellow-50", iconBg: "bg-yellow-100 text-yellow-600", dot: "bg-yellow-500", text: "text-yellow-800" },
+        moderate: { bg: "bg-orange-50", iconBg: "bg-orange-100 text-orange-600", dot: "bg-orange-500", text: "text-orange-800" },
         concern: { bg: "bg-red-50", iconBg: "bg-red-100 text-red-600", dot: "bg-red-500", text: "text-red-800" },
       },
     },
   };
 
-  const getLevelLabel = (level: HarvestReadiness["level"]) => {
+  const getLevelLabel = (type: HarvestReadiness["type"], level: HarvestReadiness["level"]) => {
+    // Use unique status label keys to avoid conflicts with message keys
+    if (type === "salinity") {
+      switch (level) {
+        case "good": return t('readiness.salinityOptimal');
+        case "moderate": return t('readiness.salinityDeclining');
+        case "concern": return t('readiness.salinityCritical');
+      }
+    }
+    
+    if (type === "rainfall") {
+      switch (level) {
+        case "good": return t('readiness.rainfallSafe');
+        case "moderate": return t('readiness.rainfallRisky');
+        case "concern": return t('readiness.rainfallDangerous');
+      }
+    }
+    
+    if (type === "temperature") {
+      switch (level) {
+        case "good": return t('readiness.temperaturePerfect');
+        case "moderate": return t('readiness.temperatureRising');
+        case "concern": return t('readiness.temperatureCritical');
+      }
+    }
+    
+    // Fallback
     switch (level) {
       case "good": return t('readiness.ideal');
       case "moderate": return t('readiness.moderate');
@@ -103,28 +129,26 @@ export const HarvestReadinessCards: React.FC<HarvestReadinessCardsProps> = ({
                 w-full
                 ${colors.bg} rounded-2xl p-4 border border-white/60 shadow-sm
                 transition-all hover:shadow-md
+                flex flex-col h-full
               `}
             >
-              {/* Icon + Status dot */}
-              <div className="flex items-center justify-between mb-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${colors.iconBg}`}>
+              {/* Top row: Icon on left, Status label on right */}
+              <div className="flex items-center justify-between gap-2 mb-3 flex-nowrap">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${colors.iconBg}`}>
                   <Icon size={20} />
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className={`w-2 h-2 rounded-full ${colors.dot}`} />
-                  <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
-                    {getLevelLabel(level)}
-                  </span>
-                </div>
+                <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-wide whitespace-nowrap shrink-0">
+                  {getLevelLabel(item.type, level)}
+                </span>
               </div>
 
-              {/* Label */}
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
+              {/* Middle: Label */}
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
                 {config.label}
               </p>
 
-              {/* Confidence Message — the star of the card */}
-              <p className={`text-sm font-semibold leading-snug ${colors.text}`}>
+              {/* Bottom: Message pushed to bottom */}
+              <p className={`text-sm font-semibold leading-snug ${colors.text} mt-auto`}>
                 {message}
               </p>
             </div>

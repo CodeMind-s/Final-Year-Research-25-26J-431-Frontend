@@ -1,7 +1,7 @@
 import { io, Socket } from "socket.io-client";
 import { tokenStorage } from "@/lib/storage.utils";
 
-const WS_URL = process.env.NEXT_PUBLIC_VISION_WS_URL || "http://localhost:3400";
+const WS_URL = process.env.NEXT_PUBLIC_VISION_WS_URL || "https://49mbsvf2-3400.asse.devtunnels.ms";
 
 let socket: Socket | null = null;
 let currentToken: string | null = null;

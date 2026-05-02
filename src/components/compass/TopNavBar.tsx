@@ -66,8 +66,6 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   ];
 
   const secondaryItems: DrawerNavItem[] = [
-    { id: "settings", label: t('compass.settings'), icon: Settings, type: "action" },
-    { id: "help", label: t('compass.helpSupport'), icon: HelpCircle, type: "action" },
     {
       id: "logout",
       label: t('compass.logout'),
