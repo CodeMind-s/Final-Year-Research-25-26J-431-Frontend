@@ -246,13 +246,26 @@ export default function BatchAssessmentPage() {
                         <span className="font-medium text-slate-700">{batch.totalCount}</span>
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <span
-                          className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold ${getPurityColor(batch.purityPercentage)} ${getPurityBgColor(batch.purityPercentage)}`}
-                        >
-                          {batch.purityPercentage !== null && batch.purityPercentage !== undefined
-                            ? `${batch.purityPercentage.toFixed(0)}%`
-                            : "--"}
-                        </span>
+                        {(() => {
+                          // Purity only makes sense when there's at least one
+                          // pure or impure detection. A batch of just unwanteds
+                          // (or zero detections) has no purity to report.
+                          const classifiableCount =
+                            (batch.pureCount ?? 0) + (batch.impureCount ?? 0);
+                          const showPurity =
+                            classifiableCount > 0 &&
+                            batch.purityPercentage !== null &&
+                            batch.purityPercentage !== undefined;
+                          return (
+                            <span
+                              className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold ${getPurityColor(showPurity ? batch.purityPercentage : null)} ${getPurityBgColor(showPurity ? batch.purityPercentage : null)}`}
+                            >
+                              {showPurity
+                                ? `${batch.purityPercentage!.toFixed(0)}%`
+                                : "--"}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="py-3 px-4 text-center">
                         <span
