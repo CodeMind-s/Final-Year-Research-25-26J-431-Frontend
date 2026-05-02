@@ -3,6 +3,18 @@
  * Central configuration for all API-related settings
  */
 
+// Brinex Lab Agent endpoints (Phase 7).
+// The agent runs on each laboratory PC. Production builds use these defaults;
+// override via NEXT_PUBLIC_LAB_AGENT_URL / _HEALTH_URL for staging or non-
+// localhost deployments. The "wss://localhost" requirement is browser-imposed
+// because the dashboard is served from HTTPS and ws:// would be blocked as
+// mixed content.
+export const LAB_AGENT_URL =
+  process.env.NEXT_PUBLIC_LAB_AGENT_URL ?? "wss://localhost:5005";
+export const LAB_AGENT_HEALTH_URL =
+  process.env.NEXT_PUBLIC_LAB_AGENT_HEALTH_URL ??
+  "https://localhost:5005/health";
+
 export const API_CONFIG = {
   // Base URL for API requests
   BASE_URL:
