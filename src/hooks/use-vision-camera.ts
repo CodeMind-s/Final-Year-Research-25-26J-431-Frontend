@@ -3,13 +3,17 @@
 import { useRef, useCallback, useState, useEffect } from "react";
 
 interface UseVisionCameraOptions {
+  // Resolution requested from the browser. Default is 4:3 high-res so the
+  // preview is sharp AND matches the 4:3 capture canvas + display container —
+  // keeping all three geometries aligned avoids `object-cover`-vs-stretch
+  // mismatches that throw detection-box positions off.
   width?: number;
   height?: number;
   facingMode?: "user" | "environment";
 }
 
 export function useVisionCamera(options: UseVisionCameraOptions = {}) {
-  const { width = 320, height = 320, facingMode = "environment" } = options;
+  const { width = 1280, height = 960, facingMode = "environment" } = options;
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -18,10 +22,36 @@ export function useVisionCamera(options: UseVisionCameraOptions = {}) {
 
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // null = haven't probed yet; true/false = result of enumerateDevices().
+  const [hasDevice, setHasDevice] = useState<boolean | null>(null);
 
   useEffect(() => {
     isReadyRef.current = isReady;
   }, [isReady]);
+
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.enumerateDevices) {
+      setHasDevice(false);
+      return;
+    }
+    let cancelled = false;
+    const probe = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        if (!cancelled) {
+          setHasDevice(devices.some((d) => d.kind === "videoinput"));
+        }
+      } catch {
+        if (!cancelled) setHasDevice(false);
+      }
+    };
+    void probe();
+    navigator.mediaDevices.addEventListener?.("devicechange", probe);
+    return () => {
+      cancelled = true;
+      navigator.mediaDevices.removeEventListener?.("devicechange", probe);
+    };
+  }, []);
 
   const startCamera = useCallback(async () => {
     try {
@@ -125,6 +155,7 @@ export function useVisionCamera(options: UseVisionCameraOptions = {}) {
     canvasRef,
     isReady,
     error,
+    hasDevice,
     startCamera,
     stopCamera,
     captureFrame,

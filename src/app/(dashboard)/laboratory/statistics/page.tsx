@@ -14,7 +14,6 @@ import {
   RefreshCw,
   AlertCircle,
   Layers,
-  ScanLine,
   Droplets,
   Star,
 } from "lucide-react";
@@ -39,7 +38,8 @@ const COLORS = ["#22c55e", "#ef4444", "#f97316"];
 type StatsSource = "detections" | "batches";
 
 export default function AnalyticsPage() {
-  const [source, setSource] = useState<StatsSource>("detections");
+  // Detections source removed at marketing's request — batches only to avoid confusion with detections
+  const [source] = useState<StatsSource>("batches");
   const [summary, setSummary] = useState<StatisticsSummary | null>(null);
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
   const [hourlyStats, setHourlyStats] = useState<HourlyStats[]>([]);
@@ -125,7 +125,8 @@ export default function AnalyticsPage() {
       <div className="flex items-center justify-between">
         <PageHeader title="Statistics & Analytics" description="Performance trends and quality insights" />
         <div className="flex items-center gap-2">
-          {/* Source Toggle */}
+          {/* Source Toggle — Scans/Detections option commented out per marketing (batches only) */}
+          {/*
           <div className="flex items-center rounded-lg border bg-muted p-0.5">
             <button
               onClick={() => setSource("detections")}
@@ -136,7 +137,6 @@ export default function AnalyticsPage() {
               }`}
             >
               <ScanLine className="h-3.5 w-3.5" />
-              {/* Detections */}
               Scans
             </button>
             <button
@@ -151,6 +151,7 @@ export default function AnalyticsPage() {
               Batches
             </button>
           </div>
+          */}
           <Button
             variant="outline"
             size="sm"
@@ -380,7 +381,7 @@ export default function AnalyticsPage() {
         <CardContent>
           {hourlyStats.every((h) => h.detections === 0) ? (
             <div className="h-64 flex items-center justify-center text-gray-500">
-              No {isBatchMode ? "batches" : "detections"} today
+              No {isBatchMode ? "batches" : "scans" /* "detections" hidden per marketing */} today
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
