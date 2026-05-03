@@ -23,7 +23,7 @@ import { httpClient } from '@/lib/http-client';
  */
 class WasteManagementController extends BaseController {
   constructor() {
-    super('/salt-society/waste-management');
+    super('/waste-management');
   }
 
   /**

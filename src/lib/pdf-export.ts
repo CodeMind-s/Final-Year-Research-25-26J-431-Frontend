@@ -9,6 +9,7 @@ import type {
   DailyMeasurementDataItem,
   PredictedMonthlyProduction,
 } from "@/types/crystallization.types";
+import type { WastePredictionData, WasteAverageMetrics } from "@/types/waste-management.types";
 
 // ==========================================
 // UNIFIED HEADER AND FOOTER FOR ALL REPORTS
@@ -60,6 +61,93 @@ async function getLogoPngBase64(): Promise<string> {
     img.onerror = () => reject(new Error("Failed to load SVG into image"));
     img.src = "data:image/svg+xml;base64," + btoa(BRINEX_LOGO_SVG);
   });
+}
+
+/**
+ * Simple Waste Management PDF Report
+ */
+export async function downloadWasteManagementReportPdf(
+  data: WastePredictionData | WasteAverageMetrics,
+  reportPeriod?: string
+): Promise<void> {
+  const doc = new jsPDF();
+  let y = addBrineXHeader(
+    doc,
+    "Waste Management Report",
+    "Waste breakdown and recovery potential",
+    reportPeriod
+  );
+
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Production Volume: ${((data.production_volume || 0)).toLocaleString()}`, 20, y);
+  y += 6;
+  doc.text(`Predicted Waste: ${(data.predicted_waste || 0).toLocaleString()} kg`, 20, y);
+  y += 6;
+  doc.text(`Total Solid Waste: ${(data.total_solid_waste || 0).toLocaleString()} kg`, 20, y);
+  y += 6;
+  doc.text(`Total Liquid Waste: ${(data.total_liquid_waste || 0).toLocaleString()} L`, 20, y);
+  y += 8;
+
+  const valorizationValue = Math.round(((data.potential_epsom_salt || 0) * 0.5 + (data.potential_potash || 0) * 0.8 + (data.potential_magnesium_oil || 0) * 1.2) * 100) / 100;
+  doc.text(`Estimated Valorization Potential: $${valorizationValue.toLocaleString()}`, 20, y);
+  y += 10;
+
+  // Solid breakdown table
+  const solids = [
+    ["Gypsum (kg)", (data.solid_waste_gypsum || 0).toLocaleString()],
+    ["Limestone (kg)", (data.solid_waste_limestone || 0).toLocaleString()],
+    ["Industrial Salt (kg)", (data.solid_waste_industrial_salt || 0).toLocaleString()],
+  ];
+
+  autoTable(doc, {
+    startY: y,
+    head: [["Solid Waste", "Amount"]],
+    body: solids,
+    theme: "striped",
+    styles: { fontSize: 9 },
+    margin: { left: 20, right: 20 },
+  });
+
+  y = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 8 : y + 40;
+
+  // Liquid breakdown table
+  const liquids = [
+    ["Bittern (L)", (data.liquid_waste_bittern || 0).toLocaleString()],
+    ["Epsom Salt (kg)", (data.potential_epsom_salt || 0).toLocaleString()],
+    ["Potash (kg)", (data.potential_potash || 0).toLocaleString()],
+    ["Magnesium Oil (L)", (data.potential_magnesium_oil || 0).toLocaleString()],
+  ];
+
+  autoTable(doc, {
+    startY: y,
+    head: [["Liquid Waste / Recoverable", "Amount"]],
+    body: liquids,
+    theme: "striped",
+    styles: { fontSize: 9 },
+    margin: { left: 20, right: 20 },
+  });
+
+  y = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 12 : y + 60;
+
+  // Recommendations
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "bold");
+  doc.text("Recommendations", 20, y);
+  y += 6;
+  doc.setFont("helvetica", "normal");
+  if (valorizationValue > 0) {
+    doc.text(`• Recoverable products estimated value: $${valorizationValue.toLocaleString()}`, 22, y);
+    y += 6;
+  } else {
+    doc.text("• Detailed breakdown not available from backend", 22, y);
+    y += 6;
+  }
+  doc.text("• Review waste management practices and prioritize recovery operations where feasible", 22, y);
+  y += 8;
+
+  const fileDate = new Date().toISOString().split("T")[0];
+  doc.save(`waste-management-report-${fileDate}.pdf`);
 }
 
 /**
