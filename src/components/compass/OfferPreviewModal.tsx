@@ -133,7 +133,7 @@ export const OfferPreviewModal: React.FC<OfferPreviewModalProps> = ({
           {/* Action Buttons */}
           <div className="space-y-3 pt-2">
             <Button variant="primary" fullWidth onClick={onConfirm} className="h-14 text-lg">
-              Publish Offer to Landowners
+              Publish Offer
             </Button>
             <Button variant="outline" fullWidth onClick={onCancel}>
               Edit Offer

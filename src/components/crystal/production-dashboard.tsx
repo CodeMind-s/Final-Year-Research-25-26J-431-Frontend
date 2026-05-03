@@ -14,7 +14,7 @@ import { Button } from "@/components/crystal/ui/button"
 import { useTranslations } from 'next-intl'
 import { TrendingUp, Droplets, Activity, Cloud, AlertCircle } from "lucide-react"
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine, Label } from "recharts"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { ForecastReportDialog } from "@/components/crystal/dialogs/forecast-report-dialog"
 import { NotifySupervisorsDialog } from "@/components/crystal/dialogs/notify-supervisors-dialog"
@@ -122,6 +122,7 @@ export function ProductionDashboard() {
   const [monthlyProductionData, setMonthlyProductionData] = useState<PredictedMonthlyProduction[]>([])
   const [isLoadingMonthlyData, setIsLoadingMonthlyData] = useState(true)
   const [dailyEnvironmentalData, setDailyEnvironmentalData] = useState<any[]>([])
+  const [weatherForecastMap, setWeatherForecastMap] = useState<Map<string, WeatherForecastDay>>(new Map())
   const [isLoadingDailyData, setIsLoadingDailyData] = useState(true)
   const [hiddenDataKeys, setHiddenDataKeys] = useState<Set<string>>(new Set(['humidity']))
   const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
@@ -145,9 +146,9 @@ export function ProductionDashboard() {
         const historicalStartStr = formatDate(historicalStart)
         const todayStr = formatDate(today)
 
-        // Predicted: today to 2 months from now
+        // Predicted: today to 45 days from now
         const predictedEnd = new Date(today)
-        predictedEnd.setMonth(today.getMonth() + 2)
+        predictedEnd.setDate(today.getDate() + 45)
         const predictedEndStr = formatDate(predictedEnd)
 
         // For now, use mock data for historical since API doesn't exist yet
@@ -284,7 +285,7 @@ export function ProductionDashboard() {
         const today = new Date();
         const todayStr = today.toISOString().split("T")[0];
         const futureDate = new Date(today);
-        futureDate.setDate(today.getDate() + 60); // 60 days ahead to cover 2 months
+        futureDate.setDate(today.getDate() + 45); // 45 days ahead for parameter predictions
         const futureDateStr = futureDate.toISOString().split("T")[0];
 
         // Fetch weather forecast (with fallback to mock data on error)
@@ -442,64 +443,8 @@ export function ProductionDashboard() {
 
         setCalendarDays(days);
 
-        // Update dailyEnvironmentalData with weather forecast data
-        // Weather API returns 16 days - overlay rainfall, temperature, humidity for first 16 days only
-        setDailyEnvironmentalData(prevData => {
-          // Convert Kelvin to Celsius for temperature
-          const kelvinToCelsius = (kelvin: number) => parseFloat((kelvin - 273.15).toFixed(2));
-          
-          // If no previous data exists, create initial structure
-          if (!prevData || prevData.length === 0) {
-            return prevData;
-          }
-
-          // Calculate dates for comparison (normalize to start of day)
-          const todayStart = new Date(today);
-          todayStart.setHours(0, 0, 0, 0);
-          
-          const sixteenDaysFromNow = new Date(todayStart);
-          sixteenDaysFromNow.setDate(sixteenDaysFromNow.getDate() + 16);
-          
-          // Update the existing data
-          const updatedData = prevData.map((item) => {
-            const itemDate = new Date(item.date);
-            itemDate.setHours(0, 0, 0, 0); // Normalize to start of day
-            
-            // Check if this is predicted data
-            if (item.type === 'predicted') {
-              // Check if this date is within first 16 days from today
-              const isWithin16Days = itemDate >= todayStart && itemDate < sixteenDaysFromNow;
-              
-              if (isWithin16Days) {
-                // For first 16 days, try to use weather data
-                const weatherData = weatherMap.get(item.date);
-                if (weatherData) {
-                  return {
-                    ...item,
-                    rainfall: weatherData.rain != null ? parseFloat(weatherData.rain.toFixed(2)) : 0,
-                    temperature: weatherData.temp?.day != null ? kelvinToCelsius(weatherData.temp.day) : item.temperature,
-                    humidity: weatherData.humidity != null ? weatherData.humidity : item.humidity,
-                  };
-                }
-                // If no weather data but within 16 days, keep original values
-                return item;
-              } else {
-                // For dates beyond 16 days, explicitly set weather fields to null
-                return {
-                  ...item,
-                  rainfall: null,
-                  temperature: null,
-                  humidity: null,
-                };
-              }
-            }
-            
-            // For historical data, keep as is
-            return item;
-          });
-          
-          return updatedData;
-        });
+        // Store weather map in state - the chart will derive the overlay via useMemo
+        setWeatherForecastMap(weatherMap);
       } catch (error) {
         console.error("Failed to fetch calendar data:", error);
       } finally {
@@ -652,6 +597,41 @@ export function ProductionDashboard() {
 
   const currentSeason = getCurrentSeason()
 
+  // Merge environmental data with weather forecast — avoids race condition between
+  // the two independent fetch effects (weather overlay is derived, never patched into state)
+  const chartEnvironmentalData = useMemo(() => {
+    if (dailyEnvironmentalData.length === 0) return dailyEnvironmentalData
+
+    const kelvinToCelsius = (k: number) => parseFloat((k - 273.15).toFixed(2))
+    const todayStart = new Date()
+    todayStart.setHours(0, 0, 0, 0)
+    const sixteenDaysFromNow = new Date(todayStart)
+    sixteenDaysFromNow.setDate(sixteenDaysFromNow.getDate() + 16)
+
+    return dailyEnvironmentalData.map((item) => {
+      if (item.type !== 'predicted') return item
+
+      const itemDate = new Date(item.date)
+      itemDate.setHours(0, 0, 0, 0)
+      const isWithin16Days = itemDate >= todayStart && itemDate < sixteenDaysFromNow
+
+      if (isWithin16Days && weatherForecastMap.size > 0) {
+        const weatherData = weatherForecastMap.get(item.date)
+        if (weatherData) {
+          return {
+            ...item,
+            rainfall: weatherData.rain != null ? parseFloat(weatherData.rain.toFixed(2)) : 0,
+            temperature: weatherData.temp?.day != null ? kelvinToCelsius(weatherData.temp.day) : item.temperature,
+            humidity: weatherData.humidity != null ? weatherData.humidity : item.humidity,
+          }
+        }
+        return item
+      }
+
+      return { ...item, rainfall: null, temperature: null, humidity: null }
+    })
+  }, [dailyEnvironmentalData, weatherForecastMap])
+
   return (
     <div className="p-3 sm:p-4 md:p-5 lg:p-6 space-y-3 md:space-y-4">
       {/* Compact Header with Season */}
@@ -726,11 +706,11 @@ export function ProductionDashboard() {
             <h2 className="text-base sm:text-lg font-bold text-foreground">{t('dashboard.dailyPredictions')}</h2>
             <Badge className="bg-primary/20 text-primary text-[10px] sm:text-xs">Critical for PSS Maintenance</Badge>
           </div>
-          <p className="text-[10px] sm:text-xs text-muted-foreground">Past 6 months (solid) vs Future 6 months (dashed) - All Environmental Parameters</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">Past 6 months (solid) vs Future 45 days - All Environmental Parameters</p>
         </div>
         <div className="h-64 sm:h-72 md:h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={dailyEnvironmentalData}>
+            <ComposedChart data={chartEnvironmentalData}>
               <defs>
                 <linearGradient id="colorSalinity" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="rgb(99 102 241)" stopOpacity={0.3} />
@@ -742,14 +722,14 @@ export function ProductionDashboard() {
                 dataKey="period"
                 stroke="rgb(115 115 115)"
                 tick={{ fontSize: 9 }}
-                interval={Math.floor(dailyEnvironmentalData.length / 15)}
+                interval={Math.floor(chartEnvironmentalData.length / 15)}
               />
               <YAxis yAxisId="left" stroke="rgb(99 102 241)" tick={{ fontSize: 10 }} label={{ value: "Environmental Measurements (various units)", angle: -90, position: "insideLeft", style: { fontSize: 10 } }} />
               <YAxis yAxisId="right" orientation="right" stroke="rgb(59 130 246)" tick={{ fontSize: 10 }} label={{ value: "Rainfall (mm)", angle: 90, position: "insideRight", style: { fontSize: 10 } }} />
 
               {/* Vertical line marking the boundary between historical (left) and predicted (right) */}
               <ReferenceLine
-                x={dailyEnvironmentalData.find(d => d.type === 'predicted')?.period || "1 Dec"}
+                x={chartEnvironmentalData.find(d => d.type === 'predicted')?.period || "1 Dec"}
                 stroke="rgb(239 68 68)"
                 strokeWidth={2}
                 strokeDasharray="5 5"

@@ -107,13 +107,13 @@ const DistributorCard: React.FC<{
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-slate-900">
-            {distributor.distributor.distributorDetails.companyName ||
+            {distributor.distributor?.distributorDetails?.companyName ||
               `Distributor ${distributor.userId.slice(0, 6)}`}
           </p>
           <div className="flex items-center gap-1 mt-0.5">
             <MapPin size={11} className="text-slate-400" />
             <span className="text-xs text-slate-400">
-              {distributor.distributor.distributorDetails.address ||
+              {distributor.distributor?.distributorDetails?.address ||
                 "Location not specified"}
             </span>
           </div>
@@ -177,12 +177,12 @@ const RequestSheet: React.FC<{
             <div>
               <p className="text-xs text-slate-400 mb-0.5">{t('market.makeRequestTo')}</p>
               <h3 className="text-lg font-bold text-slate-900">
-                {distributor.distributor.distributorDetails.companyName}
+                {distributor.distributor?.distributorDetails?.companyName || "Unknown Distributor"}
               </h3>
               <div className="flex items-center gap-1 mt-0.5">
                 <MapPin size={11} className="text-slate-400" />
                 <span className="text-xs text-slate-400">
-                  {distributor.distributor.distributorDetails.address}
+                  {distributor.distributor?.distributorDetails?.address || "Location not specified"}
                 </span>
               </div>
             </div>

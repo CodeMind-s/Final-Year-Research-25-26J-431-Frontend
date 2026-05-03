@@ -485,7 +485,7 @@ const ActiveOfferCard: React.FC<{
             className="w-full py-3.5 rounded-2xl bg-white text-compass-600 text-sm font-bold shadow-lg hover:bg-white/95 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
             <Send size={16} />
-            Publish Offer to Landowners
+            Publish Offer
           </button>
         )}
 
@@ -517,7 +517,7 @@ const RequestCard: React.FC<{
 
   const total = req.quantity * req.pricePerKilo;
   const landownerName =
-    req.landowner?.user?.email?.split("@")[0] || "Unknown Landowner";
+    req.landowner?.user?.email?.split("@")[0] || `Landowner${req.landowner?.user?.id?.slice(-6)}`;
   const landownerLocation =
     req.landowner?.landOwnerDetails?.address || "Unknown Location";
   const createdAtTimestamp = new Date(req.createdAt).getTime();
@@ -787,6 +787,11 @@ export default function DistributorDashboard() {
         : requests.filter((r) => r.status === reqFilter);
 
   // ── Actions ────────────────────────────────────────────────────
+
+  const handleLogout = () => {
+    authController.logout();
+    window.location.href = "/compass";
+  };
 
   const handlePublish = async (
     price: number,
@@ -1376,10 +1381,7 @@ export default function DistributorDashboard() {
 
       {/* Logout Button */}
       <button
-        onClick={() => {
-          // Add logout logic here
-          console.log('Logout clicked');
-        }}
+        onClick={handleLogout}
         className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-red-200 text-red-600 font-semibold hover:bg-red-50 transition-all active:scale-95"
       >
         <LogOut size={18} />
@@ -1435,11 +1437,11 @@ export default function DistributorDashboard() {
       </header>
 
       {/* ── Page subtitle strip ── */}
-      <div className="bg-white border-b border-slate-100 px-4 py-2.5 max-w-lg mx-auto">
+      {/* <div className="bg-white border-b border-slate-100 px-4 py-2.5 max-w-lg mx-auto">
         <p className="text-xs text-slate-400">
           Salt Distributor Portal · {DISTRIBUTOR_NAME}
         </p>
-      </div>
+      </div> */}
 
       {/* ── Tab Content ── */}
       <main className="pb-24 max-w-lg mx-auto">
@@ -1559,6 +1561,7 @@ export default function DistributorDashboard() {
                 {[{ label: "Sign Out", danger: true }].map((item) => (
                   <button
                     key={item.label}
+                    onClick={handleLogout}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 active:scale-[0.98] transition-all"
                   >
                     <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-red-50 text-red-500">

@@ -13,7 +13,6 @@ import { Button } from "@/components/crystal/ui/button"
 import { Input } from "@/components/crystal/ui/input"
 import { Label } from "@/components/crystal/ui/label"
 import { useState, useEffect } from "react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/crystal/ui/select"
 import { Badge } from "@/components/crystal/ui/badge"
 import { useTranslations } from 'next-intl'
 import { TrendingUp, Edit, Trash2, Plus, Calendar, Package, BarChart3 } from "lucide-react"
@@ -278,6 +277,13 @@ export function SaltProductionRecording() {
         setShowDeleteDialog(true)
     }
 
+    // Derive season from month string (YYYY-MM)
+    const getSeasonFromMonth = (monthStr: string): string => {
+        if (!monthStr) return ""
+        const month = parseInt(monthStr.split('-')[1])
+        return month >= 4 && month <= 9 ? "Yala" : "Maha"
+    }
+
     // Format month for display
     const formatMonth = (monthStr: string): string => {
         const [year, month] = monthStr.split('-')
@@ -476,21 +482,19 @@ export function SaltProductionRecording() {
                                 id="create-month"
                                 type="month"
                                 value={formData.month}
-                                onChange={(e) => setFormData({ ...formData, month: e.target.value })}
+                                max={new Date().toISOString().slice(0, 7)}
+                                onChange={(e) => setFormData({ ...formData, month: e.target.value, season: getSeasonFromMonth(e.target.value) })}
                                 className="bg-background border-border text-foreground"
                             />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="create-season">Season</Label>
-                            <Select value={formData.season} onValueChange={(value) => setFormData({ ...formData, season: value })}>
-                                <SelectTrigger id="create-season" className="bg-background border-border text-foreground">
-                                    <SelectValue placeholder="Select season" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Maha">Maha</SelectItem>
-                                    <SelectItem value="Yala">Yala</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <Input
+                                id="create-season"
+                                value={formData.season || "Auto-detected from month"}
+                                disabled
+                                className="bg-muted border-border text-gray-900"
+                            />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="create-volume">Production Volume (bags)</Label>
@@ -538,15 +542,12 @@ export function SaltProductionRecording() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="edit-season">Season</Label>
-                            <Select value={formData.season} onValueChange={(value) => setFormData({ ...formData, season: value })}>
-                                <SelectTrigger id="edit-season" className="bg-background border-border text-foreground">
-                                    <SelectValue placeholder="Select season" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Maha">Maha</SelectItem>
-                                    <SelectItem value="Yala">Yala</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <Input
+                                id="edit-season"
+                                value={formData.season}
+                                disabled
+                                className="bg-muted border-border text-muted-foreground"
+                            />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="edit-volume">Production Volume (tons)</Label>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useEffect } from "react";
 import { Card } from "@/components/crystal/ui/card";
 import { CalendarDay, WeatherForecastDay } from "@/types/crystallization.types";
 import {
@@ -80,6 +80,30 @@ export function WeatherForecastCalendar({ calendarDays, isLoadingDailyData }: { 
   const weekDays = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
   const today = new Date().toISOString().split("T")[0];
 
+  // 45-day and 16-day cutoffs from today
+  const maxPredictionDate = new Date();
+  maxPredictionDate.setDate(maxPredictionDate.getDate() + 45);
+  const maxPredictionStr = maxPredictionDate.toISOString().split("T")[0];
+
+  const weatherCutoffDate = new Date();
+  weatherCutoffDate.setDate(weatherCutoffDate.getDate() + 16);
+  const weatherCutoffStr = weatherCutoffDate.toISOString().split("T")[0];
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const todayCellRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isLoadingDailyData && calendarDays.length > 0) {
+      setTimeout(() => {
+        if (scrollContainerRef.current && todayCellRef.current) {
+          const container = scrollContainerRef.current;
+          const todayEl = todayCellRef.current;
+          container.scrollTop = todayEl.offsetTop - container.offsetTop - 16;
+        }
+      }, 100);
+    }
+  }, [isLoadingDailyData, calendarDays.length]);
+
   // Get current and next month names
   const currentMonthName = new Date().toLocaleDateString("en-US", {
     month: "long",
@@ -108,12 +132,11 @@ export function WeatherForecastCalendar({ calendarDays, isLoadingDailyData }: { 
           Weather & Environmental Predictions
         </h2>
         <p className="text-[10px] sm:text-xs text-muted-foreground">
-          16-day weather forecast with predicted salinity, brine levels, and
-          water levels
+          <span className="text-yellow-600 font-medium">16-day weather forecast</span> · <span className="text-primary font-medium">45-day parameter predictions</span>
         </p>
       </div>
 
-      <div className="max-h-[500px] sm:max-h-[600px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div ref={scrollContainerRef} className="max-h-[500px] sm:max-h-[600px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {/* Current Month */}
         <div className="mb-4 sm:mb-6">
           <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
@@ -148,28 +171,26 @@ export function WeatherForecastCalendar({ calendarDays, isLoadingDailyData }: { 
               })
               .map((day, index) => {
                 const isToday = day.dateStr === today;
-                const hasData =
-                  day.OR_brine_level !== undefined ||
-                  day.OR_bund_level !== undefined ||
-                  day.IR_brine_level !== undefined ||
-                  day.IR_bound_level !== undefined ||
-                  day.lagoon !== undefined;
-                const isPast = new Date(day.dateStr) < new Date(today);
-                const weatherBg = day.weatherData
-                  ? getWeatherBackground(
-                      day.weatherData.weather[0]?.icon || "01d",
-                    )
+                const isPast = day.dateStr < today;
+                const isBeyond45 = day.dateStr > maxPredictionStr;
+                const hasWeather = !!day.weatherData;
+                const isParameterOnly = !hasWeather && day.dateStr >= today && day.dateStr <= maxPredictionStr;
+                const weatherBg = hasWeather
+                  ? getWeatherBackground(day.weatherData!.weather[0]?.icon || "01d")
                   : "bg-background";
 
                 return (
                   <div
+                    ref={isToday ? todayCellRef : undefined}
                     key={`${day.dateStr}-${index}`}
                     className={`
                       relative p-2 sm:p-2 rounded-lg border transition-all min-h-24 sm:min-h-36 flex flex-col items-center justify-center sm:items-start sm:justify-start
                       ${!day.isCurrentMonth ? "opacity-40" : ""}
                       ${isToday ? "border-primary border-2" : "border-border"}
-                      ${isToday ? "bg-primary/10" : weatherBg}
+                      ${isToday ? "bg-primary/10" : isBeyond45 ? "bg-muted/30" : weatherBg}
                       ${isPast ? "opacity-60" : ""}
+                      ${isBeyond45 ? "opacity-40" : ""}
+                      ${isParameterOnly ? "border-dashed" : ""}
                     `}
                   >
                     {/* Date Number */}
@@ -180,64 +201,51 @@ export function WeatherForecastCalendar({ calendarDays, isLoadingDailyData }: { 
                     {/* Weather Information */}
                     {day.weatherData && (
                       <div className="flex flex-col sm:flex-row items-center sm:items-center gap-0.5 sm:gap-1 mb-0 sm:mb-1.5">
-                        {getWeatherIcon(
-                          day.weatherData.weather[0]?.icon || "01d",
-                        )}
+                        {getWeatherIcon(day.weatherData.weather[0]?.icon || "01d")}
                         <span className="text-xs sm:text-sm font-medium text-foreground">
                           {kelvinToCelsius(day.weatherData.temp.day)}°
                         </span>
                       </div>
                     )}
 
+                    {/* No weather indicator for parameter-only days */}
+                    {isParameterOnly && (
+                      <div className="hidden sm:flex items-center gap-0.5 mb-1">
+                        <Cloud className="h-3 w-3 text-muted-foreground/40 shrink-0" />
+                        <span className="text-[8px] text-muted-foreground/40">no forecast</span>
+                      </div>
+                    )}
+
                     {/* Parameters - Hidden on mobile, visible on tablet+ */}
                     <div className="hidden sm:grid w-full flex-1 grid-cols-2 gap-1 mt-auto">
-                      {/* OR Brine Level (Salinity) */}
                       {day.OR_brine_level !== undefined && (
                         <div className="flex items-center gap-0.5 text-[9px] sm:text-[10px] bg-blue-100/50 rounded px-1 py-0.5">
                           <Droplets className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-blue-600 shrink-0" />
-                          <span className="font-medium text-foreground truncate">
-                           OR {day.OR_brine_level.toFixed(1)}
-                          </span>
+                          <span className="font-medium text-foreground truncate">OR {day.OR_brine_level.toFixed(1)}</span>
                         </div>
                       )}
-
-                      {/* OR Bund Level */}
                       {day.OR_bund_level !== undefined && (
                         <div className="flex items-center gap-0.5 text-[9px] sm:text-[10px] bg-purple-100/50 rounded px-1 py-0.5">
                           <Waves className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-purple-600 shrink-0" />
-                          <span className="font-medium text-foreground truncate">
-                         OR {day.OR_bund_level.toFixed(1)}m
-                          </span>
+                          <span className="font-medium text-foreground truncate">OR {day.OR_bund_level.toFixed(1)}m</span>
                         </div>
                       )}
-
-                      {/* IR Brine Level */}
                       {day.IR_brine_level !== undefined && (
                         <div className="flex items-center gap-0.5 text-[9px] sm:text-[10px] bg-cyan-100/50 rounded px-1 py-0.5">
                           <Droplets className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-cyan-600 shrink-0" />
-                          <span className="font-medium text-foreground truncate">
-                           IR {day.IR_brine_level.toFixed(1)}
-                          </span>
+                          <span className="font-medium text-foreground truncate">IR {day.IR_brine_level.toFixed(1)}</span>
                         </div>
                       )}
-
-                      {/* IR Bound Level */}
                       {day.IR_bound_level !== undefined && (
                         <div className="flex items-center gap-0.5 text-[9px] sm:text-[10px] bg-teal-100/50 rounded px-1 py-0.5">
                           <Waves className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-teal-600 shrink-0" />
-                          <span className="font-medium text-foreground truncate">
-                            IR {day.IR_bound_level.toFixed(1)}m
-                          </span>
+                          <span className="font-medium text-foreground truncate">IR {day.IR_bound_level.toFixed(1)}m</span>
                         </div>
                       )}
-
-                      {/* Lagoon Water Level */}
                       {day.lagoon !== undefined && (
                         <div className="flex items-center gap-0.5 text-[9px] sm:text-[10px] bg-emerald-100/50 rounded px-1 py-0.5">
                           <Activity className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-emerald-600 shrink-0" />
-                          <span className="font-medium text-foreground truncate">
-                            LGN {day.lagoon.toFixed(1)}m
-                          </span>
+                          <span className="font-medium text-foreground truncate">LGN {day.lagoon.toFixed(1)}m</span>
                         </div>
                       )}
                     </div>
@@ -251,18 +259,13 @@ export function WeatherForecastCalendar({ calendarDays, isLoadingDailyData }: { 
         <div className="mb-3 sm:mb-4">
           <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
             <div className="h-1 w-1 rounded-full bg-primary"></div>
-            <h3 className="text-xs sm:text-sm font-semibold text-foreground">
-              {nextMonthName}
-            </h3>
+            <h3 className="text-xs sm:text-sm font-semibold text-foreground">{nextMonthName}</h3>
           </div>
 
           {/* Week day headers */}
           <div className="grid grid-cols-7 gap-2 sm:gap-2 mb-1.5 sm:mb-2">
             {weekDays.map((day) => (
-              <div
-                key={day}
-                className="text-[10px] sm:text-xs font-medium text-muted-foreground text-center py-0.5 sm:py-1"
-              >
+              <div key={day} className="text-[10px] sm:text-xs font-medium text-muted-foreground text-center py-0.5 sm:py-1">
                 {day}
               </div>
             ))}
@@ -277,94 +280,79 @@ export function WeatherForecastCalendar({ calendarDays, isLoadingDailyData }: { 
               })
               .map((day, index) => {
                 const isToday = day.dateStr === today;
-                const hasData =
-                  day.OR_brine_level !== undefined ||
-                  day.OR_bund_level !== undefined ||
-                  day.IR_brine_level !== undefined ||
-                  day.IR_bound_level !== undefined ||
-                  day.lagoon !== undefined;
-                const isPast = new Date(day.dateStr) < new Date(today);
-                const weatherBg = day.weatherData
-                  ? getWeatherBackground(
-                      day.weatherData.weather[0]?.icon || "01d",
-                    )
+                const isPast = day.dateStr < today;
+                const isBeyond45 = day.dateStr > maxPredictionStr;
+                const hasWeather = !!day.weatherData;
+                const isParameterOnly = !hasWeather && day.dateStr >= today && day.dateStr <= maxPredictionStr;
+                const weatherBg = hasWeather
+                  ? getWeatherBackground(day.weatherData!.weather[0]?.icon || "01d")
                   : "bg-background";
 
                 return (
                   <div
+                    ref={isToday ? todayCellRef : undefined}
                     key={`${day.dateStr}-${index}`}
                     className={`
                       relative p-2 sm:p-2 rounded-lg border transition-all min-h-24 sm:min-h-36 flex flex-col items-center justify-center sm:items-start sm:justify-start
                       ${isToday ? "border-primary border-2" : "border-border"}
-                      ${isToday ? "bg-primary/10" : weatherBg}
+                      ${isToday ? "bg-primary/10" : isBeyond45 ? "bg-muted/30" : weatherBg}
                       ${isPast ? "opacity-60" : ""}
+                      ${isBeyond45 ? "opacity-40" : ""}
+                      ${isParameterOnly ? "border-dashed" : ""}
                     `}
                   >
-                    <div className="text-lg sm:text-base font-bold text-foreground mb-1 sm:mb-1 w-full text-center sm:text-left">
+                    <div className="text-xs sm:text-base font-bold text-foreground mb-1 sm:mb-1 w-full text-center sm:text-left">
                       {day.dayNumber}
                     </div>
 
                     {/* Weather Information */}
-                    {day.weatherData && (
+                    {hasWeather && (
                       <div className="flex flex-col sm:flex-row items-center sm:items-center gap-0.5 sm:gap-1 mb-0 sm:mb-1.5">
-                        {getWeatherIcon(
-                          day.weatherData.weather[0]?.icon || "01d",
-                        )}
+                        {getWeatherIcon(day.weatherData!.weather[0]?.icon || "01d")}
                         <span className="text-xs sm:text-sm font-medium text-foreground">
-                          {kelvinToCelsius(day.weatherData.temp.day)}°
+                          {kelvinToCelsius(day.weatherData!.temp.day)}°
                         </span>
+                      </div>
+                    )}
+
+                    {/* No weather indicator for parameter-only days */}
+                    {isParameterOnly && (
+                      <div className="hidden sm:flex items-center gap-0.5 mb-1">
+                        <Cloud className="h-3 w-3 text-muted-foreground/40 shrink-0" />
+                        <span className="text-[8px] text-muted-foreground/40">no forecast</span>
                       </div>
                     )}
 
                     {/* Parameters - Hidden on mobile, visible on tablet+ */}
                     <div className="hidden sm:grid w-full flex-1 grid-cols-2 gap-1 mt-auto">
-                      {/* OR Brine Level (Salinity) */}
                       {day.OR_brine_level !== undefined && (
                         <div className="flex items-center gap-0.5 text-[9px] sm:text-[10px] bg-blue-100/50 rounded px-1 py-0.5">
                           <Droplets className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-blue-600 shrink-0" />
-                          <span className="font-medium text-foreground truncate">
-                            {day.OR_brine_level.toFixed(1)}
-                          </span>
+                          <span className="font-medium text-foreground truncate">OR {day.OR_brine_level.toFixed(1)}</span>
                         </div>
                       )}
-
-                      {/* OR Bund Level */}
                       {day.OR_bund_level !== undefined && (
                         <div className="flex items-center gap-0.5 text-[9px] sm:text-[10px] bg-purple-100/50 rounded px-1 py-0.5">
                           <Waves className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-purple-600 shrink-0" />
-                          <span className="font-medium text-foreground truncate">
-                            {day.OR_bund_level.toFixed(1)}m
-                          </span>
+                          <span className="font-medium text-foreground truncate">OR {day.OR_bund_level.toFixed(1)}m</span>
                         </div>
                       )}
-
-                      {/* IR Brine Level */}
                       {day.IR_brine_level !== undefined && (
                         <div className="flex items-center gap-0.5 text-[9px] sm:text-[10px] bg-cyan-100/50 rounded px-1 py-0.5">
                           <Droplets className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-cyan-600 shrink-0" />
-                          <span className="font-medium text-foreground truncate">
-                            {day.IR_brine_level.toFixed(1)}
-                          </span>
+                          <span className="font-medium text-foreground truncate">IR {day.IR_brine_level.toFixed(1)}</span>
                         </div>
                       )}
-
-                      {/* IR Bound Level */}
                       {day.IR_bound_level !== undefined && (
                         <div className="flex items-center gap-0.5 text-[9px] sm:text-[10px] bg-teal-100/50 rounded px-1 py-0.5">
                           <Waves className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-teal-600 shrink-0" />
-                          <span className="font-medium text-foreground truncate">
-                            {day.IR_bound_level.toFixed(1)}m
-                          </span>
+                          <span className="font-medium text-foreground truncate">IR {day.IR_bound_level.toFixed(1)}m</span>
                         </div>
                       )}
-
-                      {/* Lagoon Water Level */}
                       {day.lagoon !== undefined && (
                         <div className="flex items-center gap-0.5 text-[9px] sm:text-[10px] bg-emerald-100/50 rounded px-1 py-0.5">
                           <Activity className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-emerald-600 shrink-0" />
-                          <span className="font-medium text-foreground truncate">
-                            {day.lagoon.toFixed(1)}m
-                          </span>
+                          <span className="font-medium text-foreground truncate">LGN {day.lagoon.toFixed(1)}m</span>
                         </div>
                       )}
                     </div>
@@ -383,7 +371,11 @@ export function WeatherForecastCalendar({ calendarDays, isLoadingDailyData }: { 
         </div>
         <div className="flex items-center gap-1 sm:gap-2">
           <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded bg-blue-50 border border-border shrink-0"></div>
-          <span className="text-muted-foreground">Predictions</span>
+          <span className="text-muted-foreground">Weather (16d)</span>
+        </div>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded border border-dashed border-border shrink-0"></div>
+          <span className="text-muted-foreground">Params only (45d)</span>
         </div>
         <div className="hidden sm:block h-4 w-px bg-border"></div>
         <div className="flex items-center gap-1 sm:gap-2">

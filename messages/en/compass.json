@@ -1,6 +1,8 @@
 {
   "home": {
     "goodMorning": "Good morning,",
+    "goodAfternoon": "Good afternoon,",
+    "goodEvening": "Good evening,",
     "yourHarvestPlan": "Your Harvest Plan",
     "goToPlanner": "Go to Planner",
     "activeSeason": "Active Season",
@@ -13,7 +15,9 @@
     "analysis": "Analysis",
     "currentPrice": "Current Price",
     "buyerDemand": "Buyer Demand",
+    "expectedPeak": "Expected Peak",
     "strong": "Strong",
+    "now": "Now",
     "mySaltern": "My Saltern"
   },
   "planner": {
@@ -300,15 +304,24 @@
     "ideal": "Ideal",
     "moderate": "Moderate",
     "caution": "Caution",
-    "salinityGood": "Conditions are ideal for crystal growth",
-    "salinityModerate": "Moderate levels — monitor closely",
-    "salinityConcern": "Too low for harvesting right now",
-    "rainfallGood": "Low rainfall risk — safe to plan harvest",
-    "rainfallModerate": "Some rain expected — plan around it",
-    "rainfallConcern": "Heavy rain likely — delay harvest",
+    "salinityOptimal": "Optimal",
+    "salinityDeclining": "Declining",
+    "salinityCritical": "Critical",
+    "rainfallSafe": "Safe",
+    "rainfallRisky": "Risky",
+    "rainfallDangerous": "Dangerous",
+    "temperaturePerfect": "Perfect",
+    "temperatureRising": "Rising",
+    "temperatureCritical": "Critical",
+    "salinityGood": "Optimal salinity for crystal growth",
+    "salinityModerate": "Salinity declining - monitor closely",
+    "salinityConcern": "Critically low - unsuitable for harvesting",
+    "rainfallGood": "Low rainfall risk - safe to plan harvest",
+    "rainfallModerate": "Moderate rain expected - plan carefully",
+    "rainfallConcern": "Heavy rain likely - delay harvest",
     "tempGood": "Perfect evaporation conditions",
-    "tempModerate": "Slightly cool — slower drying expected",
-    "tempConcern": "Too cold — poor crystallization likely"
+    "tempModerate": "Getting warmer - watch evaporation rate",
+    "tempConcern": "Too hot - crystals may dissolve"
   },
   "layout": {
     "profile": "Profile",

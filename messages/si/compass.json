@@ -1,6 +1,8 @@
 {
   "home": {
     "goodMorning": "සුභ උදෑසනක්,",
+    "goodAfternoon": "සුභ දහවල්කට,",
+    "goodEvening": "සුභ සන්ධ්‍යාවට,",
     "yourHarvestPlan": "ඔබේ අස්වැන්න සැලැස්ම",
     "goToPlanner": "සැලසුම්කරු වෙත යන්න",
     "activeSeason": "සක්‍රිය කන්නය",
@@ -13,7 +15,9 @@
     "analysis": "විශ්ලේෂණය",
     "currentPrice": "වත්මන් මිල",
     "buyerDemand": "ගැනුම්කරු ඉල්ලුම",
+    "expectedPeak": "ඉපැයෙන ලද සිටුවීම",
     "strong": "ශක්තිමත්",
+    "now": "දැන්",
     "mySaltern": "මාගේ ලවණාගාරය"
   },
   "planner": {
@@ -300,15 +304,24 @@
     "ideal": "සුදුසුම",
     "moderate": "මධ්‍යස්ථ",
     "caution": "අවවාදය",
-    "salinityGood": "ස්ඵටික වර්ධනයට තත්ත්වයන් සුදුසුම ය",
-    "salinityModerate": "මධ්‍යස්ථ මට්ටම් — සමීපව නිරීක්ෂණය කරන්න",
-    "salinityConcern": "දැනට අස්වනු නෙළීමට ඉතා අඩුයි",
-    "rainfallGood": "අඩු වර්ෂාපතන අවදානම — අස්වනු සැලසුම් කිරීමට ආරක්ෂිතයි",
-    "rainfallModerate": "යම් වැසි අපේක්ෂිතයි — ඒ අනුව සැලසුම් කරන්න",
-    "rainfallConcern": "අධික වැසි ඇති විය හැක — අස්වනු නෙළීම ප්‍රමාද කරන්න",
+    "salinityOptimal": "සුවිධර්ශනීය",
+    "salinityDeclining": "පහතින්",
+    "salinityCritical": "විවේචනීය",
+    "rainfallSafe": "ආරක්ෂිත",
+    "rainfallRisky": "අවදානම්ජනක",
+    "rainfallDangerous": "ඉතා අවදානම්ජනක",
+    "temperaturePerfect": "පරිපූර්ණ",
+    "temperatureRising": "පැතිකිරීම",
+    "temperatureCritical": "විවේචනීය",
+    "salinityGood": "ස්ඵටික වර්ධනයට සුවිශ්ගර ලවණතාවය",
+    "salinityModerate": "ලවණතාවය පහත යමින් ඇත - සමීපව නිරීක්ෂණය කරන්න",
+    "salinityConcern": "ගණිකවලට අඩු - අස්වනු නෙළීමට අනුකූල නොවේ",
+    "rainfallGood": "අඩු වර්ෂාපතන අවදානම - අස්වනු සැලසුම් කිරීමට ආරක්ෂිතයි",
+    "rainfallModerate": "මධ්‍යම වර්ෂාපතනය අපේක්ෂිතයි - ප්‍රවේශමෙන් සැලසුම් කරන්න",
+    "rainfallConcern": "අධික වැසි ඇති විය හැක - අස්වනු නෙළීම ප්‍රමාද කරන්න",
     "tempGood": "පරිපූර්ණ වාෂ්පීකරණ තත්ත්වයන්",
-    "tempModerate": "තරමක් සිසිල් — මන්දගාමී වියළීමක් අපේක්ෂිතයි",
-    "tempConcern": "ඉතා සීතල — දුර්වල ස්ඵටිකකරණයක් ඇති විය හැක"
+    "tempModerate": "උෂ්ණත්වය ඉහළ යමින් ඇත - වාෂ්පීකරණ ශීඝ්‍රතාවය නිරීක්ෂණය කරන්න",
+    "tempConcern": "ඉතා උෂ්ණ - ස්ඵටිකයන් දෙරණු විය හැක"
   },
   "layout": {
     "profile": "පැතිකඩ",
