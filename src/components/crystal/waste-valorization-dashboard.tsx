@@ -11,6 +11,9 @@ import { ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useState, useEffect, useCallback } from "react"
 import { wasteManagementController } from "@/services/waste-management.controller"
 import type { WastePredictionData as ApiWastePredictionData, WasteAverageMetrics, QuickPredictionFormData, RecentPrediction } from "@/types/waste-management.types"
+import { downloadCsv } from "@/lib/csv-export"
+import { downloadWasteManagementReportPdf } from "@/lib/pdf-export"
+import { useToast } from "@/hooks/use-toast"
 
 // Extended type with period property for display
 interface WastePredictionData extends ApiWastePredictionData {
@@ -51,6 +54,9 @@ export function WasteValorizationDashboard() {
   const [predictionDate, setPredictionDate] = useState<string>(new Date().toISOString().split('T')[0])
   const [recentPredictions, setRecentPredictions] = useState<RecentPrediction[]>([])
   const [isLoadingRecent, setIsLoadingRecent] = useState(false)
+  const { toast } = useToast()
+  const [isExporting, setIsExporting] = useState(false)
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false)
 
   // Quick prediction form state
   const [quickForm, setQuickForm] = useState<QuickPredictionFormData>({
@@ -323,6 +329,93 @@ export function WasteValorizationDashboard() {
 
   // Display data based on mode
   const displayData = predictionMode === "quick" && quickPredictionResult ? quickPredictionResult : averages
+
+  // Derived metrics for recommendations and exports
+  const valorizationValue = Math.round(((displayData?.potential_epsom_salt || 0) * 0.5 + (displayData?.potential_potash || 0) * 0.8 + (displayData?.potential_magnesium_oil || 0) * 1.2) * 100) / 100
+  const valorizationLevel = valorizationValue === 0 ? 'None' : valorizationValue >= 5000 ? 'High' : valorizationValue >= 1000 ? 'Medium' : 'Low'
+
+  const productionEfficiencyPct = displayData.production_volume ? ((displayData.predicted_waste || 0) / displayData.production_volume) * 100 : 0
+  const solidPercentage = displayData.predicted_waste ? ((displayData.total_solid_waste || 0) / displayData.predicted_waste) * 100 : 0
+
+  const recommendations: string[] = []
+  if (valorizationLevel === 'High') {
+    recommendations.push('High valorization potential — prioritize recovery of Epsom Salt and Potash to increase revenue.')
+  } else if (valorizationLevel === 'Medium') {
+    recommendations.push('Consider piloting valorization processes to recover salts (Epsom, Potash).')
+  } else if (valorizationLevel === 'Low' && valorizationValue > 0) {
+    recommendations.push('Valorization potential is low; focus on waste reduction and process efficiency.')
+  } else {
+    recommendations.push('Detailed breakdown pending from backend — enable breakdown in API to see recoverable products.')
+  }
+
+  if (productionEfficiencyPct > 7) {
+    recommendations.push('Waste generation above expected threshold — investigate processing losses and inefficiencies.')
+  } else {
+    recommendations.push('Waste generation within acceptable thresholds for production volume.')
+  }
+
+  if ((displayData.rain_sum || 0) > 50) {
+    recommendations.push('Rainfall is high — monitor storage capacity and runoff controls.')
+  }
+
+  const handleExportData = () => {
+    setIsExporting(true)
+    try {
+      const row: Record<string, any> = {
+        date: displayData.period || new Date().toISOString().split('T')[0],
+        production_volume: displayData.production_volume || 0,
+        predicted_waste: displayData.predicted_waste || 0,
+        total_solid_waste: displayData.total_solid_waste || 0,
+        total_liquid_waste: displayData.total_liquid_waste || 0,
+        solid_waste_gypsum: displayData.solid_waste_gypsum || 0,
+        solid_waste_limestone: displayData.solid_waste_limestone || 0,
+        solid_waste_industrial_salt: displayData.solid_waste_industrial_salt || 0,
+        liquid_waste_bittern: displayData.liquid_waste_bittern || 0,
+        potential_epsom_salt: displayData.potential_epsom_salt || 0,
+        potential_potash: displayData.potential_potash || 0,
+        potential_magnesium_oil: displayData.potential_magnesium_oil || 0,
+        valorization_potential: valorizationValue
+      }
+
+      const columns = [
+        { key: 'date', header: 'Date' },
+        { key: 'production_volume', header: 'Production Volume' },
+        { key: 'predicted_waste', header: 'Predicted Waste' },
+        { key: 'total_solid_waste', header: 'Total Solid Waste' },
+        { key: 'total_liquid_waste', header: 'Total Liquid Waste' },
+        { key: 'solid_waste_gypsum', header: 'Gypsum (kg)' },
+        { key: 'solid_waste_limestone', header: 'Limestone (kg)' },
+        { key: 'solid_waste_industrial_salt', header: 'Industrial Salt (kg)' },
+        { key: 'liquid_waste_bittern', header: 'Bittern (L)' },
+        { key: 'potential_epsom_salt', header: 'Epsom Salt (kg)' },
+        { key: 'potential_potash', header: 'Potash (kg)' },
+        { key: 'potential_magnesium_oil', header: 'Magnesium Oil (L)' },
+        { key: 'valorization_potential', header: 'Valorization Potential ($)' }
+      ]
+
+      // @ts-ignore - csv utility accepts generic column descriptors
+      downloadCsv([row], columns, `waste-data-${new Date().toISOString().split('T')[0]}.csv`)
+      toast({ title: 'Exported', description: 'CSV downloaded' })
+    } catch (err) {
+      console.error(err)
+      toast({ title: 'Error', description: 'Failed to export data', variant: 'destructive' })
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handleViewReport = async () => {
+    try {
+      setIsGeneratingReport(true)
+      await downloadWasteManagementReportPdf(displayData, displayData.period || undefined)
+      toast({ title: 'Report', description: 'PDF downloaded' })
+    } catch (err) {
+      console.error(err)
+      toast({ title: 'Error', description: 'Failed to generate report', variant: 'destructive' })
+    } finally {
+      setIsGeneratingReport(false)
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -952,7 +1045,7 @@ export function WasteValorizationDashboard() {
           )}
           
           {/* Solid Waste Breakdown - Only show if data exists */}
-          {displayData.total_solid_waste && displayData.total_solid_waste > 0 && (
+          {displayData?.total_solid_waste && displayData.total_solid_waste > 0 && (
           <Card className="p-4">
             <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
               <Beaker className="h-4 w-4 text-purple-600" />
@@ -1015,7 +1108,7 @@ export function WasteValorizationDashboard() {
           )}
 
           {/* Liquid Waste & Recoverable Products - Only show if data exists */}
-          {displayData.total_liquid_waste && displayData.total_liquid_waste > 0 && (
+          {displayData?.total_liquid_waste && displayData.total_liquid_waste > 0 && (
           <Card className="p-4">
             <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
               <Droplets className="h-4 w-4 text-amber-600" />
@@ -1144,11 +1237,11 @@ export function WasteValorizationDashboard() {
             <div className="flex items-start gap-2 p-3 bg-success/10 border border-success/20 rounded-lg text-xs">
               <CheckCircle2 className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-medium text-foreground">High Valorization Opportunity</p>
+                <p className="font-medium text-foreground">{valorizationLevel === 'None' ? 'Valorization Data Pending' : `${valorizationLevel} Valorization Opportunity`}</p>
                 <p className="text-muted-foreground mt-0.5">
-                  {predictionMode === "quick" 
-                    ? "Your inputs predict significant recoverable products from bittern"
-                    : "Current conditions favor efficient waste processing and recovery"}
+                  {valorizationLevel === 'None'
+                    ? 'Detailed breakdown not available from backend.'
+                    : `Estimated recoverable value: $${valorizationValue.toLocaleString()}`}
                 </p>
               </div>
             </div>
@@ -1158,10 +1251,11 @@ export function WasteValorizationDashboard() {
               <div>
                 <p className="font-medium text-foreground">Production Efficiency</p>
                 <p className="text-muted-foreground mt-0.5">
-                  Waste generation is {displayData.predicted_waste && displayData.production_volume
-                    ? ((displayData.predicted_waste / displayData.production_volume) * 100 < 7 ? 'within' : 'above')
+                  Waste generation is {(productionEfficiencyPct || 0) > 0
+                    ? (productionEfficiencyPct < 7 ? 'within' : 'above')
                     : 'within'} optimal thresholds for the production volume
                 </p>
+                <p className="text-xs text-muted-foreground mt-1">Current: {productionEfficiencyPct ? productionEfficiencyPct.toFixed(2) : '0.00'}%</p>
               </div>
             </div>
 
@@ -1179,12 +1273,12 @@ export function WasteValorizationDashboard() {
           </div>
 
           <div className="flex gap-2 mt-4 pt-4 border-t border-border">
-            <Button size="sm" className="flex-1 text-xs h-9">
+            <Button size="sm" className="flex-1 text-xs h-9" onClick={handleViewReport} disabled={isGeneratingReport}>
               <RecycleIcon className="h-3.5 w-3.5 mr-1.5" />
-              View Report
+              {isGeneratingReport ? 'Generating...' : 'View Report'}
             </Button>
-            <Button size="sm" variant="outline" className="flex-1 text-xs h-9">
-              Export Data
+            <Button size="sm" variant="outline" className="flex-1 text-xs h-9" onClick={handleExportData} disabled={isExporting}>
+              {isExporting ? 'Exporting...' : 'Export Data'}
             </Button>
           </div>
         </Card>
