@@ -1,33 +1,26 @@
 "use client";
 
-import PageHeader from "@/components/vision/PageHeader";
 import { LiveCameraView } from "@/components/vision/dashboard/LiveCameraView";
 import { PurityGauge } from "@/components/vision/dashboard/PurityGauge";
 import { BatchStatsCard } from "@/components/vision/dashboard/BatchStatsCard";
-import { BatchHistoryPanel } from "@/components/vision/dashboard/BatchHistoryPanel";
+// import { BatchHistoryPanel } from "@/components/vision/dashboard/BatchHistoryPanel";
+import { LabAgentBanner } from "@/components/vision/lab-agent-banner";
+import { useLabAgentHealth } from "@/hooks/use-lab-agent-health";
 
 export default function CameraMonitoringPage() {
+  const labAgent = useLabAgentHealth();
+  // Treat "probe in flight" (null) as available — avoids a flash of the
+  // install banner on first paint.
+  const agentDown = labAgent.available === false;
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Real-Time Camera Monitoring"
-        description="Live camera feed with AI-powered salt purity detection"
-      />
+      {agentDown && <LabAgentBanner />}
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Camera Feed - 2/3 width */}
-        <div className="lg:col-span-2">
-          <LiveCameraView />
-        </div>
+      <LiveCameraView />
 
-        {/* Sidebar - 1/3 width */}
-        <div className="space-y-6">
-          <PurityGauge />
-          <BatchHistoryPanel />
-        </div>
-      </div>
+      <PurityGauge />
 
-      {/* Stats Cards - Full width */}
       <BatchStatsCard />
     </div>
   );

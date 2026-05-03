@@ -74,7 +74,8 @@ const LAB_PLAN = {
     "AI-powered quality inspection",
     "Real-time camera monitoring",
     "Batch purity reports",
-    "Detection history & analytics",
+    // "Detection history & analytics" — removed per marketing (batches only)
+    "Batch history & analytics",
   ],
 };
 

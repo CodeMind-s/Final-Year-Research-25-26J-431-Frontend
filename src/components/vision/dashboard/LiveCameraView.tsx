@@ -3,12 +3,20 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useVisionCamera } from "@/hooks/use-vision-camera";
 import { useVisionWebSocket } from "@/hooks/use-vision-websocket";
+import { useLabAgentHealth } from "@/hooks/use-lab-agent-health";
 import { useVisionDetectionStore } from "@/stores/vision-detection-store";
+import { useToast } from "@/hooks/use-toast";
+import { InferenceStatusPill } from "@/components/vision/inference-status-pill";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Square, Play, Wifi, Cpu, Plus, Check, RefreshCw } from "lucide-react";
+import { Camera, CameraOff, Square, Play, Wifi, Cpu, Plus, Check, RefreshCw } from "lucide-react";
 
-const CAPTURE_SIZE = 320;
+// Capture geometry matches the 4:3 display aspect ratio so detection boxes
+// (returned in 0-1 normalized coords by the model) overlay correctly. The
+// preprocessing service in the agent stretches whatever it receives to the
+// model's 320×320 input via sharp's fit:'fill', so a 4:3 capture is fine.
+const CAPTURE_WIDTH = 320;
+const CAPTURE_HEIGHT = 240;
 const FRAME_INTERVAL = 200;
 
 export function LiveCameraView() {
@@ -22,20 +30,57 @@ export function LiveCameraView() {
     canvasRef,
     isReady: isCameraReady,
     error: cameraError,
+    hasDevice: hasCameraDevice,
     startCamera,
     stopCamera,
     captureFrame,
-  } = useVisionCamera({ width: 320, height: 320 });
+  // Request a high-res stream from the browser so the displayed preview is
+  // sharp. The capture canvas downsamples to CAPTURE_WIDTH×CAPTURE_HEIGHT
+  // before frames are sent to the agent (see drawImage in captureFrame).
+  } = useVisionCamera();
 
   const {
     isConnected,
     isStreaming,
+    agentAvailable,
+    connectError,
     startStream,
     stopStream,
     sendFrame,
     startBatch,
     endBatch,
   } = useVisionWebSocket();
+
+  const labAgent = useLabAgentHealth();
+  const inferenceSource = labAgent.available === false ? "unavailable" : "local";
+
+  const { toast } = useToast();
+  const lastConnectErrorRef = useRef<string | null>(null);
+
+  // Toast on the first connect_error transition. Without the ref guard the
+  // toast would fire on every reconnect attempt during a long outage.
+  useEffect(() => {
+    if (connectError && connectError !== lastConnectErrorRef.current) {
+      lastConnectErrorRef.current = connectError;
+      toast({
+        variant: "destructive",
+        title: "Lost connection to Lab Agent",
+        description: "Frames paused — retrying automatically. Open the agent from your system tray if it stopped.",
+      });
+    }
+    if (!connectError) {
+      lastConnectErrorRef.current = null;
+    }
+  }, [connectError, toast]);
+
+  // Stop pushing frames into a dead pipe if the agent goes from healthy →
+  // unhealthy mid-session (e.g., user quits via tray).
+  useEffect(() => {
+    if (agentAvailable === false && captureIntervalRef.current) {
+      clearInterval(captureIntervalRef.current);
+      captureIntervalRef.current = null;
+    }
+  }, [agentAvailable]);
 
   const {
     currentResult,
@@ -253,18 +298,32 @@ export function LiveCameraView() {
                 Model Ready
               </div>
             )}
+            {hasCameraDevice !== null && (
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${hasCameraDevice
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                : "bg-red-50 text-red-700 border border-red-200"
+              }`}>
+                {hasCameraDevice ? (
+                  <Camera className="h-3.5 w-3.5 text-emerald-500" />
+                ) : (
+                  <CameraOff className="h-3.5 w-3.5 text-red-500" />
+                )}
+                {hasCameraDevice ? "Camera Attached" : "No Camera"}
+              </div>
+            )}
             {isStreaming && (
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-cyan-50 text-cyan-700 border border-cyan-200">
                 {fps} FPS
               </div>
             )}
+            <InferenceStatusPill source={inferenceSource} version={labAgent.version} />
           </div>
         </div>
       </CardHeader>
       <CardContent className="p-6">
         <div
           ref={containerRef}
-          className="relative aspect-square bg-slate-900 rounded-xl overflow-hidden mx-auto max-w-[800px] shadow-inner"
+          className="relative aspect-[4/3] bg-slate-900 rounded-xl overflow-hidden mx-auto max-w-[1000px] shadow-inner"
         >
           <video
             ref={videoRef}
@@ -276,8 +335,8 @@ export function LiveCameraView() {
 
           <canvas
             ref={canvasRef}
-            width={CAPTURE_SIZE}
-            height={CAPTURE_SIZE}
+            width={CAPTURE_WIDTH}
+            height={CAPTURE_HEIGHT}
             className="hidden"
           />
 
@@ -387,7 +446,7 @@ export function LiveCameraView() {
             {!isStreaming ? (
               <Button
                 onClick={handleStartDetection}
-                disabled={!isConnected || !isModelLoaded}
+                disabled={!isConnected || !isModelLoaded || agentAvailable === false}
                 size="lg"
                 className="gap-2 px-8"
               >
@@ -400,7 +459,7 @@ export function LiveCameraView() {
                   <>
                     <Button
                       onClick={handleStartBatch}
-                      disabled={!isStreaming}
+                      disabled={!isStreaming || agentAvailable === false}
                       size="lg"
                       className="gap-2 px-6 bg-emerald-600 hover:bg-emerald-700"
                     >
